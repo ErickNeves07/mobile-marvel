@@ -373,3 +373,9 @@
 - Erick relatou sete falhas no build do telefone; a primeira era `AccessDeniedException` em `android-app/app/build/generated/source/buildConfig` dentro do OneDrive. A spec 031 redirecionou o build direto para `%LOCALAPPDATA%` por checkout, mantendo os scripts de validação/release na pasta temporária declarada por `RI_VALIDATION_DIR`.
 - O Wrapper direto passou `testDebugUnitTest`, `lintDebug`, `assembleDebug` (50 tarefas); `generateDebugBuildConfig` concluiu e os artefatos ficaram fora do OneDrive. `validate-local.ps1 -Target android` passou (77 tarefas). `build-release.ps1` com URL Render passou lint, zipalign e assinatura v2; o SHA-256 do APK permaneceu `3D6FFAA8FFE241737B5BFC01C0929E1BB03A9495EDD8D597F7FD49AD0C232ACA`.
 - Android Studio UI e telefone físico ainda precisam de verificação pelo Erick; o passo imediato é sincronizar o Gradle e executar `app` novamente. Evidência detalhada em `specs/031-android-studio-build-output/evidence.md`.
+
+## APK 0.1.0 antigo no telefone — 2026-10-04
+
+- Erick relatou a tela antiga “Fundação Android pronta para a próxima ruptura”. O texto não existe no source 0.2.0; ADB mostrou o telefone conectado com o package correto, mas `versionName=0.1.0`, `versionCode=1`.
+- O certificado do APK antigo coincidiu com a chave debug local e diferiu da release. Gerei debug 0.2.0 com URL Render, validei certificado/versão/BuildConfig e instalei com `adb install -r` sem apagar dados. `dumpsys package` confirmou versão 0.2.0 e UIAutomator mostrou a Coleção com filtros, personagem e navegação; a tela antiga não apareceu. Logcat recente sem erro fatal do app.
+- Documentado que Build Project apenas compila e que Run `app` atualiza o telefone. Teste físico completo de gameplay e retratos continua pendente.

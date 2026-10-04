@@ -2,6 +2,12 @@
 
 Última atualização: 2026-10-04
 
+## Telefone físico atualizado de 0.1.0 para 0.2.0 — 2026-10-04
+
+- A tela “Fundação Android pronta para a próxima ruptura” vinha do APK `0.1.0` ainda instalado no aparelho, mesmo após o build local do projeto `0.2.0`. A assinatura desse APK antigo corresponde à chave debug local; a release usa outra assinatura.
+- Gerei debug `0.2.0` com URL HTTPS do Render e instalei por cima via `adb install -r`, sem desinstalar o app. O aparelho confirmou `versionCode` 2, `MainActivity` abriu, e UIAutomator leu Coleção, filtros e cinco abas; a frase antiga sumiu. Teste completo de gameplay e retratos no telefone ainda não foi feito.
+- Build Project no Android Studio só compila; para atualizar o celular, usar Run `app`. Manter a assinatura debug para futuras atualizações que preservem dados; instalar a release assinada por outra chave exige fluxo de migração ou desinstalação.
+
 ## Correção de build direto no Android Studio — 2026-10-04
 
 - Erick reportou `AccessDeniedException` em `:app:generateDebugBuildConfig` na saída `android-app/app/build` sincronizada pelo OneDrive. A spec 031 mudou o build Gradle comum para `%LOCALAPPDATA%\RupturaInfinita\gradle-builds\<id-do-checkout>`, preservando `RI_VALIDATION_DIR` para scripts existentes. A pasta antiga foi mantida intacta.

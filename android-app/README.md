@@ -16,7 +16,11 @@ O código-fonte agora inclui: desafio diário e recompensas locais, campanhas X-
 
 Abra `android-app` como projeto no Android Studio, sincronize o Gradle e execute a configuração `app` no telefone. O build direto agora grava os arquivos gerados em `%LOCALAPPDATA%\RupturaInfinita\gradle-builds\<id-do-checkout>`, fora do OneDrive. O APK debug fica na subpasta `app\outputs\apk\debug\app-debug.apk`. Não é necessário limpar a antiga pasta `android-app\app\build` para usar a nova saída.
 
-Se a sincronização já estava aberta antes desta correção, use **File > Sync Project with Gradle Files** e execute o build novamente. Para testar o backend publicado no telefone, use o APK release assinado em `../artifacts/Marvel-Ruptura-Infinita-release.apk`; o debug comum do Android Studio não recebe a URL de produção sem `-PriApiBaseUrl=https://mobile-marvel-8qex.onrender.com`.
+**Build Project** apenas compila; use **Run 'app'** para atualizar o aplicativo instalado. Confira a versão nas informações do app no telefone: esta implementação é `0.2.0` (`versionCode` 2). A tela com “Fundação Android pronta para a próxima ruptura” é da versão `0.1.0` antiga.
+
+Se a sincronização já estava aberta antes desta correção, use **File > Sync Project with Gradle Files** e execute o build novamente. Para testar o backend publicado no telefone, use o APK release assinado em `../artifacts/Marvel-Ruptura-Infinita-release.apk` quando não houver uma instalação debug a preservar. O debug comum do Android Studio não recebe a URL de produção sem `-PriApiBaseUrl=https://mobile-marvel-8qex.onrender.com`.
+
+Se houver uma versão debug instalada, o APK release usa outra assinatura e não pode substituí-la preservando os dados. Para testar o Render sem trocar a assinatura, gere o debug com `-PriApiBaseUrl=https://mobile-marvel-8qex.onrender.com` e atualize com `adb install -r <caminho-do-app-debug.apk>`.
 
 ## Verificação no Windows
 
