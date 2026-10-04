@@ -1,5 +1,8 @@
 # Registro de decisões
 
+- **DEC-082 | 2026-10-04 | Gemini é o provedor principal da narrativa Deadpool quando configurado no backend.** A chave local Gemini respondeu; a Groq local retornou HTTP 403. O backend tenta Gemini, depois Groq e depois texto local, sem permitir que IA determine regras/recompensas e sem distribuir segredos no APK. O Render só confirma a operação depois de receber `GEMINI_API_KEY` no ambiente privado e publicar a revisão.
+- **DEC-083 | 2026-10-04 | Combate local usa escolhas anunciadas e dificuldade crescente.** O especial recebe nome authored da equipe, defesa não causa dano ao chefe e o poder das variantes equipadas afeta o resultado. O mapa final de capítulos, a nova recompensa de Manopla e o consumo exato continuam sujeitos a Q-048–Q-050.
+
 - **DEC-060 | 2026-10-02, parcialmente substituída por DEC-061 | O preview visual usa somente estado real do Android.** Nexus e Forja mostram contagem de Joias completas lida do inventário local, sem nível/créditos/XP demonstrativos do Lovable. A preservação de merge 3:1 foi superada pela autorização posterior de Erick; recompensas continuam pendentes do contrato Q-040.
 - **DEC-061 | 2026-10-02 | Erick autorizou adotar mecânicas do Lovable.** A fusão deve seguir 2:1 para peças iguais da mesma Joia/estágio. Recompensas e compensação de fusões passadas têm contradições/lacunas e são tratadas na spec 028 com perguntas explícitas; estado de demonstração não vira progresso real.
 - **DEC-062 | 2026-10-02 | Referência Lovable renderizada obtida em Chrome headless.** Emulação móvel 390 × 844 capturou as rotas públicas sem autenticação. A verificação G4 pode comparar telas lado a lado; fonte editável privado permanece indisponível.

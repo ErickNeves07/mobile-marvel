@@ -1,5 +1,14 @@
 # Dúvidas abertas
 
+## Specs 033–035 — atualização 2026-10-04
+
+- **Q-045 — Resolvida na direção geral:** Erick definiu que a Manopla completa oferece escolha entre novo personagem não possuído e próximo patamar de variante possuída. O consumo exato dos itens intermediários segue Q-050.
+- **Q-047 — Diagnóstico atualizado:** a chamada real autorizada à rota publicada do Deadpool retornou `fallback=true`. Uma chamada Groq local com a chave existente retornou HTTP 403; a chave Gemini isolada em Downloads listou modelos e respondeu a `gemini-3.5-flash-lite` com HTTP 200. O adapter Gemini local já produziu `fallback=false`; Render ainda precisa receber `GEMINI_API_KEY` no painel privado.
+- **Q-048 — CRÍTICA, pergunta enviada:** Ao completar a Manopla com uma primeira vitória de batalha/diária, os quatro Fragmentos antigos da missão deixam de ser pagos? Créditos/XP continuam? Se já houver seis Joias completas, o prêmio excedente é descartado sem reserva? Não alterar recompensa persistida antes da resposta.
+- **Q-049 — CRÍTICA, pergunta enviada:** “outras diversas batalhas” significa substituir as seis atuais pelos nove capítulos publicados no Lovable ou acrescentá-los? O mapa Lovable tem Rei do Crime, Ultron, Wakanda, Dormammu, Ronan, Magneto, Annihilus, Destino e Thanos. Não redistribuir pacotes/gates sem resposta.
+- **Q-050 — CRÍTICA, pergunta enviada:** “Manopla esvazia” significa consumir uma Joia Completa de cada tipo, preservando Estilhaços, Fragmentos e Núcleos, ou apagar também essas peças? Não implementar o consumo até resposta.
+- **Q-051 — CRÍTICA, pergunta enviada:** a ficha Comic Vine oferece só uma imagem; capas de edições associadas podem ser distintas, mas nem sempre mostram somente o herói. Erick aceita capas com título/crédito da edição como imagem da variante ou prefere outra fonte de retratos isolados? Não atribuir capa sem confirmação.
+
 ## Spec 032 — revisão física de gameplay e design (2026-10-04)
 
 - **Q-045 — CRÍTICA, pergunta enviada:** Erick definiu Homem-Aranha, Wolverine e Tocha Humana como trio inicial. Como os outros 18 personagens gerais passam a ser possuídos? O app atual não tem aquisição de personagens; só variantes, e batalha restrita ao trio inicial sem uma via de obtenção impediria ampliar a equipe. Não criar gatilho de desbloqueio ou migração antes da resposta.

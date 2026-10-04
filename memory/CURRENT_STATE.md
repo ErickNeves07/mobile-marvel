@@ -2,6 +2,12 @@
 
 Última atualização: 2026-10-04
 
+## Atualização 2026-10-04 — IA Gemini, combate tático e filtro
+
+- A rota Deadpool no Render retornou `fallback=true` numa chamada real. A chave Groq local retornou HTTP 403; a chave Gemini de `Downloads/.env` funcionou com `gemini-3.5-flash-lite` (HTTP 200). O backend agora prioriza Gemini, tenta Groq e só então usa fallback. Testes backend **53/53** passaram; chamada local retornou `fallback=false`. Código foi enviado a `origin/main` em `970c5c6` sem segredo. O Render ainda mostra `/ready` antigo, sem campo `gemini`; Erick precisa configurar `GEMINI_API_KEY` no painel privado e publicar a revisão para validar a IA no telefone.
+- O Android tem filtro **Desbloqueados** no Catálogo, especial authored conforme a equipe e seis batalhas com intenções anunciadas, seis turnos, derrota possível e dificuldade crescente. Defender continuamente perde. `testDebugUnitTest`, `lintDebug`, `assembleDebug`, `assembleDebugAndroidTest` e **27/27** testes instrumentados no AVD passaram após a última edição. Commit `018145b` foi enviado a `origin/main`. O celular físico não recebeu este build parcial.
+- Regras pendentes Q-048–Q-051: substituição dos quatro Fragmentos por Manopla completa, mapa final de capítulos, consumo exato dos itens e aceitação de capas de edições como imagem distinta. A pergunta consolidada foi enviada ao Erick. Até a resposta, não alterar economia, banco de progressão ou representação editorial. A instalação final no mesmo aparelho `C6OFVWYD4DZTBA5H` permanece após essas mudanças, testes e incremento de versão.
+
 ## Spec 032 — recuperação de gameplay e design (em andamento, 2026-10-04)
 
 - Erick tentou instalar e recebeu 0.1.0 porque havia dois APKs antigos nas saídas de build dentro do projeto; ambos foram identificados por `aapt` e removidos individualmente. Telefone `C6OFVWYD4DZTBA5H` foi atualizado para debug 0.3.0 com `adb install -r`, sem limpar dados (`firstInstallTime` preservado). A nova navegação abriu e a frase antiga não apareceu. APK debug normal sem `testOnly` está em `artifacts/Marvel-Ruptura-Infinita-debug-0.3.0.apk`, 6.202.280 bytes, SHA-256 `BB7A14F48B5407AEE3B81E4F586D809C424DE34EA6B1EE264D0FCDC978D4E639`. Próximo teste físico: imagens, batalha, merge e variantes; não rodar instrumentação mutável no aparelho.

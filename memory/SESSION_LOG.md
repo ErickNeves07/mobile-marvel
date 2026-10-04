@@ -1,5 +1,12 @@
 # Log de sessões
 
+## 2026-10-04 — Deadpool Gemini e combate tático
+
+- Diagnóstico live: Groq configurado no Render retornava fallback; chave Groq local respondeu HTTP 403. Chave Gemini em `Downloads/.env` respondeu com `gemini-3.5-flash-lite`. Backend prioriza Gemini com fallback Groq/local; 53 testes passaram e POST local respondeu `fallback=false`. Commit `970c5c6` enviado ao GitHub. Render `/ready` ainda é da revisão anterior e precisa de `GEMINI_API_KEY` privado e deploy.
+- Android: filtro de possuídos no Catálogo, especiais authored pela equipe, batalha de seis rodadas com intenções, derrota por defesa repetida e dificuldade 1–6. JVM/lint/build passaram; 27 testes instrumentados passaram somente no AVD. Commit `018145b` enviado ao GitHub. Imagens live de Magneto, Homem-Aranha e Tocha Humana responderam HTTP 200; melhoria de imagens por variante aguarda Q-051.
+- Q-048–Q-051 e configuração do Render foram pedidos ao Erick. Nenhuma regra econômica ou capítulo foi adivinhado. O telefone conectado continua com debug 0.3.0; instalar a revisão final somente após respostas, implementação, validação e incremento de versão.
+
+
 ## 2026-10-04 — correção da instalação antiga no celular
 
 - O aparelho reconectou com `versionCode=1`/`versionName=0.1.0`; `aapt` identificou dois APKs 0.1.0 esquecidos em `android-app/app/build` e `.validation-output`. O APK release em `artifacts` estava correto em 0.3.0.
