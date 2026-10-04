@@ -26,6 +26,73 @@ import org.junit.runner.RunWith;
 
 @RunWith(AndroidJUnit4.class)
 public final class LovableScreensTest {
+    @Test public void nexusAndDailyChallengeRenderDedicatedVisualSections() throws Exception {
+        Instrumentation instrumentation = InstrumentationRegistry.getInstrumentation();
+        MainActivity activity = (MainActivity) instrumentation.startActivitySync(
+                new Intent(instrumentation.getTargetContext(), MainActivity.class)
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+        Method select = MainActivity.class.getDeclaredMethod("selectDestination", AppDestination.class);
+        select.setAccessible(true);
+        instrumentation.runOnMainSync(() -> invoke(select, activity, AppDestination.NEXUS));
+        Thread.sleep(700);
+        instrumentation.waitForIdleSync();
+        View root = activity.getWindow().getDecorView();
+        assertTrue(hasText(root, "Reed Richards"));
+        assertTrue(hasText(root, "Dr. Estranho"));
+        assertTrue(findConstellation(root) != null);
+        instrumentation.runOnMainSync(() -> capture(activity, root, "nexus-032.png"));
+        Method daily = MainActivity.class.getDeclaredMethod("showDailyChallengeScreen");
+        daily.setAccessible(true);
+        instrumentation.runOnMainSync(() -> invoke(daily, activity));
+        Thread.sleep(600);
+        instrumentation.waitForIdleSync();
+        assertTrue(hasText(root, "DESAFIO DIÁRIO"));
+        assertTrue(hasText(root, "Seis tentativas. Eu sei a resposta"));
+        TextView submit = findText(root, "Enviar palpite");
+        assertTrue(submit != null && !submit.isEnabled());
+        instrumentation.runOnMainSync(() -> capture(activity, root, "daily-032.png"));
+        instrumentation.runOnMainSync(activity::finish);
+    }
+
+    @Test public void campaignCardsOpenOwnedRosterChooserWithEditorialPortraits() throws Exception {
+        Instrumentation instrumentation = InstrumentationRegistry.getInstrumentation();
+        MainActivity activity = (MainActivity) instrumentation.startActivitySync(
+                new Intent(instrumentation.getTargetContext(), MainActivity.class)
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+        Method select = MainActivity.class.getDeclaredMethod("selectDestination", AppDestination.class);
+        select.setAccessible(true);
+        instrumentation.runOnMainSync(() -> invoke(select, activity, AppDestination.CAMPAIGNS));
+        Thread.sleep(800);
+        instrumentation.waitForIdleSync();
+        View root = activity.getWindow().getDecorView();
+        assertTrue(hasText(root, "CAPÍTULO 01"));
+        assertTrue(hasText(root, "CAPÍTULO 06"));
+        assertTrue(countPortraits(root) == 6);
+        TextView enter = findText(root, "REJOGAR BATALHA");
+        if (enter == null) enter = findText(root, "ESCOLHER EQUIPE E BATALHAR");
+        assertTrue(enter != null);
+        TextView firstBattle = enter;
+        instrumentation.runOnMainSync(firstBattle::performClick);
+        instrumentation.waitForIdleSync();
+        assertTrue(hasText(root, "SELECIONADOS  3/3"));
+        assertTrue(hasText(root, "Homem-Aranha"));
+        assertTrue(hasText(root, "Wolverine"));
+        assertTrue(hasText(root, "Tocha Humana"));
+        assertTrue(!hasText(root, "Jean Grey"));
+        assertTrue(countPortraits(root) == 3);
+        instrumentation.runOnMainSync(() -> capture(activity, root, "team-chooser.png"));
+        instrumentation.runOnMainSync(() -> findText(root, "INICIAR BATALHA").performClick());
+        for (int attempt = 0; attempt < 10 && !hasText(root, "MAGNETO"); attempt++) {
+            Thread.sleep(500);
+            instrumentation.waitForIdleSync();
+        }
+        instrumentation.runOnMainSync(() -> capture(activity, root, "battle-after-team-chooser.png"));
+        assertTrue(hasText(root, "MAGNETO"));
+        assertTrue(countPortraits(root) == 4);
+        instrumentation.runOnMainSync(() -> capture(activity, root, "battle-with-portraits.png"));
+        instrumentation.runOnMainSync(activity::finish);
+    }
+
     @Test public void collectionHasPortraitSlotsAndLoadingOrAttribution() throws Exception {
         Instrumentation instrumentation = InstrumentationRegistry.getInstrumentation();
         MainActivity activity = (MainActivity) instrumentation.startActivitySync(
@@ -38,14 +105,8 @@ public final class LovableScreensTest {
         instrumentation.waitForIdleSync();
         View root = activity.getWindow().getDecorView();
         assertTrue(hasText(root, "Homem de Ferro"));
-        assertTrue(countPortraits(root) >= 105);
-        instrumentation.runOnMainSync(() -> findText(root, "Origem").performClick());
-        instrumentation.waitForIdleSync();
         assertTrue(countPortraits(root) == 21);
-        instrumentation.runOnMainSync(() -> findText(root, "Todos patamares").performClick());
-        instrumentation.waitForIdleSync();
-        assertTrue(countPortraits(root) >= 105);
-        assertTrue(hasText(root, "Retrato indisponível offline")
+        assertTrue(hasText(root, "Retrato indisponível")
                 || hasText(root, "Retrato editorial · Comic Vine")
                 || hasText(root, "Carregando retrato editorial"));
         TextView firstName = findText(root, "Homem de Ferro");
@@ -59,6 +120,18 @@ public final class LovableScreensTest {
             }
             assertTrue("The published backend did not load a Comic Vine portrait",
                     hasText(firstCard, "Retrato editorial · Comic Vine"));
+            for (String name : new String[]{"Homem-Aranha", "Tocha Humana"}) {
+                TextView label = findText(root, name);
+                assertTrue(label != null);
+                View characterCard = (View) label.getParent();
+                for (int attempt = 0; attempt < 35
+                        && !hasText(characterCard, "Retrato editorial · Comic Vine"); attempt++) {
+                    Thread.sleep(1000);
+                    instrumentation.waitForIdleSync();
+                }
+                assertTrue(name + " portrait did not load", hasText(characterCard,
+                        "Retrato editorial · Comic Vine"));
+            }
         }
         instrumentation.runOnMainSync(() -> capture(activity, root, "collection-portraits.png"));
         instrumentation.runOnMainSync(firstCard::performClick);
@@ -69,7 +142,7 @@ public final class LovableScreensTest {
         instrumentation.runOnMainSync(() -> capture(activity, root, "collection-detail-live.png"));
         instrumentation.runOnMainSync(() -> findText(root, "Voltar à Coleção").performClick());
         instrumentation.waitForIdleSync();
-        assertTrue(countPortraits(root) >= 105);
+        assertTrue(countPortraits(root) == 21);
         instrumentation.runOnMainSync(() -> findText(root, "Comparar").performClick());
         instrumentation.waitForIdleSync();
         assertTrue(hasText(root, "COMPARAR VARIANTES"));
@@ -128,7 +201,7 @@ public final class LovableScreensTest {
                 LovableBattle.class, CampaignState.class);
         battle.setAccessible(true);
         CampaignState campaign = new CampaignState("xmen", 1,
-                Arrays.asList("wolverine", "jean-grey", "professor-xavier"));
+                Arrays.asList("homem-aranha", "wolverine", "tocha-humana"));
         try (ForgeRepository repository = new ForgeRepository(activity)) {
             repository.loadCampaign("xmen", campaign.teamIds);
         }
@@ -181,12 +254,12 @@ public final class LovableScreensTest {
                 LovableBattle.class, CampaignState.class);
         battle.setAccessible(true);
         CampaignState campaign = new CampaignState("xmen", 1,
-                Arrays.asList("ciclope", "jean-grey", "professor-xavier"));
+                Arrays.asList("homem-aranha", "wolverine", "tocha-humana"));
         instrumentation.runOnMainSync(() -> invoke(battle, activity, new LovableBattle(29), campaign));
         instrumentation.waitForIdleSync();
-        assertTrue(hasText(root, "Ciclope"));
-        assertTrue(hasText(root, "Jean Grey"));
-        assertTrue(hasText(root, "Professor Xavier"));
+        assertTrue(hasText(root, "Homem-Aranha"));
+        assertTrue(hasText(root, "Wolverine"));
+        assertTrue(hasText(root, "Tocha Humana"));
         for (String choice : new String[]{"DESESTABILIZAR", "INVESTIR", "DESESTABILIZAR", "INVESTIR"}) {
             instrumentation.runOnMainSync(() -> findText(root, choice).performClick());
             Thread.sleep(950);
@@ -199,7 +272,7 @@ public final class LovableScreensTest {
         instrumentation.runOnMainSync(() -> findText(root, "TENTAR NOVAMENTE").performClick());
         instrumentation.waitForIdleSync();
         assertTrue(hasText(root, "ESTILHAÇOS ORBITAIS"));
-        assertTrue(hasText(root, "Ciclope"));
+        assertTrue(hasText(root, "Homem-Aranha"));
         instrumentation.runOnMainSync(activity::finish);
     }
 

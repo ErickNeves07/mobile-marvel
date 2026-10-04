@@ -33,7 +33,7 @@ final class BackendClient {
         HttpURLConnection connection = null;
         try {
             connection = (HttpURLConnection) new URL(baseUrl + path).openConnection();
-            connection.setRequestMethod("GET"); connection.setConnectTimeout(8_000); connection.setReadTimeout(12_000);
+            connection.setRequestMethod("GET"); connection.setConnectTimeout(15_000); connection.setReadTimeout(45_000);
             connection.setRequestProperty("Accept", "application/json");
             int code = connection.getResponseCode();
             InputStream stream = code >= 200 && code < 300 ? connection.getInputStream() : connection.getErrorStream();
@@ -90,7 +90,7 @@ final class BackendClient {
         HttpURLConnection connection = null;
         try {
             connection = (HttpURLConnection) new URL(baseUrl + path).openConnection();
-            connection.setRequestMethod("POST"); connection.setConnectTimeout(8_000); connection.setReadTimeout(12_000);
+            connection.setRequestMethod("POST"); connection.setConnectTimeout(15_000); connection.setReadTimeout(45_000);
             connection.setDoOutput(true); connection.setRequestProperty("Accept", "application/json");
             connection.setRequestProperty("Content-Type", "application/json; charset=utf-8");
             byte[] body = payload.toString().getBytes(StandardCharsets.UTF_8);

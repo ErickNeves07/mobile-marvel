@@ -1,6 +1,6 @@
 package com.erickbarbosa.rupturainfinita;
 
-/** Authored four-round Magneto scene from the published Lovable prototype. */
+/** Interactive four-round encounter with an authored mission and chosen team. */
 final class LovableBattle {
     enum Choice { ATTACK, DEFEND, CONTROL }
 
@@ -18,10 +18,18 @@ final class LovableBattle {
             Choice.DEFEND, Choice.CONTROL, Choice.ATTACK, Choice.CONTROL
     };
     private final int teamPower;
+    final BattleMission mission;
 
     LovableBattle(int teamPower) {
+        this(teamPower, BattleMission.forMission("xmen", 1));
+    }
+
+    LovableBattle(int teamPower, BattleMission mission) {
         if (teamPower <= 0) throw new IllegalArgumentException("Team power must be positive");
+        if (mission == null) throw new IllegalArgumentException("Mission is required");
         this.teamPower = teamPower;
+        this.mission = mission;
+        feedback = mission.opponentName + " prepara o confronto. Escolha a resposta da equipe.";
     }
 
     int round;
@@ -30,7 +38,7 @@ final class LovableBattle {
     int charge = 20;
     boolean victory;
     boolean defeat;
-    String feedback = "Magneto prepara o campo magnético. Escolha a resposta da equipe.";
+    String feedback;
     int lastBossDamage;
     int lastTeamDamage;
     boolean lastCounter;
@@ -38,9 +46,27 @@ final class LovableBattle {
     boolean canChoose() { return round < INTENTS.length && !victory && !defeat; }
     boolean canSpecial() { return round == INTENTS.length && charge == 100 && !victory && !defeat; }
 
+    String intent() {
+        if (mission.counterOffset == 0) return INTENTS[round];
+        String[] phases = {"Investida inicial", "Defesa reforçada",
+                "Fonte de energia exposta", "Ataque decisivo"};
+        return phases[round];
+    }
+
+    String warning() {
+        if (mission.counterOffset == 0) return WARNINGS[round];
+        String[] phases = {
+                mission.opponentName + " prepara um golpe direto. Proteja a equipe.",
+                mission.opponentName + " fortalece a defesa. Desestabilize o campo.",
+                mission.opponentName + " expõe uma abertura. Invista agora.",
+                mission.opponentName + " concentra energia. Interrompa a canalização."
+        };
+        return phases[(round + mission.counterOffset) % phases.length];
+    }
+
     void choose(Choice choice) {
         if (choice == null || !canChoose()) throw new IllegalStateException("Battle choice unavailable");
-        boolean counter = choice == COUNTERS[round];
+        boolean counter = choice == COUNTERS[(round + mission.counterOffset) % COUNTERS.length];
         int bossDamage = choice == Choice.ATTACK ? (counter ? 28 : 19)
                 : choice == Choice.CONTROL ? (counter ? 22 : 13) : (counter ? 16 : 9);
         int teamDamage = choice == Choice.DEFEND ? (counter ? 2 : 6)
@@ -60,11 +86,12 @@ final class LovableBattle {
         else if (choice == Choice.DEFEND) feedback = counter
                 ? "A equipe ergueu a barreira no instante exato!" : "A formação resistiu, sem abrir vantagem.";
         else feedback = counter
-                ? "A equipe desfez a frequência do campo!" : "A mente de Magneto ofereceu resistência.";
+                ? "A equipe desfez a frequência do campo!" : mission.opponentName + " ofereceu resistência.";
         round++;
         if (team == 0) {
             defeat = true;
-            feedback = "A equipe caiu diante de Magneto. Revise suas escolhas e tente novamente.";
+            feedback = "A equipe caiu diante de " + mission.opponentName
+                    + ". Revise suas escolhas e tente novamente.";
         }
     }
 
@@ -75,6 +102,7 @@ final class LovableBattle {
         boss = 0;
         charge = 0;
         victory = true;
-        feedback = "A equipe atravessou o campo e silenciou a ressonância.";
+        feedback = "A equipe atravessou o campo de " + mission.opponentName
+                + " e venceu o confronto.";
     }
 }

@@ -84,7 +84,6 @@
     <string name="forge_count_line">%1$s: %2$d de 999</string>
     <string name="forge_status_active">INVENTÁRIO LOCAL ATIVO</string>
     <string name="forge_local_note">Seu progresso, fusões e recompensas ficam salvos neste aparelho.</string>
-    <string name="forge_debug_reward">[DEBUG] Adicionar 3 estilhaços para teste</string>
     <string name="stone_space">Joia do Espaço</string>
     <string name="stone_mind">Joia da Mente</string>
     <string name="stone_reality">Joia da Realidade</string>
@@ -151,7 +150,7 @@
     <string name="editorial_source">Fonte: Comic Vine</string>
     <string name="editorial_portrait_loading">Carregando retrato editorial…</string>
     <string name="editorial_portrait_credit">Retrato editorial · Comic Vine · abrir fonte</string>
-    <string name="editorial_portrait_unavailable">Retrato indisponível offline</string>
+    <string name="editorial_portrait_unavailable">Retrato indisponível · toque para tentar novamente</string>
     <string name="editorial_open_detail">Abrir página da Comic Vine</string>
     <string name="editorial_empty">Nenhum personagem Marvel encontrado.</string>
     <string name="editorial_error">Comic Vine indisponível. Verifique a conexão e tente novamente.</string>
@@ -159,7 +158,7 @@
     <string name="deadpool_action">Chamar Deadpool</string>
     <string name="deadpool_ready">O narrador usa apenas o contexto seguro da tela.</string>
     <string name="deadpool_loading">Deadpool está procurando o roteiro…</string>
-    <string name="deadpool_offline">Resposta roteirizada: o multiverso abriu cinco abas e nenhuma salvou o rascunho. Vamos com calma.</string>
+    <string name="deadpool_offline">Resposta roteirizada · IA temporariamente indisponível.</string>
     <string name="deadpool_error">Narrativa indisponível. Tente novamente quando o backend estiver acessível.</string>
     <string name="gauntlet_heading">Manopla de Contenção</string>
     <string name="nexus_gauntlet_count">%1$d/6 Joias completas</string>

@@ -53,6 +53,27 @@ final class GameRules {
         return playerPower;
     }
 
+    static int equippedTeamPower(List<GameCatalogCharacter> roster, List<String> teamIds,
+                                 ForgeRepository repository) {
+        if (roster == null || teamIds == null || repository == null || teamIds.size() != 3
+                || teamIds.stream().distinct().count() != 3)
+            throw new IllegalArgumentException("A battle needs three distinct characters");
+        int total = 0;
+        for (String id : teamIds) {
+            boolean inCatalog = false;
+            for (GameCatalogCharacter character : roster) {
+                if (character.id.equals(id)) { inCatalog = true; break; }
+            }
+            if (!inCatalog || !repository.ownsCharacter(id))
+                throw new IllegalArgumentException("Battle character is not owned");
+            GameVariantTier tier = GameVariantTier.valueOf(repository.loadEquippedTier(id));
+            if (!repository.loadOwnedTiers(id).contains(tier))
+                throw new IllegalArgumentException("Equipped variant is not owned");
+            total += VariantStats.total(VariantStats.forVariant(id, tier));
+        }
+        return Math.max(1, Math.round(total / 200f));
+    }
+
     private static int authoredPower(String id) {
         switch (id) {
             case "wolverine": case "hulk": case "thor": case "coisa": return 12;

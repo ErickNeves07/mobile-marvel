@@ -23,6 +23,6 @@
     <dimen name="text_caption">10sp</dimen>
     <dimen name="nav_height">56dp</dimen>
     <dimen name="angular_cut">14dp</dimen>
-    <dimen name="nexus_hero_height">330dp</dimen>
+    <dimen name="nexus_hero_height">390dp</dimen>
     <dimen name="campaign_banner_height">80dp</dimen>
 </resources>

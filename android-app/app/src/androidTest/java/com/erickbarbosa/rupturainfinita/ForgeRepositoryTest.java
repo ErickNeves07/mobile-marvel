@@ -154,7 +154,11 @@ public final class ForgeRepositoryTest {
         java.util.List<GameCatalogCharacter> roster = GameCatalogParser.read(context.getAssets());
         for (InfinityStone stone : InfinityStone.values()) setCount(stone, ForgeStage.COMPLETE, 1);
         assertTrue(repository.activateGauntlet());
-        GameCatalogCharacter character = roster.get(0);
+        GameCatalogCharacter character = null;
+        for (GameCatalogCharacter candidate : roster) {
+            if ("wolverine".equals(candidate.id)) character = candidate;
+        }
+        assertTrue(character != null);
         assertTrue(repository.unlockNextVariant(character.id, GameVariantTier.ASCENSION, roster));
         assertFalse(repository.unlockNextVariant(character.id, GameVariantTier.ASCENSION, roster));
         assertEquals(1, repository.load().count(InfinityStone.MIND, ForgeStage.COMPLETE));
@@ -170,6 +174,23 @@ public final class ForgeRepositoryTest {
         assertEquals(GameVariantTier.ASCENSION.name(), repository.loadEquippedTier(character.id));
         assertEquals(java.util.EnumSet.of(GameVariantTier.ORIGIN, GameVariantTier.ASCENSION),
                 repository.loadOwnedTiers(character.id));
+    }
+
+    @Test public void starterRosterIsOwnedWithoutActivatingGauntletAndOthersStayLocked() throws Exception {
+        assertEquals(new java.util.HashSet<>(java.util.Arrays.asList(
+                        "homem-aranha", "wolverine", "tocha-humana")),
+                repository.loadOwnedCharacterIds());
+        assertEquals(java.util.EnumSet.of(GameVariantTier.ORIGIN),
+                repository.loadOwnedTiers("wolverine"));
+        assertFalse(repository.ownsCharacter("homem-de-ferro"));
+        for (InfinityStone stone : InfinityStone.values()) setCount(stone, ForgeStage.COMPLETE, 1);
+        assertTrue(repository.activateGauntlet());
+        assertTrue(repository.loadOwnedTiers("homem-de-ferro").isEmpty());
+        java.util.List<GameCatalogCharacter> roster = GameCatalogParser.read(context.getAssets());
+        try {
+            repository.unlockNextVariant("homem-de-ferro", GameVariantTier.ASCENSION, roster);
+            fail("Locked character must not gain a variant");
+        } catch (IllegalStateException expected) { }
     }
 
     @Test public void versionThreeMigrationPreservesProgressAndAddsLockedGauntlet() {

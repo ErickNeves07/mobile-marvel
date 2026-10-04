@@ -18,7 +18,8 @@ import java.util.List;
 /** Local transactional inventory. Completion events are supplied only by real game flows. */
 final class ForgeRepository extends SQLiteOpenHelper {
     private static final String DB_NAME = "forge_inventory.db";
-    private static final int DB_VERSION = 5;
+    private static final int DB_VERSION = 6;
+    private static final String[] STARTER_IDS = {"homem-aranha", "wolverine", "tocha-humana"};
     private static final String COUNTS = "inventory";
     private static final String REWARDS = "applied_rewards";
 
@@ -36,6 +37,7 @@ final class ForgeRepository extends SQLiteOpenHelper {
         createGameTables(db);
         createVariantTables(db);
         createResourceTable(db);
+        createCharacterOwnership(db);
         db.beginTransaction();
         try {
             for (InfinityStone stone : InfinityStone.values()) {
@@ -69,6 +71,11 @@ final class ForgeRepository extends SQLiteOpenHelper {
         if (oldVersion < 5 && newVersion >= 5) {
             createResourceTable(db);
         }
+        if (oldVersion < 6 && newVersion >= 6) {
+            createCharacterOwnership(db);
+            db.execSQL("INSERT OR IGNORE INTO character_ownership(character_id) "
+                    + "SELECT DISTINCT character_id FROM variant_ownership");
+        }
         if (newVersion != DB_VERSION) throw new IllegalStateException("No Forge database migration is defined");
     }
 
@@ -93,6 +100,41 @@ final class ForgeRepository extends SQLiteOpenHelper {
                 + "CHECK(singleton_id=1), credits INTEGER NOT NULL CHECK(credits>=0), "
                 + "xp INTEGER NOT NULL CHECK(xp>=0))");
         db.execSQL("INSERT OR IGNORE INTO player_resources(singleton_id,credits,xp) VALUES(1,0,0)");
+    }
+
+    private void createCharacterOwnership(SQLiteDatabase db) {
+        db.execSQL("CREATE TABLE IF NOT EXISTS character_ownership (character_id TEXT PRIMARY KEY NOT NULL)");
+        for (String id : STARTER_IDS) {
+            ContentValues character = new ContentValues();
+            character.put("character_id", id);
+            db.insertWithOnConflict("character_ownership", null, character, SQLiteDatabase.CONFLICT_IGNORE);
+            ContentValues origin = new ContentValues();
+            origin.put("character_id", id);
+            origin.put("tier_id", GameVariantTier.ORIGIN.name());
+            origin.put("event_id", "starter:" + id);
+            db.insertWithOnConflict("variant_ownership", null, origin, SQLiteDatabase.CONFLICT_IGNORE);
+            ContentValues equipped = new ContentValues();
+            equipped.put("character_id", id);
+            equipped.put("tier_id", GameVariantTier.ORIGIN.name());
+            db.insertWithOnConflict("equipped_variants", null, equipped, SQLiteDatabase.CONFLICT_IGNORE);
+        }
+    }
+
+    java.util.Set<String> loadOwnedCharacterIds() {
+        java.util.Set<String> ids = new java.util.LinkedHashSet<>();
+        try (Cursor cursor = getReadableDatabase().query("character_ownership",
+                new String[]{"character_id"}, null, null, null, null, "character_id")) {
+            while (cursor.moveToNext()) ids.add(cursor.getString(0));
+        }
+        return java.util.Collections.unmodifiableSet(ids);
+    }
+
+    boolean ownsCharacter(String characterId) {
+        try (Cursor cursor = getReadableDatabase().query("character_ownership",
+                new String[]{"character_id"}, "character_id=?", new String[]{characterId},
+                null, null, null)) {
+            return cursor.moveToFirst();
+        }
     }
 
     PlayerResources loadPlayerResources() {
@@ -140,7 +182,7 @@ final class ForgeRepository extends SQLiteOpenHelper {
                 "character_id=?", new String[]{characterId}, null, null, null)) {
             while (cursor.moveToNext()) owned.add(GameVariantTier.valueOf(cursor.getString(0)));
         }
-        if (owned.isEmpty() && gauntletActive) {
+        if (owned.isEmpty() && gauntletActive && ownsCharacter(characterId)) {
             SQLiteDatabase db = getWritableDatabase();
             db.beginTransaction();
             try {
@@ -170,6 +212,7 @@ final class ForgeRepository extends SQLiteOpenHelper {
 
     boolean unlockNextVariant(String characterId, GameVariantTier tier, List<GameCatalogCharacter> roster) {
         if (findCharacter(roster, characterId) == null || tier == null) throw new IllegalArgumentException("Unknown variant target");
+        if (!ownsCharacter(characterId)) throw new IllegalStateException("Character is not owned");
         SQLiteDatabase db = getWritableDatabase();
         createVariantTables(db);
         db.beginTransaction();
@@ -194,6 +237,7 @@ final class ForgeRepository extends SQLiteOpenHelper {
 
     void equipVariant(String characterId, GameVariantTier tier, List<GameCatalogCharacter> roster) {
         if (findCharacter(roster, characterId) == null || tier == null) throw new IllegalArgumentException("Unknown variant target");
+        if (!ownsCharacter(characterId)) throw new IllegalStateException("Character is not owned");
         SQLiteDatabase db = getWritableDatabase();
         createVariantTables(db);
         db.beginTransaction();
@@ -268,15 +312,14 @@ final class ForgeRepository extends SQLiteOpenHelper {
         return new CampaignState(campaignId, 1, defaultTeam);
     }
 
-    CampaignState saveTeam(String campaignId, List<String> team, List<GameCatalogCharacter> roster,
-                           String requiredGroup) {
+    CampaignState saveTeam(String campaignId, List<String> team, List<GameCatalogCharacter> roster) {
         if (team.size() != 3 || team.stream().distinct().count() != 3) {
             throw new IllegalArgumentException("A campaign team must contain three unique characters");
         }
         for (String id : team) {
             GameCatalogCharacter character = findCharacter(roster, id);
-            if (character == null || !requiredGroup.equals(character.groupId)) {
-                throw new IllegalArgumentException("Campaign team has an invalid faction member");
+            if (character == null || !ownsCharacter(id)) {
+                throw new IllegalArgumentException("Campaign team has an unowned member");
             }
         }
         SQLiteDatabase db = getWritableDatabase();
@@ -341,6 +384,11 @@ final class ForgeRepository extends SQLiteOpenHelper {
                 "mission_id=?", new String[]{missionId}, null, null, null)) {
             return cursor.moveToFirst();
         }
+    }
+
+    boolean hasCompletedMission(String campaignId, int missionNumber) {
+        CampaignReward.forMission(campaignId, missionNumber);
+        return isMissionComplete(getReadableDatabase(), campaignId + ":" + missionNumber);
     }
 
     private static InfinityStone stoneFor(String value) {

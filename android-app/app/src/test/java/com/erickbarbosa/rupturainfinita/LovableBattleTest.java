@@ -71,4 +71,25 @@ public final class LovableBattleTest {
         retried.special();
         assertTrue(retried.victory);
     }
+
+    @Test public void sixMissionScenesHaveDistinctProgressionAndInteractiveOutcomes() {
+        assertEquals(6, BattleMission.ALL.size());
+        java.util.Set<String> ids = new java.util.HashSet<>();
+        for (BattleMission mission : BattleMission.ALL) {
+            assertTrue(ids.add(mission.campaignId + ":" + mission.number));
+            LovableBattle scene = new LovableBattle(25, mission);
+            for (int round = 0; round < 4; round++) {
+                assertTrue(scene.canChoose());
+                assertTrue(scene.warning().contains(mission.opponentName)
+                        || mission.counterOffset == 0);
+                LovableBattle.Choice[] counters = {
+                        LovableBattle.Choice.DEFEND, LovableBattle.Choice.CONTROL,
+                        LovableBattle.Choice.ATTACK, LovableBattle.Choice.CONTROL};
+                scene.choose(counters[(round + mission.counterOffset) % counters.length]);
+            }
+            assertTrue(scene.canSpecial());
+            scene.special();
+            assertTrue(scene.victory);
+        }
+    }
 }

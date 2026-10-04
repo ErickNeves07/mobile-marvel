@@ -103,12 +103,12 @@ public final class GameLoopRepositoryTest {
     }
 
     @Test public void campaignRequiresSequentialMissionsAndPersistsIdempotentRewardsAndTeam() {
-        List<String> defaultTeam = Arrays.asList("wolverine", "ciclope", "jean-grey");
+        List<String> defaultTeam = Arrays.asList("homem-aranha", "wolverine", "tocha-humana");
         CampaignState initial = repository.loadCampaign("xmen", defaultTeam);
         assertEquals(1, initial.unlockedMission);
 
-        List<String> selectedTeam = Arrays.asList("wolverine", "ciclope", "professor-xavier");
-        CampaignState saved = repository.saveTeam("xmen", selectedTeam, roster, "x-men");
+        List<String> selectedTeam = Arrays.asList("wolverine", "homem-aranha", "tocha-humana");
+        CampaignState saved = repository.saveTeam("xmen", selectedTeam, roster);
         assertEquals(selectedTeam, saved.teamIds);
         try {
             repository.completeMission("xmen", 2);
@@ -142,6 +142,24 @@ public final class GameLoopRepositoryTest {
         assertEquals(12, totalCount(ForgeStage.FRAGMENT));
         assertEquals(10100, repository.loadPlayerResources().credits);
         assertEquals(2860, repository.loadPlayerResources().xp);
+    }
+
+    @Test public void battleTeamUsesOwnedCrossFactionCharactersAndEquippedVariants() {
+        List<String> starters = Arrays.asList("homem-aranha", "wolverine", "tocha-humana");
+        CampaignState saved = repository.saveTeam("xmen", starters, roster);
+        assertEquals(starters, saved.teamIds);
+        int originPower = GameRules.equippedTeamPower(roster, starters, repository);
+        try {
+            repository.saveTeam("xmen", Arrays.asList("wolverine", "jean-grey", "tocha-humana"), roster);
+            fail("Unowned Jean Grey must not join the team");
+        } catch (IllegalArgumentException expected) { }
+        for (InfinityStone stone : InfinityStone.values()) {
+            repository.getWritableDatabase().execSQL("UPDATE inventory SET count=1 "
+                    + "WHERE stone='" + stone.name() + "' AND stage='COMPLETE'");
+        }
+        assertTrue(repository.activateGauntlet());
+        assertTrue(repository.unlockNextVariant("wolverine", GameVariantTier.ASCENSION, roster));
+        assertTrue(GameRules.equippedTeamPower(roster, starters, repository) > originPower);
     }
 
     @Test public void fantasticFourUsesItsOwnThreeRewardsOnceEach() {

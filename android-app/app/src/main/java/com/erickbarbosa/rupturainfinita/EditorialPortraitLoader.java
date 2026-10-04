@@ -19,17 +19,16 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /** Loads one attributed Comic Vine portrait per game character, reused by all variants. */
 final class EditorialPortraitLoader {
-    private static final int MAX_IMAGE_BYTES = 3_000_000;
+    private static final int MAX_IMAGE_BYTES = 12_000_000;
     private static final long METADATA_MAX_AGE_MS = 24L * 60 * 60 * 1000;
+    private static final long RETRY_AFTER_FAILURE_MS = 15_000;
     private final BackendClient backend;
     private final ExecutorService executor = Executors.newFixedThreadPool(2);
     private final Handler main = new Handler(Looper.getMainLooper());
@@ -40,15 +39,29 @@ final class EditorialPortraitLoader {
         }
     };
     private final Map<String, List<Target>> pending = new HashMap<>();
-    private final Set<String> unavailable = new HashSet<>();
+    private final Map<String, Long> unavailableUntil = new HashMap<>();
 
     EditorialPortraitLoader(BackendClient backend) {
         this.backend = backend;
     }
 
+    void loadOpponent(String opponentId, String name, ImageView image, TextView attribution) {
+        load("battle:" + opponentId, name, image, attribution);
+    }
+
+    void prefetch(String gameId) {
+        synchronized (lock) {
+            if (cache.get(gameId) != null || pending.containsKey(gameId)) return;
+            pending.put(gameId, new ArrayList<>());
+        }
+        executor.execute(() -> fetch(gameId));
+    }
+
     void load(String gameId, String characterName, ImageView image, TextView attribution) {
         image.setTag(gameId);
         image.setImageDrawable(null);
+        image.setOnClickListener(null);
+        image.setClickable(false);
         if (attribution != null) {
             attribution.setText(R.string.editorial_portrait_loading);
             attribution.setClickable(false);
@@ -58,11 +71,13 @@ final class EditorialPortraitLoader {
         Portrait cached;
         synchronized (lock) {
             cached = cache.get(gameId);
-            if (cached == null && unavailable.contains(gameId)) {
-                showUnavailable(attribution);
+            Long retryAt = unavailableUntil.get(gameId);
+            if (cached == null && retryAt != null && System.currentTimeMillis() < retryAt) {
+                showUnavailable(gameId, new Target(characterName, image, attribution));
                 return;
             }
             if (cached == null) {
+                unavailableUntil.remove(gameId);
                 List<Target> waiting = pending.get(gameId);
                 if (waiting != null) {
                     waiting.add(new Target(characterName, image, attribution));
@@ -83,9 +98,13 @@ final class EditorialPortraitLoader {
     private void fetch(String gameId) {
         Portrait portrait = null;
         try {
-            JSONObject metadata = backend.cachedGetFresh(
-                    "/v1/editorial/game-characters/" + gameId, METADATA_MAX_AGE_MS);
-            if (!gameId.equals(metadata.getString("game_id"))) {
+            boolean opponent = gameId.startsWith("battle:");
+            String editorialId = opponent ? gameId.substring("battle:".length()) : gameId;
+            JSONObject metadata = backend.cachedGetFresh((opponent
+                            ? "/v1/editorial/battle-opponents/"
+                            : "/v1/editorial/game-characters/") + editorialId,
+                    METADATA_MAX_AGE_MS);
+            if (!editorialId.equals(metadata.getString("game_id"))) {
                 throw new IllegalStateException("Portrait game ID mismatch");
             }
             String imageUrl = metadata.optString("image_url", "");
@@ -102,12 +121,17 @@ final class EditorialPortraitLoader {
             List<Target> waiting;
             synchronized (lock) {
                 waiting = pending.remove(gameId);
-                if (result == null) unavailable.add(gameId);
-                else cache.put(gameId, result);
+                if (result == null) {
+                    if (waiting != null && !waiting.isEmpty()) unavailableUntil.put(gameId,
+                            System.currentTimeMillis() + RETRY_AFTER_FAILURE_MS);
+                } else {
+                    unavailableUntil.remove(gameId);
+                    cache.put(gameId, result);
+                }
             }
             if (waiting == null) return;
             for (Target target : waiting) {
-                if (result == null) showUnavailable(target.attribution);
+                if (result == null) showUnavailable(gameId, target);
                 else apply(gameId, target, result);
             }
         });
@@ -120,6 +144,7 @@ final class EditorialPortraitLoader {
         connection.setReadTimeout(12_000);
         connection.setInstanceFollowRedirects(false);
         connection.setRequestProperty("Accept", "image/jpeg,image/png,image/webp");
+        connection.setRequestProperty("User-Agent", "Marvel-Ruptura-Infinita/0.2 Android editorial portrait");
         try {
             String contentType = connection.getContentType();
             if (connection.getResponseCode() != 200
@@ -172,6 +197,9 @@ final class EditorialPortraitLoader {
 
     private void apply(String gameId, Target target, Portrait portrait) {
         if (!gameId.equals(target.image.getTag())) return;
+        target.image.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        target.image.setOnClickListener(null);
+        target.image.setClickable(false);
         target.image.setImageBitmap(portrait.bitmap);
         target.image.setContentDescription("Retrato editorial de " + target.characterName
                 + ", fonte Comic Vine; a imagem pode não representar esta variante");
@@ -187,8 +215,22 @@ final class EditorialPortraitLoader {
         }
     }
 
-    private void showUnavailable(TextView attribution) {
-        if (attribution != null) attribution.setText(R.string.editorial_portrait_unavailable);
+    private void showUnavailable(String gameId, Target target) {
+        if (!gameId.equals(target.image.getTag())) return;
+        target.image.setContentDescription("Retrato de " + target.characterName
+                + " indisponível. Toque para tentar novamente.");
+        View.OnClickListener retry = view -> {
+            synchronized (lock) { unavailableUntil.remove(gameId); }
+            load(gameId, target.characterName, target.image, target.attribution);
+        };
+        target.image.setClickable(true);
+        target.image.setOnClickListener(retry);
+        if (target.attribution != null) {
+            target.attribution.setText(R.string.editorial_portrait_unavailable);
+            target.attribution.setClickable(true);
+            target.attribution.setFocusable(true);
+            target.attribution.setOnClickListener(retry);
+        }
     }
 
     void close() {
