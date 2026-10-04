@@ -1,13 +1,25 @@
 # Publicar o backend no Render
 
-O arquivo `render.yaml` declara um Web Service Python no plano Free, com instalação travada por hashes, `uvicorn` e healthcheck `/health`. O Android precisa da URL HTTPS desse serviço para mostrar retratos Comic Vine e chamar o Deadpool. O progresso do jogo continua no SQLite do telefone; o Render não precisa de banco.
+O backend é um **Web Service** Python no plano Free. O `render.yaml` registra essa configuração para um Blueprint; ao criar pelo menu **New → Web Services**, preencha os mesmos campos manualmente. O Android precisa da URL HTTPS desse serviço para mostrar retratos Comic Vine e chamar o Deadpool. O progresso do jogo continua no SQLite do telefone; o Render não precisa de banco.
 
 ## Criar o serviço
 
 1. Entre em [Render Dashboard](https://dashboard.render.com/) na sua conta e conecte o GitHub, concedendo acesso ao repositório `ErickNeves07/mobile-marvel`.
-2. Escolha **New → Blueprint**, selecione `ErickNeves07/mobile-marvel`, branch `main`, e use o `render.yaml` da raiz. Confira nome `marvel-ruptura-infinita-api`, plano **Free**, build e start commands antes de aplicar.
-3. Preencha `COMIC_VINE_API_KEY` e `GROQ_API_KEY` como variáveis secretas solicitadas pelo Blueprint. Copie os valores do `.env` local no painel privado do Render. Nunca cole as chaves em commit, issue, chat, URL ou parâmetros de build Android. `PYTHON_VERSION=3.13.15` já está no blueprint.
-4. Aguarde o deploy ficar **Live**. Guarde a URL `https://<serviço>.onrender.com`.
+2. Escolha **New → Web Services** e selecione esse repositório. Use estes campos:
+
+   | Campo | Valor |
+   |---|---|
+   | Name | `marvel-ruptura-infinita-api` (ou outro nome livre) |
+   | Branch | `main` |
+   | Language/Runtime | `Python 3` |
+   | Root Directory | deixe vazio (raiz do repositório) |
+   | Build Command | `python -m pip install --require-hashes -r backend/requirements.txt` |
+   | Start Command | `cd backend && python -m uvicorn app.main:app --host 0.0.0.0 --port $PORT` |
+   | Instance/Plan | `Free` |
+   | Health Check Path (Advanced) | `/health` |
+
+3. Em **Environment** ou **Advanced**, adicione `PYTHON_VERSION` com valor `3.13.15`. Adicione também `COMIC_VINE_API_KEY` e `GROQ_API_KEY` com os valores do `.env` local, somente no painel privado. Nunca cole as chaves em commit, issue, chat, URL ou parâmetros de build Android.
+4. Clique **Create Web Service**, aguarde o deploy ficar **Live** e guarde a URL `https://<serviço>.onrender.com`. Como a criação foi manual, o Render usa os campos acima; ele não importa automaticamente o `render.yaml`.
 
 ## Conferir a API
 

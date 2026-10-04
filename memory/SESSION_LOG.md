@@ -348,3 +348,8 @@
 - Erick autorizou push ao GitHub `ErickNeves07/mobile-marvel` e deploy Render. Remoto conectado; havia apenas `LICENSE` no branch remoto. `render.yaml` e `docs/11-RENDER-DEPLOY.md` preparados. O painel Render ainda requer login e inserção de secrets; tentativa de acessar a janela Chrome atual foi recusada pelo auto-review por ser WhatsApp, e Erick foi solicitado a abrir Render em aba própria.
 - Revisão Git/segredos passou: `.env`, APK e keystore ignorados; diff staged sem whitespace ou padrões de chave de alta confiança. Commit `0365f82` (`feat(app): import playable Android game and API`) enviado e confirmado em `origin/main`; workspace limpo após push.
 - Próximo passo: criar Blueprint Render no painel, configurar chaves, confirmar `/health`/`/ready`/retratos, recompilar APK com URL e testar no telefone. Grade da Coleção, demais diferenças Lovable e Groq live seguem pendentes.
+
+## Correção do guia Render — 2026-10-04
+
+- Erick informou que o menu **New** do seu painel oferece Web Services, mas não Blueprint. A documentação oficial Render confirma criação manual via Web Service a partir de GitHub; `docs/11-RENDER-DEPLOY.md` agora lista branch, runtime, diretório raiz, comandos, plano, healthcheck e variáveis exatas. O `render.yaml` segue como registro opcional, sem ser lido automaticamente na criação manual.
+- Sem URL ou sessão do serviço ainda; próximo passo é Erick criar o Web Service, inserir os secrets no painel e compartilhar somente a URL HTTPS para smoke e novo APK.
