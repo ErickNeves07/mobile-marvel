@@ -23,3 +23,11 @@ ROSTER_COMIC_VINE_IDS: dict[str, int] = {
     "loki": 4324,
     "deadpool": 7606,
 }
+
+# Opponents are editorial illustrations, never unlockable roster members.
+BATTLE_COMIC_VINE_IDS: dict[str, int] = {
+    "magneto": 1441,
+    "master-mold": 10254,
+    "doombot": 89418,
+    "doutor-destino": 1468,
+}

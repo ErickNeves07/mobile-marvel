@@ -45,6 +45,7 @@ def test_missing_api_key_fails_before_transport(monkeypatch):
 def test_request_contract_and_validated_response(monkeypatch):
     secret = "test-key-never-print"
     monkeypatch.setenv("GROQ_API_KEY", secret)
+    monkeypatch.delenv("GROQ_MODEL", raising=False)
     captured = {}
 
     def transport(request, timeout):
@@ -63,9 +64,26 @@ def test_request_contract_and_validated_response(monkeypatch):
     assert captured["authorization"] == f"Bearer {secret}"
     assert secret not in json.dumps(captured["body"])
     assert captured["body"]["model"] == DEFAULT_MODEL
-    assert captured["body"]["max_tokens"] == 256
+    assert DEFAULT_MODEL == "openai/gpt-oss-120b"
+    assert captured["body"]["max_tokens"] == 512
+    assert captured["body"]["reasoning_effort"] == "low"
     assert captured["body"]["stream"] is False
     assert captured["timeout"] == 20
+
+
+def test_retired_model_override_uses_current_default(monkeypatch):
+    monkeypatch.setenv("GROQ_API_KEY", "test-key")
+    monkeypatch.setenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+    captured = {}
+
+    def transport(request, timeout):
+        captured.update(json.loads(request.data))
+        return FakeResponse(completion())
+
+    GroqNarrativeAdapter(transport).generate(
+        NarrativeRequest([{"role": "user", "content": "Hi"}])
+    )
+    assert captured["model"] == DEFAULT_MODEL
 
 
 @pytest.mark.parametrize("payload", [{}, {"choices": []}, {"choices": [{"message": {}}]}])

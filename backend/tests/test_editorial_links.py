@@ -2,7 +2,7 @@ from fastapi.testclient import TestClient
 
 import app.main as main
 from app.content.characters import GAME_CHARACTERS
-from app.content.editorial_links import ROSTER_COMIC_VINE_IDS
+from app.content.editorial_links import BATTLE_COMIC_VINE_IDS, ROSTER_COMIC_VINE_IDS
 from app.services.comic_vine import ComicVineError
 
 
@@ -54,3 +54,25 @@ def test_non_marvel_or_unavailable_portrait_is_sanitized(monkeypatch):
     response = client.get("/v1/editorial/game-characters/wolverine")
     assert response.status_code == 404
     assert response.json()["detail"]["code"] == "not_marvel"
+
+
+def test_battle_opponent_portraits_are_whitelisted_and_separate_from_roster(monkeypatch):
+    assert set(BATTLE_COMIC_VINE_IDS).isdisjoint(ROSTER_COMIC_VINE_IDS)
+    captured = []
+
+    def detail(character_id):
+        captured.append(character_id)
+        return {
+            "id": character_id,
+            "name": "Magneto",
+            "image_url": "https://comicvine.gamespot.com/a/uploads/original/magneto.jpg",
+            "site_url": "https://comicvine.gamespot.com/magneto/4005-1441/",
+        }
+
+    monkeypatch.setattr(main.comic_vine, "get_character", detail)
+    response = client.get("/v1/editorial/battle-opponents/magneto")
+    assert response.status_code == 200
+    assert response.json()["character_id"] == 1441
+    assert captured == [1441]
+    assert client.get("/v1/editorial/battle-opponents/not-a-boss").status_code == 404
+    assert captured == [1441]

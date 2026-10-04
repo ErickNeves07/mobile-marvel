@@ -10,7 +10,8 @@ from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 ENDPOINT = "https://api.groq.com/openai/v1/chat/completions"
-DEFAULT_MODEL = "llama-3.3-70b-versatile"
+DEFAULT_MODEL = "openai/gpt-oss-120b"
+RETIRED_MODEL = "llama-3.3-70b-versatile"
 MAX_OUTPUT_CHARS = 4_000
 MAX_MESSAGES = 12
 MAX_MESSAGE_CHARS = 4_000
@@ -26,6 +27,11 @@ class NarrativeRequest:
     messages: list[dict[str, str]]
 
 
+def _configured_model() -> str:
+    model = os.environ.get("GROQ_MODEL", "").strip()
+    return DEFAULT_MODEL if not model or model == RETIRED_MODEL else model
+
+
 class GroqNarrativeAdapter:
     def __init__(self, transport: Callable = urlopen) -> None:
         self._transport = transport
@@ -38,15 +44,17 @@ class GroqNarrativeAdapter:
             messages = self._validate_messages(request.messages)
         except (TypeError, ValueError):
             raise GroqNarrativeError("Groq request is invalid") from None
-        body = json.dumps(
-            {
-                "model": os.environ.get("GROQ_MODEL", DEFAULT_MODEL),
-                "messages": messages,
-                "temperature": 0.4,
-                "max_tokens": 256,
-                "stream": False,
-            }
-        ).encode("utf-8")
+        model = _configured_model()
+        payload = {
+            "model": model,
+            "messages": messages,
+            "temperature": 0.4,
+            "max_tokens": 512,
+            "stream": False,
+        }
+        if model.startswith("openai/gpt-oss-"):
+            payload["reasoning_effort"] = "low"
+        body = json.dumps(payload).encode("utf-8")
         http_request = Request(
             ENDPOINT,
             data=body,
@@ -82,7 +90,6 @@ class GroqNarrativeAdapter:
         if not isinstance(content, str) or not content.strip() or len(content) > MAX_OUTPUT_CHARS:
             raise GroqNarrativeError("Groq provider returned invalid narrative content")
         return content.strip()
-
     @staticmethod
     def _validate_messages(messages: list[dict[str, str]]) -> list[dict[str, str]]:
         if not isinstance(messages, list) or not 1 <= len(messages) <= MAX_MESSAGES:

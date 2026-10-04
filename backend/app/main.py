@@ -5,7 +5,7 @@ from pydantic import BaseModel
 
 from app.content.campaigns import CAMPAIGNS
 from app.content.characters import GAME_CHARACTERS
-from app.content.editorial_links import ROSTER_COMIC_VINE_IDS
+from app.content.editorial_links import BATTLE_COMIC_VINE_IDS, ROSTER_COMIC_VINE_IDS
 from app.schemas.campaigns import CampaignCatalogResponse
 from app.schemas.characters import GameCharacterCatalogResponse
 from app.schemas.editorial import (
@@ -40,7 +40,7 @@ groq = GroqNarrativeAdapter()
 
 _DEADPOOL_CONTEXTS = {
     "nexus": ("Você está no Nexus, início da ruptura multiversal.", "O multiverso abriu cinco abas e nenhuma salvou o rascunho. Vamos com calma."),
-    "forge": ("O jogador está na Forja das seis Joias do Infinito.", "Três entram, uma sai. Finalmente uma reunião com pauta objetiva."),
+    "forge": ("O jogador está na Forja das seis Joias do Infinito. Duas peças iguais viram uma peça do estágio seguinte.", "Duas entram, uma sai. Finalmente uma reunião com pauta objetiva."),
     "xmen": ("A campanha dos X-Men tem Magneto como chefe.", "Magneto discorda da equipe. É quase como se ele tivesse um campo magnético para conflitos."),
     "fantastic_four": ("A campanha do Quarteto Fantástico envolve sua equipe.", "Quatro heróis, uma missão e Reed já trouxe um protótipo sem manual."),
     "daily_challenge": ("O desafio diário testa dedução de personagens do catálogo do jogo.", "Seis tentativas. Sem telepatia, Xavier. Isso seria batota com diploma."),
@@ -102,6 +102,24 @@ def get_game_character_portrait(game_id: str) -> EditorialGamePortrait:
         raise _comic_vine_http_error(error) from None
     return EditorialGamePortrait(
         game_id=game_id,
+        character_id=editorial["id"],
+        character_name=editorial["name"],
+        image_url=editorial["image_url"],
+        site_url=editorial["site_url"],
+    )
+
+
+@app.get("/v1/editorial/battle-opponents/{opponent_id}", response_model=EditorialGamePortrait)
+def get_battle_opponent_portrait(opponent_id: str) -> EditorialGamePortrait:
+    character_id = BATTLE_COMIC_VINE_IDS.get(opponent_id)
+    if character_id is None:
+        raise HTTPException(status_code=404, detail={"code": "unknown_battle_opponent"})
+    try:
+        editorial = comic_vine.get_character(character_id)
+    except ComicVineError as error:
+        raise _comic_vine_http_error(error) from None
+    return EditorialGamePortrait(
+        game_id=opponent_id,
         character_id=editorial["id"],
         character_name=editorial["name"],
         image_url=editorial["image_url"],
