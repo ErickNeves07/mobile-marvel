@@ -29,6 +29,8 @@ O plano Free pode adormecer após inatividade, então a primeira chamada pode de
 
 ## Gerar o APK que usa a URL publicada
 
+O build comum do Android Studio e a release usam `https://mobile-marvel-8qex.onrender.com` por padrão. Basta usar Run `app` para atualizar um debug anterior sem perder dados. Para escolher outro serviço, sobrescreva a propriedade:
+
 No PowerShell, dentro da raiz do repositório:
 
 ```powershell
@@ -37,4 +39,4 @@ $env:ORG_GRADLE_PROJECT_riApiBaseUrl = 'https://<serviço>.onrender.com'
 Remove-Item Env:ORG_GRADLE_PROJECT_riApiBaseUrl
 ```
 
-O script gera `artifacts/Marvel-Ruptura-Infinita-release.apk` assinado. A URL é pública; não coloque chaves nesse parâmetro. Instale o APK em um telefone, abra Coleção e Comparação, confirme retrato, crédito/link, fallback sem rede, Manopla, batalha, recompensa de campanha e desafio diário. Registre o hash SHA-256 do APK efetivamente entregue. O APK offline produzido antes do deploy não buscará as imagens.
+O script gera `artifacts/Marvel-Ruptura-Infinita-release.apk` assinado. A URL é pública; não coloque chaves nesse parâmetro. Para um build offline explícito, use `-PriApiBaseUrl=`. No telefone com debug 0.2.0, atualize com Run `app`/debug 0.3.0; a release tem certificado diferente e não substitui o debug preservando dados. Confirme retrato, crédito/link, fallback sem rede, Manopla, batalha, recompensa de campanha e desafio diário. Registre o hash SHA-256 do APK efetivamente entregue.

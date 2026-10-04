@@ -8,7 +8,7 @@ Projeto Android Java + FastAPI. O fonte inclui gameplay offline de desafios/camp
 2. Android: consulte [android-app/README.md](android-app/README.md).
 3. Backend: consulte [backend/README.md](backend/README.md).
 4. Specs das funcionalidades em `specs/`, incluindo recompensas em `028` e retratos em `030`.
-5. Chaves de provider somente no ambiente do backend: `COMIC_VINE_API_KEY` e `GROQ_API_KEY`. Configure a URL de build com `-PriApiBaseUrl=https://...`; nenhum segredo vai ao APK. Guia de publicação em [docs/11-RENDER-DEPLOY.md](docs/11-RENDER-DEPLOY.md).
+5. Chaves de provider somente no ambiente do backend: `COMIC_VINE_API_KEY` e `GROQ_API_KEY`. O APK usa `https://mobile-marvel-8qex.onrender.com` por padrão; `-PriApiBaseUrl=https://...` substitui o host e `-PriApiBaseUrl=` gera build offline. Nenhum segredo vai ao APK. Guia de publicação em [docs/11-RENDER-DEPLOY.md](docs/11-RENDER-DEPLOY.md).
 
 ## Documentação
 

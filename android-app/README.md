@@ -1,8 +1,8 @@
 # Android app
 
-Aplicativo Android nativo em Java. O APK assinado listado em `../artifacts/Marvel-Ruptura-Infinita-release.apk` é o candidato de avaliação 0.2.0. Recompile e assine com `..\scripts\build-release.ps1` após novas mudanças.
+Aplicativo Android nativo em Java. O APK assinado listado em `../artifacts/Marvel-Ruptura-Infinita-release.apk` é o candidato de avaliação 0.3.0. Recompile e assine com `..\scripts\build-release.ps1` após novas mudanças.
 
-O código-fonte agora inclui: desafio diário e recompensas locais, campanhas X-Men/Quarteto, seleção de equipes e combates determinísticos, tela de busca Comic Vine e narrativa Deadpool. O gameplay funciona offline. Para integrar API remota, compile com `-PriApiBaseUrl=https://host-backend`; provider keys ficam exclusivamente no backend. HTTP cleartext não está permitido no APK.
+O código-fonte inclui desafio diário e recompensas locais, seis batalhas interativas, seleção de equipe possuída, busca Comic Vine e narrativa Deadpool. O gameplay funciona offline, mas o build comum do Android Studio usa por padrão `https://mobile-marvel-8qex.onrender.com` para imagens/editorial/IA. `-PriApiBaseUrl=https://host-backend` substitui o host e `-PriApiBaseUrl=` desliga o backend. Provider keys ficam exclusivamente no servidor; HTTP cleartext não é permitido no APK.
 
 ## Toolchain
 
@@ -16,11 +16,11 @@ O código-fonte agora inclui: desafio diário e recompensas locais, campanhas X-
 
 Abra `android-app` como projeto no Android Studio, sincronize o Gradle e execute a configuração `app` no telefone. O build direto agora grava os arquivos gerados em `%LOCALAPPDATA%\RupturaInfinita\gradle-builds\<id-do-checkout>`, fora do OneDrive. O APK debug fica na subpasta `app\outputs\apk\debug\app-debug.apk`. Não é necessário limpar a antiga pasta `android-app\app\build` para usar a nova saída.
 
-**Build Project** apenas compila; use **Run 'app'** para atualizar o aplicativo instalado. Confira a versão nas informações do app no telefone: esta implementação é `0.2.0` (`versionCode` 2). A tela com “Fundação Android pronta para a próxima ruptura” é da versão `0.1.0` antiga.
+**Build Project** apenas compila; use **Run 'app'** para atualizar o aplicativo instalado. Confira a versão nas informações do app no telefone: esta implementação é `0.3.0` (`versionCode` 3). A tela com “Fundação Android pronta para a próxima ruptura” é da versão `0.1.0` antiga.
 
-Se a sincronização já estava aberta antes desta correção, use **File > Sync Project with Gradle Files** e execute o build novamente. Para testar o backend publicado no telefone, use o APK release assinado em `../artifacts/Marvel-Ruptura-Infinita-release.apk` quando não houver uma instalação debug a preservar. O debug comum do Android Studio não recebe a URL de produção sem `-PriApiBaseUrl=https://mobile-marvel-8qex.onrender.com`.
+Se a sincronização já estava aberta antes desta correção, use **File > Sync Project with Gradle Files** e execute Run `app` para instalar o debug 0.3.0 no telefone com a mesma assinatura debug. O host Render já está configurado no build comum.
 
-Se houver uma versão debug instalada, o APK release usa outra assinatura e não pode substituí-la preservando os dados. Para testar o Render sem trocar a assinatura, gere o debug com `-PriApiBaseUrl=https://mobile-marvel-8qex.onrender.com` e atualize com `adb install -r <caminho-do-app-debug.apk>`.
+Se houver uma versão debug instalada, o APK release usa outra assinatura e não pode substituí-la preservando os dados. Para atualizar pelo terminal sem trocar a assinatura, gere o debug e instale com `adb install -r <caminho-do-app-debug.apk>`.
 
 ## Verificação no Windows
 

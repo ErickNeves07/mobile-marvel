@@ -4,7 +4,7 @@
 
 Base: `https://comicvine.gamespot.com/api/`. Todo pedido inclui chave de backend, formato JSON e User-Agent descritivo. O proxy FastAPI expõe `GET /v1/editorial/characters?q=&limit=&offset=`, `GET /v1/editorial/characters/{id}` e `GET /v1/editorial/game-characters/{game_id}` para os retratos do elenco. A busca limita tamanho/paginação, valida editora Marvel no servidor, pede campos mínimos, usa cache e aplica no máximo 100 chamadas por recurso por hora e uma chamada por segundo. Respostas incluem fonte, link editorial e publisher. Android não acessa a API Comic Vine diretamente e nunca recebe a chave; baixa apenas a imagem pública HTTPS indicada pelo backend.
 
-Comic Vine deve continuar separado dos atributos e balanceamento definidos para o jogo. A UI Android permite busca editorial quando uma URL de backend é configurada com `-PriApiBaseUrl=https://...`; respostas GET são cacheadas localmente e a falha mostra indisponibilidade.
+Comic Vine deve continuar separado dos atributos e balanceamento definidos para o jogo. O build Android usa o serviço Render publicado por padrão; `-PriApiBaseUrl=https://...` permite substituí-lo e `-PriApiBaseUrl=` força modo offline. Respostas GET são cacheadas localmente e a falha mostra indisponibilidade. Oponentes possuem rota editorial separada de `game-characters` e não entram no catálogo jogável.
 
 ## IA
 
