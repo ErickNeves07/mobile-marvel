@@ -1,3 +1,21 @@
 plugins {
     id 'com.android.application' version '8.13.2' apply false
 }
+
+def outputRoot = System.getenv('RI_VALIDATION_DIR')
+if (outputRoot == null || outputRoot.isBlank()) {
+    def localData = System.getenv('LOCALAPPDATA')
+    if (localData == null || localData.isBlank()) {
+        localData = System.getProperty('java.io.tmpdir')
+    }
+    def checkoutPath = rootProject.projectDir.canonicalPath.toLowerCase(java.util.Locale.ROOT)
+    def checkoutId = Integer.toHexString(checkoutPath.hashCode())
+    outputRoot = new File(localData, "RupturaInfinita/gradle-builds/${checkoutId}").absolutePath
+}
+
+allprojects { project ->
+    def projectName = project.path == ':'
+            ? 'root'
+            : project.path.substring(1).replace(':', '_')
+    project.layout.buildDirectory.set(new File(outputRoot, projectName))
+}

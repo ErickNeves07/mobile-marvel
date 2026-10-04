@@ -2,6 +2,12 @@
 
 Última atualização: 2026-10-04
 
+## Correção de build direto no Android Studio — 2026-10-04
+
+- Erick reportou `AccessDeniedException` em `:app:generateDebugBuildConfig` na saída `android-app/app/build` sincronizada pelo OneDrive. A spec 031 mudou o build Gradle comum para `%LOCALAPPDATA%\RupturaInfinita\gradle-builds\<id-do-checkout>`, preservando `RI_VALIDATION_DIR` para scripts existentes. A pasta antiga foi mantida intacta.
+- O Wrapper direto, sem init script, passou testes JVM, lint e assemble debug; BuildConfig e APK apareceram na saída local. Validador Android e release assinada também passaram. APK release com Render manteve SHA-256 `3D6FFAA8FFE241737B5BFC01C0929E1BB03A9495EDD8D597F7FD49AD0C232ACA`.
+- Próximo passo: sincronizar o Android Studio e repetir Run no telefone. A instalação/interação em aparelho físico segue Q-028; usar o APK release assinado para testar o backend publicado.
+
 ## Atualização mais recente — Render publicado e APK online
 
 - Erick definiu **1 Fragmento da Joia do dia** na primeira vitória diária, sem retroatividade. Banco concede de forma idempotente e transacional; testes cobrem persistência e limite 999. As seis recompensas de campanha e fusão 2:1 prospectiva continuam conforme spec 028.

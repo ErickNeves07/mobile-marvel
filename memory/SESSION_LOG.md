@@ -367,3 +367,9 @@
 - Primeiro teste detectou retorno do detalhe sem redesenho porque a aba já estava selecionada; corrigido com `renderDestination(COLLECTION)`. Capturas AVD locais foram comparadas ao Lovable: grade e filtros agora existem; crédito editorial e proporções ainda diferem. Capturas online com retratos ficam ignoradas pelo Git.
 - Após a última edição, `validate-local.ps1 -Target android`, instrumentação online **22/22**, `build-release.ps1`, lint release, zipalign e assinatura v2 passaram. APK com URL Render confirmada no DEX: 5.111.366 bytes, SHA-256 `3D6FFAA8FFE241737B5BFC01C0929E1BB03A9495EDD8D597F7FD49AD0C232ACA`.
 - Código/evidência textual enviados ao GitHub no commit `e67b1ac`, confirmado em `origin/main`; workspace limpo após o push. Próximo passo: testar o APK assinado no telefone físico, revisar visual restante de Forja/subfluxos e validar Groq real quando houver autorização para chamada externa potencialmente cobrada.
+
+## Build Android Studio fora do OneDrive — 2026-10-04
+
+- Erick relatou sete falhas no build do telefone; a primeira era `AccessDeniedException` em `android-app/app/build/generated/source/buildConfig` dentro do OneDrive. A spec 031 redirecionou o build direto para `%LOCALAPPDATA%` por checkout, mantendo os scripts de validação/release na pasta temporária declarada por `RI_VALIDATION_DIR`.
+- O Wrapper direto passou `testDebugUnitTest`, `lintDebug`, `assembleDebug` (50 tarefas); `generateDebugBuildConfig` concluiu e os artefatos ficaram fora do OneDrive. `validate-local.ps1 -Target android` passou (77 tarefas). `build-release.ps1` com URL Render passou lint, zipalign e assinatura v2; o SHA-256 do APK permaneceu `3D6FFAA8FFE241737B5BFC01C0929E1BB03A9495EDD8D597F7FD49AD0C232ACA`.
+- Android Studio UI e telefone físico ainda precisam de verificação pelo Erick; o passo imediato é sincronizar o Gradle e executar `app` novamente. Evidência detalhada em `specs/031-android-studio-build-output/evidence.md`.
