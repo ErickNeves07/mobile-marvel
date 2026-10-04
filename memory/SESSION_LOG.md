@@ -1,5 +1,11 @@
 # Log de sessões
 
+## 2026-10-04 — deploy Gemini e instalação no telefone
+
+- Erick confirmou deploy e pediu a execução no mesmo aparelho. `/ready` mostrou Gemini ativo; POST Deadpool hospedado gerou `fallback=false`. Android 0.4.0 passou JVM/lint/build; APK debug verificado e instalado no telefone `C6OFVWYD4DZTBA5H` com `adb install -r` e aberto via `am start`. `dumpsys` confirmou 0.4.0 e processo ativo sem erro fatal.
+- O pacote anterior não aparecia mais no gerenciador do telefone; `firstInstallTime` coincide com esta instalação, portanto os dados locais prévios não estavam disponíveis para preservar. Captura física mostrou Campanhas e retratos editoriais carregados. O fabricante bloqueou injeção de toque via ADB, de modo que a aba Deadpool ainda precisa de toque manual no aparelho. Q-048–Q-051 seguem abertas para o próximo ciclo.
+
+
 ## 2026-10-04 — Deadpool Gemini e combate tático
 
 - Diagnóstico live: Groq configurado no Render retornava fallback; chave Groq local respondeu HTTP 403. Chave Gemini em `Downloads/.env` respondeu com `gemini-3.5-flash-lite`. Backend prioriza Gemini com fallback Groq/local; 53 testes passaram e POST local respondeu `fallback=false`. Commit `970c5c6` enviado ao GitHub. Render `/ready` ainda é da revisão anterior e precisa de `GEMINI_API_KEY` privado e deploy.

@@ -4,5 +4,5 @@
 - [x] Implementar adapter Gemini, prioridade/fallback, readiness e testes.
 - [x] Rodar suíte backend e smoke local com chave Gemini.
 - [x] Documentar secret Render e publicar código autorizado (`970c5c6`).
-- [ ] Confirmar resposta real hospedada após configuração privada de `GEMINI_API_KEY` e deploy Render.
+- [x] Confirmar resposta real hospedada após configuração privada de `GEMINI_API_KEY` e deploy Render.
 - [ ] Verificar Deadpool no telefone com a versão publicada.

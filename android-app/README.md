@@ -16,7 +16,7 @@ O código-fonte inclui desafio diário e recompensas locais, seis batalhas inter
 
 Abra `android-app` como projeto no Android Studio, sincronize o Gradle e execute a configuração `app` no telefone. O build direto agora grava os arquivos gerados em `%LOCALAPPDATA%\RupturaInfinita\gradle-builds\<id-do-checkout>`, fora do OneDrive. O APK debug fica na subpasta `app\outputs\apk\debug\app-debug.apk`. Não é necessário limpar a antiga pasta `android-app\app\build` para usar a nova saída.
 
-**Build Project** apenas compila; use **Run 'app'** para atualizar o aplicativo instalado. Confira a versão nas informações do app no telefone: esta implementação é `0.3.0` (`versionCode` 3). A tela com “Fundação Android pronta para a próxima ruptura” é da versão `0.1.0` antiga.
+**Build Project** apenas compila; use **Run 'app'** para atualizar o aplicativo instalado. Confira a versão nas informações do app no telefone: esta implementação é `0.4.0` (`versionCode` 4). A tela com “Fundação Android pronta para a próxima ruptura” é da versão `0.1.0` antiga.
 
 Se a sincronização já estava aberta antes desta correção, use **File > Sync Project with Gradle Files** e execute Run `app` para instalar o debug 0.3.0 no telefone com a mesma assinatura debug. O host Render já está configurado no build comum.
 

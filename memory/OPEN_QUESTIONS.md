@@ -1,5 +1,10 @@
 # Dúvidas abertas
 
+## Atualização do deploy e aparelho — 2026-10-04
+
+- **Q-047 — Resolvida para o backend:** Erick fez deploy e `/ready` passou a mostrar Gemini ativo. POST hospedado do Deadpool retornou `fallback=false`. A interação na tela do telefone ainda requer toque manual porque o Android bloqueou `adb shell input tap` com `INJECT_EVENTS`.
+- **Q-028 — Instalação 0.4.0 verificada:** o mesmo celular `C6OFVWYD4DZTBA5H` recebeu e abriu o APK debug 0.4.0. O pacote anterior não estava instalado quando a revisão foi aplicada; os dados locais antigos não estavam presentes. Captura física mostra Campanhas e imagens editoriais. Q-048–Q-051 continuam bloqueando o próximo ciclo de regras/arte.
+
 ## Specs 033–035 — atualização 2026-10-04
 
 - **Q-045 — Resolvida na direção geral:** Erick definiu que a Manopla completa oferece escolha entre novo personagem não possuído e próximo patamar de variante possuída. O consumo exato dos itens intermediários segue Q-050.

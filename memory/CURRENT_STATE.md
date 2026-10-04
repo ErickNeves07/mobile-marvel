@@ -2,6 +2,12 @@
 
 Última atualização: 2026-10-04
 
+## Instalação física 0.4.0 após deploy Gemini — 2026-10-04
+
+- Erick informou que fez o deploy e pediu para rodar no mesmo celular. Render `/ready` agora tem `gemini=true`, `comic_vine=true`, `groq=true`; POST real de Deadpool retornou HTTP 200, `fallback=false` e 202 caracteres, sem expor texto/chave. O app foi marcado `versionCode 4`/`0.4.0`; `testDebugUnitTest`, `lintDebug` e `assembleDebug` passaram. APK debug verificado em `artifacts/Marvel-Ruptura-Infinita-debug-0.4.0.apk`, SHA-256 `DE07D522FCB45E0B050C01C83E90A6ADA6BD95A47C344601C9A4B3FE0F51156E`.
+- O telefone `C6OFVWYD4DZTBA5H` estava conectado mas não listava o pacote anterior, então a instalação foi nova (`firstInstallTime=2026-10-04 17:52:01`). `adb install -r` respondeu `Success`; `am start` abriu `MainActivity`, `dumpsys` confirmou 0.4.0 e o processo permaneceu ativo sem exceção fatal. Captura física em `reports/lovable-research/phone-0.4.0.png` mostra Campanhas com retratos carregados de Magneto e Sentinelas. O Android do aparelho bloqueou `adb shell input tap` (`INJECT_EVENTS`), impedindo acionar Deadpool por automação; testar manualmente a aba no telefone.
+- Esta instalação atende ao pedido imediato de rodar a revisão atual no celular. As regras Q-048–Q-051 ainda aguardam resposta e não fazem parte do APK 0.4.0.
+
 ## Atualização 2026-10-04 — IA Gemini, combate tático e filtro
 
 - A rota Deadpool no Render retornou `fallback=true` numa chamada real. A chave Groq local retornou HTTP 403; a chave Gemini de `Downloads/.env` funcionou com `gemini-3.5-flash-lite` (HTTP 200). O backend agora prioriza Gemini, tenta Groq e só então usa fallback. Testes backend **53/53** passaram; chamada local retornou `fallback=false`. Código foi enviado a `origin/main` em `970c5c6` sem segredo. O Render ainda mostra `/ready` antigo, sem campo `gemini`; Erick precisa configurar `GEMINI_API_KEY` no painel privado e publicar a revisão para validar a IA no telefone.
