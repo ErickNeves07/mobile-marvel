@@ -47,7 +47,7 @@ O jogador abre o app na Forja, navega pelos cinco destinos e executa os fluxos e
 - [ ] AC-03 — Regras e quantidades aprovadas na spec 028 são refletidas na UI; demais fluxos preservam seus contratos até decisão específica. Testes funcionais relevantes passam.
 - [ ] AC-04 — Contraste, alvos >= 48dp, fonte 1.3, TalkBack e redução de movimento são verificados.
 - [ ] AC-05 — Capturas AVD das telas e fluxos críticos são comparadas lado a lado com capturas Lovable; cada diferença remanescente tem justificativa aceita.
-- [ ] AC-06 — As 105 variantes podem mostrar o retrato editorial reconhecível do personagem, inclusive repetido entre tiers, sem silhueta; a origem Comic Vine é visível/linkada e nenhum segredo/imagem da API entra no APK. A validação live no APK depende de host HTTPS.
+- [x] AC-06 — As 105 variantes podem mostrar o retrato editorial reconhecível do personagem, inclusive repetido entre tiers, sem silhueta; a origem Comic Vine é visível/linkada e nenhum segredo/imagem da API entra no APK. URL Render e retratos live verificados no AVD.
 
 ## Dependências
 

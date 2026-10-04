@@ -315,6 +315,22 @@ public final class MainActivity extends AppCompatActivity {
         title.setSingleLine(true);
         title.setEllipsize(android.text.TextUtils.TruncateAt.END);
         labels.addView(title);
+        if (destination == AppDestination.COLLECTION) {
+            TextView compare = text(R.string.collection_compare_action,
+                    R.style.TextAppearance_Ruptura_Label, R.color.accent_cyan, true);
+            compare.setAllCaps(true);
+            compare.setGravity(Gravity.CENTER);
+            compare.setMinHeight(dimension(R.dimen.target_min));
+            compare.setPadding(dimension(R.dimen.space_2), 0,
+                    dimension(R.dimen.space_2), 0);
+            compare.setBackground(background(R.color.surface_selected,
+                    R.color.accent_cyan, 0));
+            compare.setClickable(true);
+            compare.setFocusable(true);
+            compare.setContentDescription(getString(R.string.collection_compare_full));
+            compare.setOnClickListener(view -> showVariantComparison(loadRoster()));
+            header.addView(compare, new LinearLayout.LayoutParams(-2, -2));
+        }
         LinearLayout.LayoutParams headerParams = new LinearLayout.LayoutParams(-1, -2);
         headerParams.bottomMargin = dimension(R.dimen.space_4);
         page.addView(header, headerParams);
@@ -808,11 +824,6 @@ public final class MainActivity extends AppCompatActivity {
         progressBar.addView(remaining, new LinearLayout.LayoutParams(0, -1,
                 Math.max(0.001f, total - ownedCount)));
 
-        TextView compare = action("Comparar variantes", () -> showVariantComparison(characters));
-        LinearLayout.LayoutParams compareParams = new LinearLayout.LayoutParams(-1, -2);
-        compareParams.topMargin = dimension(R.dimen.space_3);
-        page.addView(compare, compareParams);
-
         android.widget.EditText search = new android.widget.EditText(this);
         search.setSingleLine(true);
         search.setHint(R.string.collection_search_hint);
@@ -833,126 +844,80 @@ public final class MainActivity extends AppCompatActivity {
         filterParams.topMargin = dimension(R.dimen.space_3);
         page.addView(filterScroll, filterParams);
 
-        TextView note = text(R.string.collection_editorial_note,
-                R.style.TextAppearance_Ruptura_Caption, R.color.text_secondary, false);
-        LinearLayout.LayoutParams noteParams = new LinearLayout.LayoutParams(-1, -2);
-        noteParams.topMargin = dimension(R.dimen.space_3);
-        page.addView(note, noteParams);
+        android.widget.HorizontalScrollView tierScroll = new android.widget.HorizontalScrollView(this);
+        tierScroll.setHorizontalScrollBarEnabled(false);
+        LinearLayout tierFilters = new LinearLayout(this);
+        tierScroll.addView(tierFilters);
+        LinearLayout.LayoutParams tierParams = new LinearLayout.LayoutParams(-1, -2);
+        tierParams.topMargin = dimension(R.dimen.space_3);
+        page.addView(tierScroll, tierParams);
 
-        java.util.Map<GameCatalogCharacter, LinearLayout> cards = new java.util.LinkedHashMap<>();
-        java.util.Map<String, TextView> groupHeadings = new java.util.LinkedHashMap<>();
-        String currentGroup = null;
+        LinearLayout gallery = new LinearLayout(this);
+        gallery.setOrientation(LinearLayout.VERTICAL);
+        LinearLayout.LayoutParams galleryParams = new LinearLayout.LayoutParams(-1, -2);
+        galleryParams.topMargin = dimension(R.dimen.space_3);
+        page.addView(gallery, galleryParams);
+
+        java.util.Map<String, java.util.Set<GameVariantTier>> ownedByCharacter =
+                new java.util.HashMap<>();
         for (GameCatalogCharacter character : characters) {
-            if (!character.groupId.equals(currentGroup)) {
-                currentGroup = character.groupId;
-                TextView groupHeading = text(groupLabel(currentGroup),
-                        R.style.TextAppearance_Ruptura_Title, R.color.accent_gold, true);
-                LinearLayout.LayoutParams groupParams = new LinearLayout.LayoutParams(-1, -2);
-                groupParams.topMargin = dimension(R.dimen.space_8);
-                page.addView(groupHeading, groupParams);
-                groupHeadings.put(currentGroup, groupHeading);
-            }
-
-            LinearLayout card = new LinearLayout(this);
-            card.setOrientation(LinearLayout.VERTICAL);
-            card.setPadding(dimension(R.dimen.space_4), dimension(R.dimen.space_4),
-                    dimension(R.dimen.space_4), dimension(R.dimen.space_4));
-            card.setBackground(background(R.color.surface_elevated, R.color.border_subtle,
-                    dimension(R.dimen.radius_card)));
-            LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(-1, -2);
-            cardParams.topMargin = dimension(R.dimen.space_3);
-            page.addView(card, cardParams);
-            cards.put(character, card);
-
-            ImageView cover = editorialImage(card, dimension(R.dimen.space_8) * 5);
-            TextView source = text(R.string.editorial_portrait_loading,
-                    R.style.TextAppearance_Ruptura_Caption, R.color.text_secondary, false);
-            source.setMinimumHeight(dimension(R.dimen.target_min));
-            source.setGravity(Gravity.CENTER_VERTICAL);
-            card.addView(source);
-            portraitLoader.load(character.id, character.name, cover, source);
-
-            card.addView(text(character.name, R.style.TextAppearance_Ruptura_Title,
-                    R.color.text_primary, true));
-            String equippedTier = gauntletActive ? forgeRepository.loadEquippedTier(character.id) : null;
-            if (gauntletActive) {
-                card.addView(text(getString(R.string.variant_equipped, variantName(character,
-                                tierById(equippedTier))),
-                        R.style.TextAppearance_Ruptura_Label, R.color.accent_gold, true));
-            }
-            TextView variantHeading = text(R.string.collection_variants_heading,
-                    R.style.TextAppearance_Ruptura_Label, R.color.accent_cyan, true);
-            LinearLayout.LayoutParams variantHeadingParams = new LinearLayout.LayoutParams(-1, -2);
-            variantHeadingParams.topMargin = dimension(R.dimen.space_3);
-            card.addView(variantHeading, variantHeadingParams);
-
-            boolean firstVariant = true;
-            java.util.Set<GameVariantTier> owned = gauntletActive
+            ownedByCharacter.put(character.id, gauntletActive
                     ? forgeRepository.loadOwnedTiers(character.id, true)
-                    : java.util.Collections.emptySet();
-            for (GameCatalogVariant variant : character.variants) {
-                boolean isOwned = owned.contains(variant.tier);
-                String suffix = isOwned ? getString(R.string.variant_owned) : getString(R.string.variant_locked);
-                LinearLayout variantRow = new LinearLayout(this);
-                variantRow.setGravity(Gravity.CENTER_VERTICAL);
-                ImageView variantPortrait = new ImageView(this);
-                variantPortrait.setScaleType(ImageView.ScaleType.CENTER_CROP);
-                variantPortrait.setBackgroundColor(getColor(R.color.surface_primary));
-                variantRow.addView(variantPortrait, new LinearLayout.LayoutParams(
-                        dimension(R.dimen.target_min), dimension(R.dimen.target_min)));
-                portraitLoader.load(character.id, character.name, variantPortrait, null);
-                TextView variantText = text(getString(variant.tier.labelRes) + ": "
-                                + variant.name + " — " + suffix,
-                        R.style.TextAppearance_Ruptura_Body,
-                        isOwned ? R.color.accent_cyan : R.color.text_secondary, false);
-                LinearLayout.LayoutParams variantTextParams = new LinearLayout.LayoutParams(0, -2, 1f);
-                variantTextParams.leftMargin = dimension(R.dimen.space_3);
-                variantRow.addView(variantText, variantTextParams);
-                LinearLayout.LayoutParams variantParams = new LinearLayout.LayoutParams(-1, -2);
-                variantParams.topMargin = dimension(firstVariant ? R.dimen.space_2 : R.dimen.space_1);
-                card.addView(variantRow, variantParams);
-                if (gauntletActive && variant.tier == VariantProgression.next(owned)) {
-                    card.addView(action(getString(R.string.variant_unlock_action,
-                            getString(variant.tier.requiredStone.labelRes)), () -> forgeExecutor.execute(() -> {
-                        try {
-                            forgeRepository.unlockNextVariant(character.id, variant.tier, characters);
-                            runOnUiThread(() -> selectDestination(AppDestination.COLLECTION));
-                        } catch (RuntimeException error) {
-                            runOnUiThread(() -> android.widget.Toast.makeText(this,
-                                    error instanceof ForgeException ? R.string.variant_stone_required : R.string.variant_gauntlet_required,
-                                    android.widget.Toast.LENGTH_LONG).show());
-                        }
-                    })));
-                }
-                if (gauntletActive && isOwned
-                        && !variant.tier.name().equals(equippedTier)) {
-                    card.addView(action(getString(R.string.variant_equip_action), () -> forgeExecutor.execute(() -> {
-                        forgeRepository.equipVariant(character.id, variant.tier, characters);
-                        runOnUiThread(() -> selectDestination(AppDestination.COLLECTION));
-                    })));
-                }
-                firstVariant = false;
-            }
-            if (!gauntletActive) {
-                card.addView(text(R.string.variant_gauntlet_required,
-                        R.style.TextAppearance_Ruptura_Caption, R.color.text_secondary, false));
-            }
+                    : java.util.Collections.emptySet());
         }
         String[] selectedGroup = {null};
+        GameVariantTier[] selectedTier = {null};
         Runnable update = () -> {
+            gallery.removeAllViews();
             String query = search.getText().toString().trim().toLowerCase(java.util.Locale.ROOT);
-            java.util.Set<String> populated = new java.util.HashSet<>();
-            for (java.util.Map.Entry<GameCatalogCharacter, LinearLayout> entry : cards.entrySet()) {
-                GameCatalogCharacter character = entry.getKey();
-                boolean match = (selectedGroup[0] == null
-                        || selectedGroup[0].equals(character.groupId))
-                        && character.name.toLowerCase(java.util.Locale.ROOT).contains(query);
-                entry.getValue().setVisibility(match ? View.VISIBLE : View.GONE);
-                if (match) populated.add(character.groupId);
+            int shown = 0;
+            LinearLayout pair = null;
+            for (GameVariantTier tier : GameVariantTier.values()) {
+                if (selectedTier[0] != null && selectedTier[0] != tier) continue;
+                for (GameCatalogCharacter character : characters) {
+                    if (selectedGroup[0] != null
+                            && !selectedGroup[0].equals(character.groupId)) continue;
+                    GameCatalogVariant variant = null;
+                    for (GameCatalogVariant candidate : character.variants) {
+                        if (candidate.tier == tier) {
+                            variant = candidate;
+                            break;
+                        }
+                    }
+                    if (variant == null) continue;
+                    if (!query.isEmpty()
+                            && !character.name.toLowerCase(java.util.Locale.ROOT).contains(query)
+                            && !variant.name.toLowerCase(java.util.Locale.ROOT).contains(query)) {
+                        continue;
+                    }
+                    boolean featured = shown % 5 == 0;
+                    LinearLayout variantCard = catalogVariantCard(character, variant,
+                            featured, ownedByCharacter.get(character.id), characters);
+                    if (featured) {
+                        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, -2);
+                        params.topMargin = dimension(R.dimen.space_3);
+                        gallery.addView(variantCard, params);
+                        pair = null;
+                    } else {
+                        if (pair == null || shown % 5 == 1 || shown % 5 == 3) {
+                            pair = new LinearLayout(this);
+                            pair.setOrientation(LinearLayout.HORIZONTAL);
+                            LinearLayout.LayoutParams rowParams =
+                                    new LinearLayout.LayoutParams(-1, -2);
+                            rowParams.topMargin = dimension(R.dimen.space_3);
+                            gallery.addView(pair, rowParams);
+                        }
+                        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(0, -2, 1f);
+                        if (shown % 2 == 0) params.leftMargin = dimension(R.dimen.space_2);
+                        else params.rightMargin = dimension(R.dimen.space_2);
+                        pair.addView(variantCard, params);
+                    }
+                    shown++;
+                }
             }
-            for (java.util.Map.Entry<String, TextView> entry : groupHeadings.entrySet()) {
-                entry.getValue().setVisibility(populated.contains(entry.getKey())
-                        ? View.VISIBLE : View.GONE);
+            if (shown == 0) {
+                gallery.addView(text(R.string.collection_empty,
+                        R.style.TextAppearance_Ruptura_Body, R.color.text_secondary, false));
             }
         };
         search.addTextChangedListener(new android.text.TextWatcher() {
@@ -963,8 +928,181 @@ public final class MainActivity extends AppCompatActivity {
             @Override public void afterTextChanged(android.text.Editable s) { }
         });
         filterFilters(filters, selectedGroup, update);
+        filterTierFilters(tierFilters, selectedTier, update);
+        update.run();
     }
 
+    private LinearLayout catalogVariantCard(GameCatalogCharacter character,
+                                              GameCatalogVariant variant, boolean featured,
+                                              java.util.Set<GameVariantTier> owned,
+                                              List<GameCatalogCharacter> roster) {
+        LinearLayout card = new LinearLayout(this);
+        card.setOrientation(LinearLayout.VERTICAL);
+        card.setPadding(dimension(R.dimen.space_2), dimension(R.dimen.space_2),
+                dimension(R.dimen.space_2), dimension(R.dimen.space_2));
+        card.setBackground(background(R.color.surface_elevated, R.color.border_subtle,
+                dimension(R.dimen.radius_card)));
+        ImageView portrait = editorialImage(card,
+                dimension(R.dimen.space_8) * (featured ? 5 : 4));
+        TextView source = text(R.string.editorial_portrait_loading,
+                R.style.TextAppearance_Ruptura_Caption, R.color.text_secondary, false);
+        source.setGravity(Gravity.CENTER_VERTICAL);
+        source.setMinimumHeight(dimension(R.dimen.target_min));
+        card.addView(source);
+        portraitLoader.load(character.id, character.name, portrait, source);
+        TextView name = text(character.name, featured
+                        ? R.style.TextAppearance_Ruptura_Title
+                        : R.style.TextAppearance_Ruptura_Label,
+                R.color.text_primary, true);
+        name.setMaxLines(2);
+        card.addView(name);
+        TextView subtitle = text(getString(groupLabel(character.groupId)) + " · " + variant.name,
+                R.style.TextAppearance_Ruptura_Caption, R.color.text_secondary, false);
+        subtitle.setMaxLines(2);
+        card.addView(subtitle);
+        boolean isOwned = owned.contains(variant.tier);
+        TextView state = text(isOwned ? R.string.variant_owned : R.string.variant_locked,
+                R.style.TextAppearance_Ruptura_Caption,
+                isOwned ? R.color.accent_cyan : R.color.text_secondary, true);
+        card.addView(state);
+        LinearLayout meter = new LinearLayout(this);
+        LinearLayout.LayoutParams meterParams = new LinearLayout.LayoutParams(-1,
+                dimension(R.dimen.space_1));
+        meterParams.topMargin = dimension(R.dimen.space_2);
+        card.addView(meter, meterParams);
+        for (GameVariantTier tier : GameVariantTier.values()) {
+            View segment = new View(this);
+            segment.setBackgroundColor(getColor(owned.contains(tier)
+                    ? R.color.accent_cyan : R.color.border_subtle));
+            LinearLayout.LayoutParams segmentParams = new LinearLayout.LayoutParams(0, -1, 1f);
+            segmentParams.rightMargin = dimension(R.dimen.space_1);
+            meter.addView(segment, segmentParams);
+        }
+        card.setClickable(true);
+        card.setFocusable(true);
+        card.setContentDescription(character.name + ", " + variant.name + ", "
+                + getString(isOwned ? R.string.variant_owned : R.string.variant_locked));
+        card.setOnClickListener(view -> showCharacterVariants(character, roster, variant.tier));
+        return card;
+    }
+
+    private void filterTierFilters(LinearLayout filters, GameVariantTier[] selected,
+                                   Runnable update) {
+        filters.removeAllViews();
+        GameVariantTier[] tiers = {null, GameVariantTier.ORIGIN, GameVariantTier.ASCENSION,
+                GameVariantTier.LEGENDARY, GameVariantTier.MULTIVERSAL, GameVariantTier.INFINITY};
+        for (GameVariantTier tier : tiers) {
+            boolean active = selected[0] == tier;
+            TextView chip = text(tier == null ? R.string.collection_all_tiers : tier.labelRes,
+                    R.style.TextAppearance_Ruptura_Label,
+                    active ? R.color.accent_cyan : R.color.text_secondary, true);
+            chip.setAllCaps(true);
+            chip.setGravity(Gravity.CENTER);
+            chip.setMinHeight(dimension(R.dimen.target_min));
+            chip.setPadding(dimension(R.dimen.space_3), 0, dimension(R.dimen.space_3), 0);
+            chip.setBackground(background(active ? R.color.surface_selected
+                    : R.color.surface_primary, active ? R.color.accent_cyan
+                    : R.color.border_subtle, 0));
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-2, -2);
+            params.rightMargin = dimension(R.dimen.space_2);
+            filters.addView(chip, params);
+            chip.setClickable(true);
+            chip.setFocusable(true);
+            chip.setOnClickListener(view -> {
+                selected[0] = tier;
+                filterTierFilters(filters, selected, update);
+                update.run();
+            });
+        }
+    }
+
+    private void showCharacterVariants(GameCatalogCharacter character,
+                                       List<GameCatalogCharacter> roster,
+                                       GameVariantTier focusTier) {
+        contentContainer.removeAllViews();
+        ScrollView scroll = new ScrollView(this);
+        scroll.setBackgroundColor(getColor(R.color.canvas));
+        LinearLayout page = new LinearLayout(this);
+        page.setOrientation(LinearLayout.VERTICAL);
+        page.setPadding(dimension(R.dimen.space_4), dimension(R.dimen.space_4),
+                dimension(R.dimen.space_4), dimension(R.dimen.space_6));
+        page.addView(action(getString(R.string.collection_back),
+                () -> renderDestination(AppDestination.COLLECTION)));
+        TextView title = text(character.name, R.style.TextAppearance_Ruptura_Display,
+                R.color.text_primary, true);
+        LinearLayout.LayoutParams titleParams = new LinearLayout.LayoutParams(-1, -2);
+        titleParams.topMargin = dimension(R.dimen.space_4);
+        page.addView(title, titleParams);
+        ImageView cover = editorialImage(page, dimension(R.dimen.space_8) * 6);
+        TextView source = text(R.string.editorial_portrait_loading,
+                R.style.TextAppearance_Ruptura_Caption, R.color.text_secondary, false);
+        source.setGravity(Gravity.CENTER_VERTICAL);
+        source.setMinimumHeight(dimension(R.dimen.target_min));
+        page.addView(source);
+        portraitLoader.load(character.id, character.name, cover, source);
+
+        boolean active = forgeRepository.isGauntletActivated();
+        java.util.Set<GameVariantTier> owned = active
+                ? forgeRepository.loadOwnedTiers(character.id, true)
+                : java.util.Collections.emptySet();
+        String equippedTier = active ? forgeRepository.loadEquippedTier(character.id) : null;
+        if (active) {
+            page.addView(text(getString(R.string.variant_equipped,
+                            variantName(character, tierById(equippedTier))),
+                    R.style.TextAppearance_Ruptura_Label, R.color.accent_gold, true));
+        } else {
+            page.addView(text(R.string.variant_gauntlet_required,
+                    R.style.TextAppearance_Ruptura_Caption, R.color.text_secondary, false));
+        }
+        for (GameCatalogVariant variant : character.variants) {
+            boolean isOwned = owned.contains(variant.tier);
+            LinearLayout variantCard = card();
+            LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(-1, -2);
+            cardParams.topMargin = dimension(R.dimen.space_3);
+            page.addView(variantCard, cardParams);
+            LinearLayout row = new LinearLayout(this);
+            row.setGravity(Gravity.CENTER_VERTICAL);
+            variantCard.addView(row);
+            ImageView thumbnail = new ImageView(this);
+            thumbnail.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            thumbnail.setBackgroundColor(getColor(R.color.surface_primary));
+            row.addView(thumbnail, new LinearLayout.LayoutParams(
+                    dimension(R.dimen.target_min), dimension(R.dimen.target_min)));
+            portraitLoader.load(character.id, character.name, thumbnail, null);
+            String status = getString(isOwned ? R.string.variant_owned : R.string.variant_locked);
+            TextView label = text(getString(variant.tier.labelRes) + ": " + variant.name
+                            + " · " + status,
+                    R.style.TextAppearance_Ruptura_Body,
+                    variant.tier == focusTier ? R.color.accent_gold
+                            : isOwned ? R.color.accent_cyan : R.color.text_secondary, false);
+            LinearLayout.LayoutParams labelParams = new LinearLayout.LayoutParams(0, -2, 1f);
+            labelParams.leftMargin = dimension(R.dimen.space_3);
+            row.addView(label, labelParams);
+            if (active && variant.tier == VariantProgression.next(owned)) {
+                variantCard.addView(action(getString(R.string.variant_unlock_action,
+                        getString(variant.tier.requiredStone.labelRes)), () -> forgeExecutor.execute(() -> {
+                    try {
+                        forgeRepository.unlockNextVariant(character.id, variant.tier, roster);
+                        runOnUiThread(() -> showCharacterVariants(character, roster, variant.tier));
+                    } catch (RuntimeException error) {
+                        runOnUiThread(() -> android.widget.Toast.makeText(this,
+                                error instanceof ForgeException ? R.string.variant_stone_required
+                                        : R.string.variant_gauntlet_required,
+                                android.widget.Toast.LENGTH_LONG).show());
+                    }
+                })));
+            }
+            if (active && isOwned && !variant.tier.name().equals(equippedTier)) {
+                variantCard.addView(action(getString(R.string.variant_equip_action),
+                        () -> forgeExecutor.execute(() -> {
+                    forgeRepository.equipVariant(character.id, variant.tier, roster);
+                    runOnUiThread(() -> showCharacterVariants(character, roster, variant.tier));
+                })));
+            }
+        }
+        scroll.addView(page);
+        contentContainer.addView(scroll, new FrameLayout.LayoutParams(-1, -1));
+    }
     private void filterFilters(LinearLayout filters, String[] selectedGroup, Runnable update) {
         filters.removeAllViews();
         String[] ids = {null, "avengers-allies", "x-men", "fantastic-four", "cosmic-specials"};

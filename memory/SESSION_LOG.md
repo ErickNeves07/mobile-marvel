@@ -360,3 +360,10 @@
 - `scripts/build-release.ps1` com `ORG_GRADLE_PROJECT_riApiBaseUrl` gerou APK v2 assinado 5.107.614 bytes, SHA-256 `195005E67AC093A57C11457718BE6391D5FBF65F5C4D5B3BBAC743EFA77C09FD`; URL encontrada no DEX. O APK e a keystore permanecem fora do Git.
 - A instrumentação original de Coleção falhou com URL live porque só aceitava fallback ou retrato concluído aos 500 ms. Teste corrigido para reconhecer loading e aguardar retrato real quando há host. Comparação também aguarda dois retratos reais. Após última edição de teste, build/lint Android e instrumentação online **22/22** passaram. Capturas `collection-portraits-live.png` e `compare-variant-live.png` foram inspecionadas: Homem de Ferro, Wolverine e Professor Xavier aparecem com crédito/link.
 - Permanecem teste físico, abertura do link externo/fallback manual, paridade visual completa da grade da Coleção/Forja e smoke real Groq. Próximo passo é atualizar o repositório com a evidência e testar o APK candidato no telefone.
+
+## Grade da Coleção e release online atualizada — 2026-10-04
+
+- Refatorada Coleção em 105 cards de variantes, ordenados por patamar, com destaque a cada cinco e duas colunas. Filtros de grupo/patamar, busca, detalhe com cinco variantes e ações de desbloqueio/equipamento reais foram preservados; Comparação ficou no cabeçalho.
+- Primeiro teste detectou retorno do detalhe sem redesenho porque a aba já estava selecionada; corrigido com `renderDestination(COLLECTION)`. Capturas AVD locais foram comparadas ao Lovable: grade e filtros agora existem; crédito editorial e proporções ainda diferem. Capturas online com retratos ficam ignoradas pelo Git.
+- Após a última edição, `validate-local.ps1 -Target android`, instrumentação online **22/22**, `build-release.ps1`, lint release, zipalign e assinatura v2 passaram. APK com URL Render confirmada no DEX: 5.111.366 bytes, SHA-256 `3D6FFAA8FFE241737B5BFC01C0929E1BB03A9495EDD8D597F7FD49AD0C232ACA`.
+- Próximo passo: enviar código/evidência textual ao GitHub, testar no telefone físico, revisar visual restante de Forja/subfluxos e validar Groq real quando houver autorização para chamada externa potencialmente cobrada.

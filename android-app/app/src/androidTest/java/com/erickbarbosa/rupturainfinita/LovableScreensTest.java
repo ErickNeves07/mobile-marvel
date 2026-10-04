@@ -39,19 +39,40 @@ public final class LovableScreensTest {
         View root = activity.getWindow().getDecorView();
         assertTrue(hasText(root, "Homem de Ferro"));
         assertTrue(countPortraits(root) >= 105);
+        instrumentation.runOnMainSync(() -> findText(root, "Origem").performClick());
+        instrumentation.waitForIdleSync();
+        assertTrue(countPortraits(root) == 21);
+        instrumentation.runOnMainSync(() -> findText(root, "Todos patamares").performClick());
+        instrumentation.waitForIdleSync();
+        assertTrue(countPortraits(root) >= 105);
         assertTrue(hasText(root, "Retrato indisponível offline")
                 || hasText(root, "Retrato editorial · Comic Vine")
                 || hasText(root, "Carregando retrato editorial"));
+        TextView firstName = findText(root, "Homem de Ferro");
+        assertTrue(firstName != null);
+        View firstCard = (View) firstName.getParent();
         if (!BuildConfig.API_BASE_URL.isEmpty()) {
             for (int attempt = 0; attempt < 25
-                    && !hasText(root, "Retrato editorial · Comic Vine"); attempt++) {
+                    && !hasText(firstCard, "Retrato editorial · Comic Vine"); attempt++) {
                 Thread.sleep(1000);
                 instrumentation.waitForIdleSync();
             }
             assertTrue("The published backend did not load a Comic Vine portrait",
-                    hasText(root, "Retrato editorial · Comic Vine"));
+                    hasText(firstCard, "Retrato editorial · Comic Vine"));
         }
         instrumentation.runOnMainSync(() -> capture(activity, root, "collection-portraits.png"));
+        instrumentation.runOnMainSync(firstCard::performClick);
+        instrumentation.waitForIdleSync();
+        assertTrue(hasText(root, "Voltar à Coleção"));
+        assertTrue(hasText(root, "Armadura de Cerco"));
+        assertTrue(countPortraits(root) >= 6);
+        instrumentation.runOnMainSync(() -> capture(activity, root, "collection-detail-live.png"));
+        instrumentation.runOnMainSync(() -> findText(root, "Voltar à Coleção").performClick());
+        instrumentation.waitForIdleSync();
+        assertTrue(countPortraits(root) >= 105);
+        instrumentation.runOnMainSync(() -> findText(root, "Comparar").performClick());
+        instrumentation.waitForIdleSync();
+        assertTrue(hasText(root, "COMPARAR VARIANTES"));
         instrumentation.runOnMainSync(activity::finish);
     }
 
