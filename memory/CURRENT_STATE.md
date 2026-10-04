@@ -171,3 +171,8 @@ Specs 022-026 implementadas e verificadas localmente; spec 027 em implementaçã
 - Backend: rota editorial de capa específica por variante. Testes locais validam Comic Vine. Ela só estará disponível no app após o deploy do backend Render.
 - Verificações: backend 56/56; JVM/lint/build Android passaram; instrumentação AVD 31/31. Captura reports/lovable-research/campaign-nine-android.png. APK debug 0.5.0 instalado diretamente, tamanho 6,213,152, SHA-256 6F38679B635C71D1F5E2CCC60AD9FB8D2EDABE1132BD14F68EC24996876E1CDF.
 - Próximo: conferir diff, commit/push autorizado; Erick faz deploy Render; após confirmação, verificar a rota pública e instalar APK 0.5.0 no mesmo celular.
+## Publicação GitHub — 2026-10-04
+
+- Commit de implementação 49c535e enviado com sucesso a origin/main no repositório mobile-marvel.git. Arquivos .env, APK e capturas ficaram fora do commit.
+- Erick deve publicar o serviço do Render para ativar as capas das variantes e das nove batalhas. Após confirmação, verificar a API pública e instalar o APK 0.5.0 no mesmo celular; nenhum APK foi instalado no telefone nesta etapa.
+- APK local: artifacts/Marvel-Ruptura-Infinita-debug-0.5.0.apk, 6,213,152 bytes, SHA-256 6F38679B635C71D1F5E2CCC60AD9FB8D2EDABE1132BD14F68EC24996876E1CDF.

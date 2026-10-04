@@ -94,3 +94,4 @@ Formato: `DEC-NNN | data | decisão | motivo | consequências`.
 
 - **DEC-082 | 2026-10-04 | Economia da Manopla da spec 036.** Cada vitória concede somente os Fragmentos faltantes em todas as seis Joias; as fusões permanecem manuais 2:1. Novas instalações recebem três Fragmentos por Joia. Novo personagem ou próxima variante gasta uma Joia Completa de cada tipo.
 - **DEC-083 | 2026-10-04 | Campanha Lovable com nove capítulos.** Ordem: Nova York, Ultron, Wakanda, Dimensão Espelhada, Knowhere, Xavier, Zona Negativa, Latveria e Titã. Poderes recomendados vêm do bundle publicado. Não há migração de progresso anterior porque Erick confirmou ausência de usuários.
+- DEC-084 | 2026-10-04 | Sem migração nem bônus retroativo em banco existente. Erick confirmou que não havia usuários anteriores. A instalação final no aparelho atual será atualização que preserva os dados; os três Fragmentos iniciais só entram em banco novo.

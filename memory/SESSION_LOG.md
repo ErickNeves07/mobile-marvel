@@ -415,3 +415,6 @@
 ## 2026-10-04 — Nove capítulos, imagens de variantes e Manopla
 
 Implementada spec 036 com nove confrontos em ordem, capas distintas de Comic Vine para variantes, mapa visual compacto, recompensa dos Fragmentos que faltam e consumo completo da Manopla. Atualizada versão Android para 0.5.0. Confirmado por Erick que não existiam usuários anteriores, então não há migração a desenhar. Backend: 56 testes; Android: build/lint/JVM e 31 instrumentados no AVD. Pendente revisar e enviar ao remoto; depois Erick fará deploy, e a instalação física aguarda confirmação dele.
+### Handoff após validação — 2026-10-04
+
+Commit 49c535e publicado em origin/main. O trabalho no repositório está completo e aguardando deploy do Erick no Render. Após confirmação dele, verificar o endpoint de retratos e então instalar o APK 0.5.0 no celular C6OFVWYD4DZTBA5H. A instalação física deve preservar os dados atuais; os três Fragmentos iniciais só são inseridos na criação de um banco novo.
