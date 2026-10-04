@@ -25,7 +25,7 @@ def test_readiness_reports_missing_integrations_without_secret_values() -> None:
     assert response.json() == {
         "status": "degraded",
         "service": "ruptura-infinita-backend",
-        "integrations": {"comic_vine": False, "groq": False},
+        "integrations": {"comic_vine": False, "groq": False, "gemini": False},
     }
 
 
@@ -35,5 +35,13 @@ def test_readiness_reports_configured_integrations_as_booleans_only() -> None:
 
     assert response.status_code == 200
     assert response.json()["status"] == "ok"
-    assert response.json()["integrations"] == {"comic_vine": True, "groq": True}
+    assert response.json()["integrations"] == {"comic_vine": True, "groq": True, "gemini": False}
+    assert "hidden" not in response.text
+
+
+def test_readiness_accepts_gemini_without_groq() -> None:
+    with patch.dict("os.environ", {"COMIC_VINE_API_KEY": "hidden-cv", "GEMINI_API_KEY": "hidden-gemini"}, clear=True):
+        response = client.get("/ready")
+    assert response.json()["status"] == "ok"
+    assert response.json()["integrations"] == {"comic_vine": True, "groq": False, "gemini": True}
     assert "hidden" not in response.text

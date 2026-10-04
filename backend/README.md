@@ -1,5 +1,9 @@
 # Backend
 
+## IA atual
+
+`POST /v1/ai/deadpool-line` prioriza `GEMINI_API_KEY` no backend com `gemini-3.5-flash-lite`, tenta `GROQ_API_KEY` se Gemini falhar e usa texto local se ambos falharem. Nenhuma chave entra no APK ou Git. `/ready` informa apenas presença booleana das três integrações (Comic Vine, Gemini e Groq); `status=ok` requer Comic Vine e pelo menos um provedor de IA, mas não comprova geração. A chave Gemini isolada em `Downloads/.env` respondeu localmente; no Web Service Render existente, adicione-a manualmente em **Environment** como `GEMINI_API_KEY` e faça deploy da revisão mais recente.
+
 Backend FastAPI local. Além de campanhas e roster estáticos, oferece busca/detalhe Comic Vine em `/v1/editorial/characters` (variável `COMIC_VINE_API_KEY`) e fala contextual Deadpool em `/v1/ai/deadpool-line` (variável `GROQ_API_KEY`). Não coloque chaves no app nem nos logs. As integrações têm testes com transporte simulado; endpoints externos retornam fallback/indisponibilidade quando não configurados.
 
 ## Ambiente Windows

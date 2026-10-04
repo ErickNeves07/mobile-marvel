@@ -23,6 +23,8 @@ O backend é um **Web Service** Python no plano Free. O `render.yaml` registra e
 
 ## Conferir a API
 
+**IA atual:** no serviço já criado `mobile-marvel-8qex`, abra **Environment**, configure `GEMINI_API_KEY` com o valor privado do `Downloads/.env`, salve e publique a revisão mais recente. `/ready` deve mostrar `integrations.gemini=true`; uma fala real em `/v1/ai/deadpool-line` deve retornar `fallback=false`. Nunca cole a chave em GitHub, APK ou URL.
+
 Abra `<URL>/health` e `<URL>/ready`. `/health` deve responder `ok`; `/ready` deve indicar as duas configurações presentes. Em seguida abra `<URL>/v1/editorial/game-characters/wolverine`: a resposta deve ter `image_url` HTTPS, `site_url` e `source_name: Comic Vine`. A imagem deve abrir no navegador. Para testar Deadpool, use a UI Android após configurar o APK; o smoke local do provedor Groq ainda não confirmou uma resposta real.
 
 O plano Free pode adormecer após inatividade, então a primeira chamada pode demorar. A chave Comic Vine fica somente no backend. Os retratos editoriais são carregados em tempo de execução, com crédito e link; nenhuma imagem Comic Vine é empacotada no APK.

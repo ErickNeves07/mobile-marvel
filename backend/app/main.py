@@ -21,6 +21,7 @@ from app.services.groq_narrative import (
     GroqNarrativeError,
     NarrativeRequest,
 )
+from app.services.gemini_narrative import GeminiNarrativeAdapter, GeminiNarrativeError
 
 
 class HealthResponse(BaseModel):
@@ -37,6 +38,7 @@ class ReadinessResponse(BaseModel):
 app = FastAPI(title="Ruptura Infinita Backend", version="0.1.0")
 comic_vine = ComicVineGateway()
 groq = GroqNarrativeAdapter()
+gemini = GeminiNarrativeAdapter()
 
 _DEADPOOL_CONTEXTS = {
     "nexus": ("Você está no Nexus, início da ruptura multiversal.", "O multiverso abriu cinco abas e nenhuma salvou o rascunho. Vamos com calma."),
@@ -56,8 +58,10 @@ def readiness() -> ReadinessResponse:
     integrations = {
         "comic_vine": bool(os.environ.get("COMIC_VINE_API_KEY", "").strip()),
         "groq": bool(os.environ.get("GROQ_API_KEY", "").strip()),
+        "gemini": bool(os.environ.get("GEMINI_API_KEY", "").strip()),
     }
-    status = "ok" if all(integrations.values()) else "degraded"
+    status = "ok" if integrations["comic_vine"] and (
+        integrations["gemini"] or integrations["groq"]) else "degraded"
     return ReadinessResponse(status=status, service="ruptura-infinita-backend", integrations=integrations)
 
 
@@ -166,10 +170,17 @@ def deadpool_line(request: DeadpoolLineRequest) -> DeadpoolLineResponse:
         {"role": "user", "content": prompt},
     ]
     try:
-        generated = groq.generate(NarrativeRequest(messages))
+        narrative_request = NarrativeRequest(messages)
+        if os.environ.get("GEMINI_API_KEY", "").strip():
+            try:
+                generated = gemini.generate(narrative_request)
+            except GeminiNarrativeError:
+                generated = groq.generate(narrative_request)
+        else:
+            generated = groq.generate(narrative_request)
         sanitized = " ".join("".join(char for char in generated if char.isprintable()).split())[:500]
         if not sanitized:
             raise GroqNarrativeError("Groq returned empty narrative")
         return DeadpoolLineResponse(text=sanitized, fallback=False)
-    except (GroqNarrativeError, OSError, ValueError):
+    except (GroqNarrativeError, GeminiNarrativeError, OSError, ValueError):
         return DeadpoolLineResponse(text=fallback, fallback=True)

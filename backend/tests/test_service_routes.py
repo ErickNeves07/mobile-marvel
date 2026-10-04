@@ -3,6 +3,7 @@ from fastapi.testclient import TestClient
 import app.main as main
 from app.services.comic_vine import ComicVineError
 from app.services.groq_narrative import GroqNarrativeError
+from app.services.gemini_narrative import GeminiNarrativeError
 
 
 client = TestClient(main.app)
@@ -70,3 +71,19 @@ def test_deadpool_route_sanitizes_provider_text(monkeypatch):
     response = client.post("/v1/ai/deadpool-line", json={"context_id": "nexus"})
     assert response.status_code == 200
     assert response.json() == {"text": "Hello multiverse", "fallback": False}
+
+
+def test_deadpool_prefers_gemini_when_configured(monkeypatch):
+    monkeypatch.setenv("GEMINI_API_KEY", "test-key")
+    monkeypatch.setattr(main.gemini, "generate", lambda _request: "Gemini respondeu")
+    monkeypatch.setattr(main.groq, "generate", lambda _request: (_ for _ in ()).throw(AssertionError("Groq should not run")))
+    response = client.post("/v1/ai/deadpool-line", json={"context_id": "nexus"})
+    assert response.json() == {"text": "Gemini respondeu", "fallback": False}
+
+
+def test_deadpool_tries_groq_after_gemini_error(monkeypatch):
+    monkeypatch.setenv("GEMINI_API_KEY", "test-key")
+    monkeypatch.setattr(main.gemini, "generate", lambda _request: (_ for _ in ()).throw(GeminiNarrativeError("unavailable")))
+    monkeypatch.setattr(main.groq, "generate", lambda _request: "Groq respondeu")
+    response = client.post("/v1/ai/deadpool-line", json={"context_id": "forge"})
+    assert response.json() == {"text": "Groq respondeu", "fallback": False}

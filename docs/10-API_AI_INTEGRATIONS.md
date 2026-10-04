@@ -8,6 +8,8 @@ Comic Vine deve continuar separado dos atributos e balanceamento definidos para 
 
 ## IA
 
+Em 2026-10-04, a rota Deadpool publicada respondeu `fallback=true` e a chave Groq local recebeu HTTP 403. O backend agora prioriza Gemini (`GEMINI_API_KEY`, modelo estável `gemini-3.5-flash-lite`), depois Groq e, por fim, texto local. A chave Gemini em Downloads foi testada com HTTP 200 e resposta real; seu valor precisa ser configurado no painel privado do Render para funcionar no celular. IA continua restrita à narrativa, sem decidir combate, dificuldade ou prêmios.
+
 Groq é acessado somente pelo backend via `GROQ_API_KEY`. `POST /v1/ai/deadpool-line` aceita allowlist de contexto e prompt curto, usa contexto factual aprovado, sanitiza saída e devolve resposta roteirizada se o provider falhar. A narrativa não pode alterar fatos canônicos, combate, dificuldade, recompensa ou progresso. Nenhum segredo é incluído no app.
 
 Android faz HTTP fora da thread da UI. `BackendClient` tem timeout, limite de tamanho e cache local para conteúdo GET. O APK sem URL funciona offline; Comic Vine indica erro de configuração e Deadpool informa resposta roteirizada. Release para API remota exige URL HTTPS pública; cleartext HTTP para Render/LAN não está habilitado.
