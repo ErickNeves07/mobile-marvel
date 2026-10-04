@@ -3,15 +3,20 @@ package com.erickbarbosa.rupturainfinita;
 import java.util.Arrays;
 import java.util.List;
 
-/** Existing approved reward missions, each with its own encounter presentation. */
+/** Nine authored campaign encounters in the published Lovable chapter order. */
 final class BattleMission {
+    private static final int[] RECOMMENDED_POWER =
+            {3200, 3800, 4200, 4600, 5100, 5400, 5800, 6400, 7200};
     static final List<BattleMission> ALL = Arrays.asList(
-            new BattleMission("xmen", 1, "Magneto", "magneto", "Magneto", "Instituto Xavier", 0, 1),
-            new BattleMission("xmen", 2, "Sentinelas", "master-mold", "Master Mold", "Complexo Sentinela", 1, 2),
-            new BattleMission("xmen", 3, "A queda de Genosha", "master-mold", "Master Mold", "Genosha", 2, 3),
-            new BattleMission("fantastic-four", 1, "Robôs de Latveria", "doombot", "Doombot", "Latveria", 1, 4),
-            new BattleMission("fantastic-four", 2, "O cerco de Destino", "doutor-destino", "Doutor Destino", "Cidadela de Latveria", 2, 5),
-            new BattleMission("fantastic-four", 3, "O trono de Latveria", "doutor-destino", "Doutor Destino", "Trono de Latveria", 3, 6)
+            new BattleMission(1, "Nova York em Ruptura", "rei-do-crime", "Rei do Crime", "Nova York", 0),
+            new BattleMission(2, "Complexo de Ultron", "ultron", "Ultron", "Complexo de Ultron", 1),
+            new BattleMission(3, "Wakanda sob Cerco", "wakanda-tech", "Ameaça Tecnológica", "Wakanda", 2),
+            new BattleMission(4, "Dimensão Espelhada", "dormammu", "Dormammu", "Dimensão Espelhada", 3),
+            new BattleMission(5, "Knowhere: Abismo Celestial", "ronan", "Ronan", "Knowhere", 4),
+            new BattleMission(6, "Instituto Xavier: Ruptura Genética", "magneto", "Magneto", "Instituto Xavier", 5),
+            new BattleMission(7, "Zona Negativa: Horizonte Fantástico", "annihilus", "Annihilus", "Zona Negativa", 0),
+            new BattleMission(8, "Latveria: Cidadela da Ordem", "doutor-destino", "Doutor Destino", "Latveria", 2),
+            new BattleMission(9, "Titã em Colapso", "thanos", "Thanos", "Titã", 4)
     );
 
     final String campaignId;
@@ -22,17 +27,19 @@ final class BattleMission {
     final String location;
     final int counterOffset;
     final int difficulty;
+    final int recommendedPower;
 
-    private BattleMission(String campaignId, int number, String title, String opponentId,
-                          String opponentName, String location, int counterOffset, int difficulty) {
-        this.campaignId = campaignId;
+    private BattleMission(int number, String title, String opponentId,
+                          String opponentName, String location, int counterOffset) {
+        this.campaignId = "rupture";
         this.number = number;
         this.title = title;
         this.opponentId = opponentId;
         this.opponentName = opponentName;
         this.location = location;
         this.counterOffset = counterOffset;
-        this.difficulty = difficulty;
+        this.difficulty = number;
+        this.recommendedPower = RECOMMENDED_POWER[number - 1];
     }
 
     static BattleMission forMission(String campaignId, int number) {

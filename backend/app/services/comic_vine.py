@@ -20,6 +20,7 @@ BASE_URL = "https://comicvine.gamespot.com/api/"
 USER_AGENT = "Marvel-Ruptura-Infinita/0.2 (non-commercial; editorial attribution: Comic Vine)"
 SEARCH_FIELDS = "id,name,image,site_detail_url"
 DETAIL_FIELDS = "id,name,deck,description,image,site_detail_url,real_name,publisher,powers,teams"
+ISSUE_COVER_FIELDS = "id,name,image,volume,issue_number,site_detail_url"
 TIMEOUT_SECONDS = 15
 MAX_SEARCH_LIMIT = 10
 MAX_OFFSET = 10_000
@@ -134,6 +135,60 @@ class ComicVineGateway:
             raise ComicVineError("not_marvel", "Character is outside the Marvel Comics catalog")
         self._set_cached(cache_key, character)
         return character
+
+    def find_issue_covers(self, solo_title: str) -> tuple[dict, ...]:
+        if not isinstance(solo_title, str) or not 2 <= len(solo_title.strip()) <= 100:
+            raise ComicVineError("invalid_query", "Solo title is invalid")
+        title = solo_title.strip()
+        cache_key = ("issue-covers", title.casefold())
+        cached = self._get_cached(cache_key)
+        if cached is not None:
+            return cached
+        payload, _ = self._request("search", "search/", {
+            "resources": "issue",
+            "query": title,
+            "limit": 40,
+            "field_list": ISSUE_COVER_FIELDS,
+        })
+        raw_items = payload.get("results")
+        if not isinstance(raw_items, list):
+            raise ComicVineError("invalid_upstream", "Comic Vine returned invalid issues")
+        covers: list[dict] = []
+        seen_images: set[str] = set()
+        for item in raw_items:
+            if not isinstance(item, dict) or item.get("resource_type") not in (None, "issue"):
+                continue
+            volume = item.get("volume")
+            volume_name = volume.get("name", "") if isinstance(volume, dict) else ""
+            if not isinstance(volume_name, str) or not volume_name.casefold().startswith(title.casefold()):
+                continue
+            image = item.get("image")
+            image_url = (image.get("original_url") or image.get("medium_url")) if isinstance(image, dict) else None
+            site_url = item.get("site_detail_url")
+            if not self._comic_vine_https_url(image_url) or not self._comic_vine_https_url(site_url):
+                continue
+            if image_url in seen_images:
+                continue
+            seen_images.add(image_url)
+            issue_number = item.get("issue_number")
+            credit = volume_name.strip()[:160]
+            if isinstance(issue_number, (str, int)) and str(issue_number).strip():
+                credit += " #" + str(issue_number).strip()[:20]
+            covers.append({"image_url": image_url, "site_url": site_url,
+                           "image_credit": credit[:200]})
+            if len(covers) == 4:
+                break
+        result = tuple(covers)
+        self._set_cached(cache_key, result)
+        return result
+
+    @staticmethod
+    def _comic_vine_https_url(value: object) -> bool:
+        if not isinstance(value, str):
+            return False
+        parsed = urlsplit(value)
+        return parsed.scheme == "https" and parsed.hostname == "comicvine.gamespot.com" \
+            and parsed.username is None and parsed.password is None
 
     def _request(self, resource: str, path: str, params: dict) -> tuple[dict, str]:
         api_key = self._key_provider().strip()

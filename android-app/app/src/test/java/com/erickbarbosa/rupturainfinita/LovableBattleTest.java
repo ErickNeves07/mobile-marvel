@@ -39,6 +39,7 @@ public final class LovableBattleTest {
     }
 
     @Test public void laterMissionsAreHarderAndRequireMorePower() {
+        assertEquals(9, BattleMission.ALL.size());
         int previousBoss = 0;
         for (BattleMission mission : BattleMission.ALL) {
             LovableBattle scene = new LovableBattle(31, mission);
@@ -60,6 +61,17 @@ public final class LovableBattleTest {
         if (finalStrong.canChoose()) finalStrong.choose(counterFor(finalStrong.warning()));
         assertTrue(finalWeak.defeat);
         assertTrue(finalStrong.victory);
+    }
+
+    @Test public void finalChapterRequiresAnUpgradedTeamAndIsStillWinnable() {
+        BattleMission finalMission = BattleMission.forMission("rupture", 9);
+        assertEquals("Thanos", finalMission.opponentName);
+        LovableBattle weak = new LovableBattle(31, finalMission);
+        LovableBattle strong = new LovableBattle(80, finalMission);
+        while (weak.canChoose()) weak.choose(counterFor(weak.warning()));
+        while (strong.canChoose()) strong.choose(counterFor(strong.warning()));
+        assertTrue(weak.defeat);
+        assertTrue(strong.victory);
     }
 
     private static LovableBattle.Choice counterFor(String warning) {

@@ -117,7 +117,7 @@
     <string name="challenge_feedback">%1$s — %2$s; %3$s</string>
     <string name="challenge_submit">Enviar palpite</string>
     <string name="challenge_guess_label">Escolher personagem para o palpite</string>
-    <string name="challenge_won">Acertou! 1 Fragmento da Joia do dia foi salvo na Forja.</string>
+    <string name="challenge_won">Acertou! Os Fragmentos que faltavam foram enviados à Forja.</string>
     <string name="challenge_lost">As tentativas acabaram. A resposta era %1$s.</string>
     <string name="campaigns_playable_heading">Monte sua equipe e entre em combate</string>
     <string name="campaign_open">Abrir campanha ›</string>

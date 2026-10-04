@@ -128,6 +128,39 @@ def test_cache_prevents_duplicate_upstream_calls():
     assert calls == 2
 
 
+def test_issue_covers_require_solo_volume_comic_vine_urls_and_unique_images():
+    calls = 0
+
+    def issue(volume, number, image, site):
+        return {"id": number, "resource_type": "issue", "volume": {"name": volume},
+                "issue_number": str(number), "image": {"original_url": image},
+                "site_detail_url": site}
+
+    def transport(_request, _timeout):
+        nonlocal calls
+        calls += 1
+        return Response(upstream([
+            issue("Wolverine", 1, "https://comicvine.gamespot.com/a/1.jpg",
+                  "https://comicvine.gamespot.com/wolverine/4000-1/"),
+            issue("Wolverine", 2, "https://comicvine.gamespot.com/a/1.jpg",
+                  "https://comicvine.gamespot.com/wolverine/4000-2/"),
+            issue("Wolverine", 3, "https://evil.example/a/3.jpg",
+                  "https://comicvine.gamespot.com/wolverine/4000-3/"),
+            issue("Wolverine and the X-Men", 4, "https://comicvine.gamespot.com/a/4.jpg",
+                  "https://comicvine.gamespot.com/wolverine/4000-4/"),
+            issue("X-Men", 5, "https://comicvine.gamespot.com/a/5.jpg",
+                  "https://comicvine.gamespot.com/x-men/4000-5/"),
+        ]))
+
+    gateway = ComicVineGateway(transport, key_provider=lambda: "private")
+    covers = gateway.find_issue_covers("Wolverine")
+    assert len(covers) == 2
+    assert covers[0]["image_credit"] == "Wolverine #1"
+    assert covers[1]["image_credit"] == "Wolverine and the X-Men #4"
+    assert gateway.find_issue_covers("Wolverine") == covers
+    assert calls == 1
+
+
 def test_upstream_429_is_sanitized_and_does_not_leak_url_or_key():
     secret = "private-api-key"
 

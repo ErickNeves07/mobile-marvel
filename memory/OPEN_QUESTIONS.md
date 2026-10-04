@@ -3,21 +3,21 @@
 ## Atualização do deploy e aparelho — 2026-10-04
 
 - **Q-047 — Resolvida para o backend:** Erick fez deploy e `/ready` passou a mostrar Gemini ativo. POST hospedado do Deadpool retornou `fallback=false`. A interação na tela do telefone ainda requer toque manual porque o Android bloqueou `adb shell input tap` com `INJECT_EVENTS`.
-- **Q-028 — Instalação 0.4.0 verificada:** o mesmo celular `C6OFVWYD4DZTBA5H` recebeu e abriu o APK debug 0.4.0. O pacote anterior não estava instalado quando a revisão foi aplicada; os dados locais antigos não estavam presentes. Captura física mostra Campanhas e imagens editoriais. Q-048–Q-051 continuam bloqueando o próximo ciclo de regras/arte.
+- **Q-028 — Instalação 0.4.0 verificada:** o mesmo celular `C6OFVWYD4DZTBA5H` recebeu e abriu o APK debug 0.4.0. O pacote anterior não estava instalado quando a revisão foi aplicada; os dados locais antigos não estavam presentes. Captura física mostra Campanhas e imagens editoriais.
 
 ## Specs 033–035 — atualização 2026-10-04
 
-- **Q-045 — Resolvida na direção geral:** Erick definiu que a Manopla completa oferece escolha entre novo personagem não possuído e próximo patamar de variante possuída. O consumo exato dos itens intermediários segue Q-050.
+- **Q-045 — Resolvida em 2026-10-04:** após Manopla completa, escolher um personagem novo ou a próxima variante; cada opção consome as seis Joias Completas.
 - **Q-047 — Diagnóstico atualizado:** a chamada real autorizada à rota publicada do Deadpool retornou `fallback=true`. Uma chamada Groq local com a chave existente retornou HTTP 403; a chave Gemini isolada em Downloads listou modelos e respondeu a `gemini-3.5-flash-lite` com HTTP 200. O adapter Gemini local já produziu `fallback=false`; Render ainda precisa receber `GEMINI_API_KEY` no painel privado.
-- **Q-048 — CRÍTICA, pergunta enviada:** Ao completar a Manopla com uma primeira vitória de batalha/diária, os quatro Fragmentos antigos da missão deixam de ser pagos? Créditos/XP continuam? Se já houver seis Joias completas, o prêmio excedente é descartado sem reserva? Não alterar recompensa persistida antes da resposta.
-- **Q-049 — CRÍTICA, pergunta enviada:** “outras diversas batalhas” significa substituir as seis atuais pelos nove capítulos publicados no Lovable ou acrescentá-los? O mapa Lovable tem Rei do Crime, Ultron, Wakanda, Dormammu, Ronan, Magneto, Annihilus, Destino e Thanos. Não redistribuir pacotes/gates sem resposta.
-- **Q-050 — CRÍTICA, pergunta enviada:** “Manopla esvazia” significa consumir uma Joia Completa de cada tipo, preservando Estilhaços, Fragmentos e Núcleos, ou apagar também essas peças? Não implementar o consumo até resposta.
-- **Q-051 — CRÍTICA, pergunta enviada:** a ficha Comic Vine oferece só uma imagem; capas de edições associadas podem ser distintas, mas nem sempre mostram somente o herói. Erick aceita capas com título/crédito da edição como imagem da variante ou prefere outra fonte de retratos isolados? Não atribuir capa sem confirmação.
+- **Q-048 — Resolvida em 2026-10-04:** vitórias de batalha e do desafio diário entregam somente Fragmentos faltantes das seis Joias; créditos/XP de campanha seguem valores aprovados.
+- **Q-049 — Resolvida em 2026-10-04:** substituir as seis batalhas por nove capítulos em ordem Lovable.
+- **Q-050 — Resolvida em 2026-10-04:** cada desbloqueio consome uma Joia Completa de cada tipo e preserva componentes intermediários.
+- **Q-051 — Resolvida em 2026-10-04:** capas de edições Comic Vine aprovadas como imagens distintas para as variantes, com crédito editorial.
 
 ## Spec 032 — revisão física de gameplay e design (2026-10-04)
 
-- **Q-045 — CRÍTICA, pergunta enviada:** Erick definiu Homem-Aranha, Wolverine e Tocha Humana como trio inicial. Como os outros 18 personagens gerais passam a ser possuídos? O app atual não tem aquisição de personagens; só variantes, e batalha restrita ao trio inicial sem uma via de obtenção impediria ampliar a equipe. Não criar gatilho de desbloqueio ou migração antes da resposta.
-- **Q-046 — CRÍTICA, pergunta enviada:** Lovable publicado mostra nove capítulos, enquanto o Android tem duas campanhas de três missões com seis pacotes de recompensa aprovados. Erick quer nove batalhas substituindo essa estrutura ou seis batalhas interativas com o mapa visual revisado? Não inventar três pacotes extras ou redistribuir as seis recompensas antes da resposta.
+- **Q-045 — Resolvida em 2026-10-04:** após Manopla completa, escolher um personagem novo ou a próxima variante; cada opção consome as seis Joias Completas.
+- **Q-046 — Resolvida em 2026-10-04:** adotar os nove capítulos publicados no Lovable como batalhas individuais, em ordem.
 - **Q-047 — Teste Groq live:** a revisão automática rejeitou o POST de smoke em `/v1/ai/deadpool-line` por poder gerar cobrança sem autorização explícita para a chamada paga. `/ready` só prova presença da chave. Implementação e testes mockados podem avançar; o teste real depende de autorização específica após a correção estar pronta.
 
 ## Spec 029 — novos ajustes Lovable (2026-10-04)
@@ -93,3 +93,9 @@ Não implemente áreas afetadas até resposta quando marcadas como **CRÍTICA**.
 - **Q-022 — Resolvida em 2026-09-28:** merge confirmado é irreversível e não tem custo adicional definido. Não oferecer desfazer; apresentar prévia e confirmação antes da operação.
 - **Q-023 — Resolvida em 2026-09-28:** persistir após cada ação do usuário. A implementação deve gravar consumo e produto atomicamente numa transação local e manter o estado anterior em caso de falha.
 - **Q-024 — Resolvida em 2026-09-28:** máximo de 999 itens por combinação de Joia e estágio. Bloquear crédito que excederia o máximo sem consumir entrada; operações de merge permanecem atômicas.
+
+## Encerramento da entrega de 2026-10-04
+
+- Q-048 a Q-051 foram respondidas por Erick: Fragmentos faltantes, fusões manuais, três itens iniciais por Joia somente em instalações novas, aprovação de capas Comic Vine por variante e valores crescentes de créditos/XP para os capítulos finais.
+- Q-055: resolvida pelo bundle Lovable publicado — Thanos no capítulo 9; Ameaça Tecnológica é a entidade nomeada em Wakanda.
+- Q-056: resolvida por Erick — não havia usuários anteriores; sem plano de migração de campanha.

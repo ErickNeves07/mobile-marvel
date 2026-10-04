@@ -28,7 +28,7 @@ final class LovableBattle {
     boolean lastCounter;
 
     LovableBattle(int teamPower) {
-        this(teamPower, BattleMission.forMission("xmen", 1));
+        this(teamPower, BattleMission.forMission("rupture", 1));
     }
 
     LovableBattle(int teamPower, BattleMission mission) {

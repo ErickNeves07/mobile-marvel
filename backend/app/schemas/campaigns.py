@@ -10,6 +10,7 @@ class CampaignSummary(BaseModel):
     title: str = Field(min_length=1)
     faction_id: str = Field(min_length=1)
     boss_id: str | None = Field(default=None, min_length=1)
+    chapter: int | None = Field(default=None, ge=1, le=9)
 
 
 class CampaignCatalogResponse(BaseModel):

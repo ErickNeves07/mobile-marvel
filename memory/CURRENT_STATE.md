@@ -163,3 +163,11 @@ Specs 022-026 implementadas e verificadas localmente; spec 027 em implementaçã
 - Campanhas e desafio diario sao jogaveis offline e persistidos em SQLite; Comic Vine/Groq continuam opcionais ate configurar backend publico.
 - APK release 0.2.0 assinado esta em artifacts/; SHA-256 e instrucoes em RELEASE_NOTES.md. Endpoints live requerem URL/configuracao segura.
 - Histórico antes do push atual; veja a atualização mais recente no topo.
+
+## Implementação das nove campanhas e ciclo completo da Manopla — 2026-10-04
+
+- Erick confirmou Fragmentos faltantes como prêmios e fusões manuais; três Fragmentos iniciais por Joia somente em instalações novas; capas Comic Vine para variantes; seis pares de créditos/XP originais e três novos pares progressivos. Confirmou que não havia usuários anteriores, portanto não há migração de progresso de campanhas.
+- Android: nove campanhas em ordem Lovable, poder recomendado exato por capítulo, cards compactos de mapa e ficha separada. Manopla exige seis Joias completas e desbloquear/evoluir consome uma de cada, atomicamente. Banco novo recebe 3 Fragmentos por Joia; bancos existentes não recebem.
+- Backend: rota editorial de capa específica por variante. Testes locais validam Comic Vine. Ela só estará disponível no app após o deploy do backend Render.
+- Verificações: backend 56/56; JVM/lint/build Android passaram; instrumentação AVD 31/31. Captura reports/lovable-research/campaign-nine-android.png. APK debug 0.5.0 instalado diretamente, tamanho 6,213,152, SHA-256 6F38679B635C71D1F5E2CCC60AD9FB8D2EDABE1132BD14F68EC24996876E1CDF.
+- Próximo: conferir diff, commit/push autorizado; Erick faz deploy Render; após confirmação, verificar a rota pública e instalar APK 0.5.0 no mesmo celular.

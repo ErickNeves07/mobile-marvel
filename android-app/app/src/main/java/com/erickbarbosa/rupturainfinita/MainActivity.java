@@ -973,7 +973,7 @@ public final class MainActivity extends AppCompatActivity {
         source.setGravity(Gravity.CENTER_VERTICAL);
         source.setMinimumHeight(dimension(R.dimen.target_min));
         card.addView(source);
-        portraitLoader.load(character.id, character.name, portrait, source);
+        portraitLoader.loadVariant(character.id, variant.tier, character.name, portrait, source);
         TextView name = text(character.name, featured
                         ? R.style.TextAppearance_Ruptura_Title
                         : R.style.TextAppearance_Ruptura_Label,
@@ -1069,7 +1069,7 @@ public final class MainActivity extends AppCompatActivity {
         source.setGravity(Gravity.CENTER_VERTICAL);
         source.setMinimumHeight(dimension(R.dimen.target_min));
         page.addView(source);
-        portraitLoader.load(character.id, character.name, cover, source);
+        portraitLoader.loadVariant(character.id, focusTier, character.name, cover, source);
 
         boolean active = forgeRepository.isGauntletActivated();
         boolean characterOwned = forgeRepository.ownsCharacter(character.id);
@@ -1142,7 +1142,7 @@ public final class MainActivity extends AppCompatActivity {
             thumbnail.setBackgroundColor(getColor(R.color.surface_primary));
             row.addView(thumbnail, new LinearLayout.LayoutParams(
                     dimension(R.dimen.target_min), dimension(R.dimen.target_min)));
-            portraitLoader.load(character.id, character.name, thumbnail, null);
+            portraitLoader.loadVariant(character.id, variant.tier, character.name, thumbnail, null);
             String status = getString(isOwned ? R.string.variant_owned : R.string.variant_locked);
             TextView label = text(getString(variant.tier.labelRes) + ": " + variant.name
                             + " · " + status,
@@ -1153,18 +1153,8 @@ public final class MainActivity extends AppCompatActivity {
             labelParams.leftMargin = dimension(R.dimen.space_3);
             row.addView(label, labelParams);
             if (active && characterOwned && variant.tier == VariantProgression.next(owned)) {
-                variantCard.addView(action(getString(R.string.variant_unlock_action,
-                        getString(variant.tier.requiredStone.labelRes)), () -> forgeExecutor.execute(() -> {
-                    try {
-                        forgeRepository.unlockNextVariant(character.id, variant.tier, roster);
-                        runOnUiThread(() -> showCharacterVariants(character, roster, variant.tier));
-                    } catch (RuntimeException error) {
-                        runOnUiThread(() -> android.widget.Toast.makeText(this,
-                                error instanceof ForgeException ? R.string.variant_stone_required
-                                        : R.string.variant_gauntlet_required,
-                                android.widget.Toast.LENGTH_LONG).show());
-                    }
-                })));
+                variantCard.addView(action("EVOLUIR COM MANOPLA COMPLETA",
+                        this::showGauntletScreen));
             }
             if (active && isOwned && !variant.tier.name().equals(equippedTier)) {
                 variantCard.addView(action(getString(R.string.variant_equip_action),
@@ -1702,11 +1692,16 @@ public final class MainActivity extends AppCompatActivity {
         LinearLayout.LayoutParams noteParams = new LinearLayout.LayoutParams(-1, -2);
         noteParams.topMargin = dimension(R.dimen.space_3);
         state.addView(note, noteParams);
-        TextView action = action(active ? "ABRIR CÂMARA DE VARIANTES"
-                        : count == stones.length ? "ATIVAR MANOPLA DE CONTENÇÃO"
+        final boolean fullGauntlet = count == stones.length;
+        TextView action = action(active && fullGauntlet
+                        ? "ESCOLHER PERSONAGEM OU VARIANTE"
+                        : active ? "IR À FORJA PARA COMPLETAR"
+                        : fullGauntlet ? "ATIVAR MANOPLA DE CONTENÇÃO"
                         : "REÚNA AS SEIS JOIAS COMPLETAS", () -> {
-            if (active) {
-                selectedDestination = AppDestination.COLLECTION;
+            if (active && fullGauntlet) {
+                showGauntletUnlockChoice();
+            } else if (active) {
+                selectedDestination = AppDestination.FORGE;
                 renderShell();
             } else if (completeCount(inventory) == stones.length) {
                 forgeExecutor.execute(() -> {
@@ -1717,10 +1712,97 @@ public final class MainActivity extends AppCompatActivity {
                 });
             }
         });
-        action.setEnabled(active || count == stones.length);
+        action.setEnabled(active || fullGauntlet);
         LinearLayout.LayoutParams actionParams = new LinearLayout.LayoutParams(-1, -2);
         actionParams.topMargin = dimension(R.dimen.space_3);
         state.addView(action, actionParams);
+    }
+
+    private void showGauntletUnlockChoice() {
+        if (!forgeRepository.isGauntletActivated() || !forgeRepository.hasCompleteGauntlet()) {
+            showGauntletScreen();
+            return;
+        }
+        transientScreen = true;
+        transientBack.setEnabled(true);
+        navigationBar.setVisibility(View.VISIBLE);
+        contentContainer.removeAllViews();
+        ScrollView scroll = new ScrollView(this);
+        scroll.setBackgroundColor(getColor(R.color.canvas));
+        contentContainer.addView(scroll, new FrameLayout.LayoutParams(-1, -1));
+        LinearLayout page = new LinearLayout(this);
+        page.setOrientation(LinearLayout.VERTICAL);
+        page.setPadding(dimension(R.dimen.space_4), dimension(R.dimen.space_4),
+                dimension(R.dimen.space_4), dimension(R.dimen.space_6));
+        scroll.addView(page);
+        page.addView(action("‹  VOLTAR À MANOPLA", this::showGauntletScreen));
+        page.addView(text("UM CICLO · UMA ESCOLHA", R.style.TextAppearance_Ruptura_Label,
+                R.color.accent_gold, true));
+        page.addView(text("DESPERTAR DA MANOPLA", R.style.TextAppearance_Ruptura_Display,
+                R.color.text_primary, true));
+        page.addView(text("Escolha um novo personagem ou evolua a variante de alguém que você já possui. "
+                        + "A escolha consome uma Joia Completa de cada tipo.",
+                R.style.TextAppearance_Ruptura_Body, R.color.text_secondary, false));
+        List<GameCatalogCharacter> roster = loadRoster();
+        page.addView(text("DESBLOQUEAR PERSONAGEM", R.style.TextAppearance_Ruptura_Title,
+                R.color.accent_cyan, true));
+        for (GameCatalogCharacter character : roster) {
+            if (forgeRepository.ownsCharacter(character.id)) continue;
+            LinearLayout candidate = card();
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, -2);
+            params.topMargin = dimension(R.dimen.space_3);
+            page.addView(candidate, params);
+            ImageView portrait = editorialImage(candidate, dimension(R.dimen.space_8) * 2);
+            portraitLoader.load(character.id, character.name, portrait, null);
+            candidate.addView(text(character.name + " · ORIGEM",
+                    R.style.TextAppearance_Ruptura_Label, R.color.text_primary, true));
+            candidate.addView(action("DESBLOQUEAR " + character.name.toUpperCase(java.util.Locale.ROOT),
+                    () -> confirmGauntletChoice(character.name,
+                            () -> forgeRepository.unlockCharacter(character.id, roster))));
+        }
+        page.addView(text("EVOLUIR VARIANTE", R.style.TextAppearance_Ruptura_Title,
+                R.color.accent_gold, true));
+        for (GameCatalogCharacter character : roster) {
+            if (!forgeRepository.ownsCharacter(character.id)) continue;
+            GameVariantTier next = VariantProgression.next(
+                    forgeRepository.loadOwnedTiers(character.id));
+            if (next == null) continue;
+            LinearLayout candidate = card();
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, -2);
+            params.topMargin = dimension(R.dimen.space_3);
+            page.addView(candidate, params);
+            ImageView portrait = editorialImage(candidate, dimension(R.dimen.space_8) * 2);
+            portraitLoader.load(character.id, character.name, portrait, null);
+            candidate.addView(text(character.name + " · " + getString(next.labelRes),
+                    R.style.TextAppearance_Ruptura_Label, R.color.text_primary, true));
+            candidate.addView(action("EVOLUIR " + character.name.toUpperCase(java.util.Locale.ROOT),
+                    () -> confirmGauntletChoice(character.name + " · " + getString(next.labelRes),
+                            () -> forgeRepository.unlockNextVariant(character.id, next, roster))));
+        }
+    }
+
+    private void confirmGauntletChoice(String target, java.util.concurrent.Callable<Boolean> unlock) {
+        new android.app.AlertDialog.Builder(this)
+                .setTitle("Confirmar despertar")
+                .setMessage(target + " será desbloqueado ao consumir uma Joia Completa de cada tipo.")
+                .setNegativeButton("CANCELAR", null)
+                .setPositiveButton("CONSUMIR MANOPLA", (dialog, which) -> forgeExecutor.execute(() -> {
+                    try {
+                        boolean granted = unlock.call();
+                        runOnUiThread(() -> {
+                            showGauntletScreen();
+                            android.widget.Toast.makeText(this, granted ? "Desbloqueio concluído"
+                                    : "Alvo já desbloqueado", android.widget.Toast.LENGTH_LONG).show();
+                        });
+                    } catch (Exception error) {
+                        runOnUiThread(() -> {
+                            showGauntletScreen();
+                            android.widget.Toast.makeText(this, "Manopla incompleta ou alvo indisponível",
+                                    android.widget.Toast.LENGTH_LONG).show();
+                        });
+                    }
+                }))
+                .show();
     }
 
     private int completeCount(ForgeInventory inventory) {
@@ -1795,7 +1877,7 @@ public final class MainActivity extends AppCompatActivity {
         page.addView(challengeCard, cardParams);
         challengeCard.addView(text("DESAFIO DIÁRIO · ESTILO TERMO",
                 R.style.TextAppearance_Ruptura_Label, R.color.accent_cyan, true));
-        challengeCard.addView(text("Descubra o herói em até seis tentativas e ganhe 1 Fragmento da Joia do dia.",
+        challengeCard.addView(text("Descubra o herói em até seis tentativas e ganhe os Fragmentos faltantes para completar a Manopla.",
                 R.style.TextAppearance_Ruptura_Body, R.color.text_secondary, false));
         TextView open = action("JOGAR DESAFIO DIÁRIO", this::showDailyChallengeScreen);
         LinearLayout.LayoutParams openParams = new LinearLayout.LayoutParams(-1, -2);
@@ -1891,6 +1973,7 @@ public final class MainActivity extends AppCompatActivity {
         }
         if ("WON".equals(state.status)) {
             panel.addView(text(R.string.challenge_won, R.style.TextAppearance_Ruptura_Title, R.color.accent_cyan, true));
+            addFragmentReceipt(panel, forgeRepository.loadRewardFragments("daily:" + state.date));
             return;
         }
         if ("LOST".equals(state.status)) {
@@ -1976,49 +2059,165 @@ public final class MainActivity extends AppCompatActivity {
         int chapter = 1;
         for (BattleMission mission : BattleMission.ALL) {
             addBattleMissionCard(page, roster, mission, chapter++);
+            if (chapter <= BattleMission.ALL.size()) {
+                View connector = new View(this);
+                connector.setBackgroundColor(getColor(chapterColor(chapter - 1)));
+                LinearLayout.LayoutParams connectorParams = new LinearLayout.LayoutParams(
+                        dimension(R.dimen.space_1) / 2, dimension(R.dimen.space_3));
+                connectorParams.leftMargin = dimension(R.dimen.space_8) * 3 / 4;
+                page.addView(connector, connectorParams);
+            }
         }
     }
 
     private void addBattleMissionCard(LinearLayout page, List<GameCatalogCharacter> roster,
                                       BattleMission mission, int chapter) {
-        LinearLayout missionCard = card();
-        LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(-1, -2);
-        cardParams.topMargin = dimension(R.dimen.space_4);
-        page.addView(missionCard, cardParams);
-        missionCard.addView(text(String.format(java.util.Locale.ROOT, "CAPÍTULO %02d", chapter),
-                R.style.TextAppearance_Ruptura_Caption, R.color.accent_cyan, true));
-        missionCard.addView(text(mission.title, R.style.TextAppearance_Ruptura_Title,
+        int accent = chapterColor(chapter);
+        LinearLayout row = new LinearLayout(this);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        LinearLayout.LayoutParams rowParams = new LinearLayout.LayoutParams(-1, -2);
+        rowParams.topMargin = chapter == 1 ? dimension(R.dimen.space_3) : 0;
+        page.addView(row, rowParams);
+
+        TextView node = text("◆", R.style.TextAppearance_Ruptura_Title, accent, true);
+        node.setGravity(Gravity.CENTER);
+        node.setShadowLayer(dimension(R.dimen.space_2), 0f, 0f, getColor(accent));
+        node.setContentDescription("Nó " + chapter + " do mapa de campanhas");
+        row.addView(node, new LinearLayout.LayoutParams(dimension(R.dimen.space_8),
+                dimension(R.dimen.space_8)));
+
+        LinearLayout item = card();
+        item.setPadding(dimension(R.dimen.space_3), dimension(R.dimen.space_3),
+                dimension(R.dimen.space_3), dimension(R.dimen.space_3));
+        item.setClickable(true);
+        item.setFocusable(true);
+        item.setContentDescription("Abrir capítulo " + chapter + ": " + mission.title);
+        item.setOnClickListener(view -> { });
+        LinearLayout.LayoutParams itemParams = new LinearLayout.LayoutParams(0, -2, 1f);
+        itemParams.leftMargin = dimension(R.dimen.space_1);
+        row.addView(item, itemParams);
+
+        LinearLayout artPanel = new LinearLayout(this);
+        artPanel.setGravity(Gravity.CENTER);
+        artPanel.setBackground(new AngularPanelDrawable(getColor(R.color.surface_primary),
+                getColor(accent), getColor(accent), dimension(R.dimen.angular_cut), false));
+        item.addView(artPanel, new LinearLayout.LayoutParams(-1, dimension(R.dimen.space_8) * 4));
+        ImageView image = new ImageView(this);
+        image.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        image.setBackgroundColor(getColor(R.color.surface_primary));
+        artPanel.addView(image, new LinearLayout.LayoutParams(-1, -1));
+        portraitLoader.loadOpponent(mission.opponentId, mission.opponentName, image, null);
+
+        LinearLayout info = new LinearLayout(this);
+        info.setGravity(Gravity.CENTER_VERTICAL);
+        LinearLayout.LayoutParams infoParams = new LinearLayout.LayoutParams(-1, -2);
+        infoParams.topMargin = dimension(R.dimen.space_2);
+        item.addView(info, infoParams);
+        LinearLayout copy = new LinearLayout(this);
+        copy.setOrientation(LinearLayout.VERTICAL);
+        info.addView(copy, new LinearLayout.LayoutParams(0, -2, 1f));
+        copy.addView(text("CAPÍTULO " + chapter, R.style.TextAppearance_Ruptura_Caption,
+                R.color.text_secondary, true));
+        copy.addView(text(mission.title, R.style.TextAppearance_Ruptura_Label,
                 R.color.text_primary, true));
-        missionCard.addView(text(mission.location + "  ·  " + mission.opponentName
-                        + "  ·  AMEAÇA " + mission.difficulty + "/6",
+        copy.addView(text("Chefe: " + mission.opponentName + " · Poder "
+                        + formatAmount(mission.recommendedPower),
                 R.style.TextAppearance_Ruptura_Caption, R.color.text_secondary, false));
-        ImageView enemy = editorialImage(missionCard, dimension(R.dimen.space_8) * 4);
-        TextView source = text(R.string.editorial_portrait_loading,
-                R.style.TextAppearance_Ruptura_Caption, R.color.text_secondary, false);
-        missionCard.addView(source);
-        portraitLoader.loadOpponent(mission.opponentId, mission.opponentName, enemy, source);
+        TextView stateIcon = text("›", R.style.TextAppearance_Ruptura_Title, accent, true);
+        stateIcon.setGravity(Gravity.CENTER);
+        stateIcon.setContentDescription("Progresso do capítulo " + chapter);
+        info.addView(stateIcon, new LinearLayout.LayoutParams(dimension(R.dimen.space_8),
+                dimension(R.dimen.space_8)));
+        View progress = new View(this);
+        progress.setBackgroundColor(getColor(accent));
+        LinearLayout.LayoutParams progressParams = new LinearLayout.LayoutParams(-1,
+                Math.max(2, dimension(R.dimen.space_1) / 2));
+        progressParams.topMargin = dimension(R.dimen.space_2);
+        item.addView(progress, progressParams);
+
         CampaignReward reward = CampaignReward.forMission(mission.campaignId, mission.number);
-        missionCard.addView(text("PRIMEIRA VITÓRIA  ·  4 " + fragmentName(reward.stone)
-                        + "  ·  " + reward.credits + " CR  ·  " + reward.xp + " XP",
-                R.style.TextAppearance_Ruptura_Caption, R.color.accent_gold, true));
-        TextView status = text("Consultando progresso…", R.style.TextAppearance_Ruptura_Caption,
-                R.color.text_secondary, false);
-        missionCard.addView(status);
         forgeExecutor.execute(() -> {
             CampaignState state = forgeRepository.loadCampaign(mission.campaignId,
                     java.util.Arrays.asList("homem-aranha", "wolverine", "tocha-humana"));
             boolean completed = forgeRepository.hasCompletedMission(mission.campaignId, mission.number);
+            boolean gauntletRequired = mission.number == 9 && !completed
+                    && !forgeRepository.hasCompleteGauntlet();
             runOnUiThread(() -> {
                 if (isFinishing() || isDestroyed()) return;
-                boolean available = mission.number <= state.unlockedMission;
-                status.setText(completed ? "CONCLUÍDA · recompensa já recebida"
-                        : available ? "DISPONÍVEL" : "BLOQUEADA · vença o capítulo anterior");
-                TextView enter = action(completed ? "REJOGAR BATALHA" : "ESCOLHER EQUIPE E BATALHAR",
-                        () -> showTeamChooser(roster, state, mission.number));
-                enter.setEnabled(available);
-                missionCard.addView(enter);
+                boolean available = mission.number <= state.unlockedMission && !gauntletRequired;
+                String label = completed ? "CONCLUÍDA" : available ? "DISPONÍVEL" : "BLOQUEADA";
+                stateIcon.setText(completed ? "✓" : available ? "›" : "•");
+                stateIcon.setTextColor(getColor(completed ? R.color.accent_latveria
+                        : available ? accent : R.color.text_secondary));
+                item.setOnClickListener(view -> showCampaignMissionDetails(roster, mission,
+                        state, completed, available, gauntletRequired, reward, accent, label));
             });
         });
+    }
+
+    private int chapterColor(int chapter) {
+        int[] colors = {R.color.stone_space, R.color.stone_power, R.color.stone_soul,
+                R.color.stone_time, R.color.accent_latveria, R.color.accent_xmen,
+                R.color.stone_reality, R.color.stone_mind, R.color.accent_deadpool};
+        return colors[Math.max(0, Math.min(colors.length - 1, chapter - 1))];
+    }
+
+    private void showCampaignMissionDetails(List<GameCatalogCharacter> roster, BattleMission mission,
+            CampaignState state, boolean completed, boolean available, boolean gauntletRequired,
+            CampaignReward reward, int accent, String stateLabel) {
+        transientScreen = true;
+        transientBack.setEnabled(true);
+        navigationBar.setVisibility(View.GONE);
+        contentContainer.removeAllViews();
+        ScrollView scroll = new ScrollView(this);
+        scroll.setFillViewport(true);
+        scroll.setBackgroundColor(getColor(R.color.canvas));
+        LinearLayout page = new LinearLayout(this);
+        page.setOrientation(LinearLayout.VERTICAL);
+        page.setPadding(dimension(R.dimen.space_4), dimension(R.dimen.space_4),
+                dimension(R.dimen.space_4), dimension(R.dimen.space_6));
+        scroll.addView(page);
+        contentContainer.addView(scroll, new FrameLayout.LayoutParams(-1, -1));
+
+        TextView back = action("‹  VOLTAR AO MAPA", this::renderShell);
+        back.setTextColor(getColor(R.color.text_primary));
+        back.setBackground(background(R.color.surface_elevated, R.color.border_subtle,
+                dimension(R.dimen.angular_cut)));
+        page.addView(back);
+        ImageView enemy = editorialImage(page, dimension(R.dimen.space_8) * 12);
+        TextView source = text(R.string.editorial_portrait_loading,
+                R.style.TextAppearance_Ruptura_Caption, R.color.text_secondary, false);
+        page.addView(source);
+        portraitLoader.loadOpponent(mission.opponentId, mission.opponentName, enemy, source);
+        page.addView(text("CAPÍTULO " + mission.number + " · AMEAÇA " + mission.difficulty + "/9",
+                R.style.TextAppearance_Ruptura_Caption, accent, true));
+        page.addView(text(mission.title, R.style.TextAppearance_Ruptura_Display,
+                R.color.text_primary, true));
+        page.addView(text(mission.location + " · Chefe: " + mission.opponentName,
+                R.style.TextAppearance_Ruptura_Body, R.color.text_secondary, false));
+        page.addView(text(stateLabel, R.style.TextAppearance_Ruptura_Label,
+                completed ? R.color.accent_latveria : available ? accent : R.color.text_secondary,
+                true));
+        LinearLayout rewards = card();
+        page.addView(rewards, new LinearLayout.LayoutParams(-1, -2));
+        rewards.addView(text(completed ? "RECOMPENSA JÁ COLETADA" : "PRIMEIRA VITÓRIA",
+                R.style.TextAppearance_Ruptura_Label, R.color.accent_gold, true));
+        rewards.addView(text("Fragmentos faltantes para completar as seis Joias · "
+                        + formatAmount(reward.credits) + " cr · " + formatAmount(reward.xp) + " XP",
+                R.style.TextAppearance_Ruptura_Body, R.color.text_primary, true));
+        String detail = completed
+                ? "Vitória registrada. Você pode rejogar sem receber a recompensa novamente."
+                : available ? "Escolha três personagens desbloqueados da sua coleção."
+                : gauntletRequired ? "Complete uma Manopla para liberar este confronto."
+                : "Vença o capítulo anterior para abrir este confronto.";
+        page.addView(text(detail, R.style.TextAppearance_Ruptura_Body,
+                R.color.text_secondary, false));
+        TextView enter = action(completed ? "REJOGAR BATALHA" : "ESCOLHER EQUIPE E BATALHAR",
+                () -> showTeamChooser(roster, state, mission.number));
+        enter.setEnabled(available);
+        LinearLayout.LayoutParams enterParams = new LinearLayout.LayoutParams(-1, -2);
+        enterParams.topMargin = dimension(R.dimen.space_4);
+        page.addView(enter, enterParams);
     }
 
     private void showVariantComparison(List<GameCatalogCharacter> roster) {
@@ -2168,8 +2367,10 @@ public final class MainActivity extends AppCompatActivity {
                 + left.variants.get(leftTier).name);
         heroLabels[1].setText(right.name.toUpperCase(java.util.Locale.ROOT) + "\n"
                 + right.variants.get(rightTier).name);
-        portraitLoader.load(left.id, left.name, heroImages[0], heroSources[0]);
-        portraitLoader.load(right.id, right.name, heroImages[1], heroSources[1]);
+        portraitLoader.loadVariant(left.id, left.variants.get(leftTier).tier,
+                left.name, heroImages[0], heroSources[0]);
+        portraitLoader.loadVariant(right.id, right.variants.get(rightTier).tier,
+                right.name, heroImages[1], heroSources[1]);
         int[] a = VariantStats.forVariant(left.id, left.variants.get(leftTier).tier);
         int[] b = VariantStats.forVariant(right.id, right.variants.get(rightTier).tier);
         LinearLayout panel = card();
@@ -2244,6 +2445,8 @@ public final class MainActivity extends AppCompatActivity {
 
     private void showCampaignRewardScreen(String campaignId, int mission) {
         CampaignReward reward = CampaignReward.forMission(campaignId, mission);
+        java.util.Map<InfinityStone, Integer> fragments = forgeRepository.loadRewardFragments(
+                "campaign:" + campaignId + ":" + mission);
         transientScreen = true;
         transientBack.setEnabled(true);
         navigationBar.setVisibility(View.GONE);
@@ -2268,8 +2471,11 @@ public final class MainActivity extends AppCompatActivity {
         page.addView(title);
         LinearLayout.LayoutParams firstRow = new LinearLayout.LayoutParams(-1, -2);
         firstRow.topMargin = dimension(R.dimen.space_6);
-        page.addView(rewardRow("⬡", fragmentName(reward.stone),
-                "x" + CampaignReward.FRAGMENTS, stoneColor(reward.stone)), firstRow);
+        LinearLayout fragmentsCard = card();
+        page.addView(fragmentsCard, firstRow);
+        fragmentsCard.addView(text("FRAGMENTOS PARA COMPLETAR A MANOPLA",
+                R.style.TextAppearance_Ruptura_Label, R.color.accent_gold, true));
+        addFragmentReceipt(fragmentsCard, fragments);
         LinearLayout.LayoutParams nextRow = new LinearLayout.LayoutParams(-1, -2);
         nextRow.topMargin = dimension(R.dimen.space_3);
         page.addView(rewardRow("◇", "Créditos", "+" + formatAmount(reward.credits),
@@ -2291,6 +2497,23 @@ public final class MainActivity extends AppCompatActivity {
             selectedDestination = AppDestination.NEXUS;
             renderShell();
         }), nexusParams);
+    }
+
+    private void addFragmentReceipt(LinearLayout parent,
+                                    java.util.Map<InfinityStone, Integer> fragments) {
+        if (fragments.isEmpty()) {
+            parent.addView(text("Recompensa anterior já registrada.",
+                    R.style.TextAppearance_Ruptura_Caption, R.color.text_secondary, false));
+            return;
+        }
+        for (InfinityStone stone : InfinityStone.values()) {
+            int amount = fragments.getOrDefault(stone, 0);
+            parent.addView(text(fragmentName(stone) + "  +" + amount,
+                    R.style.TextAppearance_Ruptura_Body,
+                    amount > 0 ? stoneColor(stone) : R.color.text_secondary, amount > 0));
+        }
+        parent.addView(text("Faça as fusões 2:1 na Forja para formar as seis Joias.",
+                R.style.TextAppearance_Ruptura_Caption, R.color.text_secondary, false));
     }
 
     private LinearLayout rewardRow(String icon, String label, String value, int accent) {
@@ -2399,7 +2622,7 @@ public final class MainActivity extends AppCompatActivity {
                             ? R.color.accent_cyan : R.color.border_subtle),
                     dimension(R.dimen.angular_cut), false));
             ImageView image = editorialImage(item, dimension(R.dimen.space_8) * 3);
-            portraitLoader.load(character.id, character.name, image, null);
+            portraitLoader.loadVariant(character.id, tier, character.name, image, null);
             item.addView(text(character.name, R.style.TextAppearance_Ruptura_Label,
                     R.color.text_primary, true));
             item.addView(text(getString(tier.labelRes) + " · PODER " + VariantStats.total(stats),
@@ -2522,7 +2745,8 @@ public final class MainActivity extends AppCompatActivity {
             member.setPadding(dimension(R.dimen.space_1), dimension(R.dimen.space_1),
                     dimension(R.dimen.space_1), dimension(R.dimen.space_1));
             ImageView portrait = editorialImage(member, dimension(R.dimen.space_8) * 2);
-            portraitLoader.load(id, name, portrait, null);
+            portraitLoader.loadVariant(id, tierById(forgeRepository.loadEquippedTier(id)),
+                    name, portrait, null);
             TextView nameLabel = text(name, R.style.TextAppearance_Ruptura_Caption,
                     R.color.accent_cyan, true);
             nameLabel.setGravity(Gravity.CENTER);

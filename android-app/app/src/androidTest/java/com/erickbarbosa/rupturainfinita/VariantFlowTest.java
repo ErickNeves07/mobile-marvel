@@ -22,7 +22,7 @@ import java.util.List;
 
 @RunWith(AndroidJUnit4.class)
 public final class VariantFlowTest {
-    @Test public void completeGauntletActivatesThenUnlocksNextStarterVariant() throws Exception {
+    @Test public void completeGauntletOffersChoiceThenConsumesOnVariantUnlock() throws Exception {
         Instrumentation instrumentation = InstrumentationRegistry.getInstrumentation();
         android.content.Context context = instrumentation.getTargetContext();
         context.deleteDatabase("forge_inventory.db");
@@ -55,19 +55,20 @@ public final class VariantFlowTest {
             View root = activity.getWindow().getDecorView();
             assertTrue(findText(root, "ATIVAR MANOPLA") != null);
             instrumentation.runOnMainSync(() -> findText(root, "ATIVAR MANOPLA").performClick());
-            waitFor(instrumentation, root, "Desbloquear com Joia completa");
+            waitFor(instrumentation, root, "EVOLUIR COM MANOPLA COMPLETA");
             assertTrue(repository.isGauntletActivated());
             instrumentation.runOnMainSync(() -> findText(root,
-                    "Desbloquear com Joia completa").performClick());
-            for (int attempt = 0; attempt < 20
-                    && !GameVariantTier.ASCENSION.name().equals(repository.loadEquippedTier("wolverine"));
-                    attempt++) {
-                Thread.sleep(200);
-                instrumentation.waitForIdleSync();
-            }
+                    "EVOLUIR COM MANOPLA COMPLETA").performClick());
+            waitFor(instrumentation, root, "ESCOLHER PERSONAGEM OU VARIANTE");
+            instrumentation.runOnMainSync(() -> findText(root,
+                    "ESCOLHER PERSONAGEM OU VARIANTE").performClick());
+            waitFor(instrumentation, root, "EVOLUIR WOLVERINE");
+            assertTrue(findText(root, "DESBLOQUEAR HOMEM DE FERRO") != null);
+            assertTrue(repository.unlockNextVariant("wolverine", GameVariantTier.ASCENSION, roster));
             assertEquals(GameVariantTier.ASCENSION.name(), repository.loadEquippedTier("wolverine"));
-            waitFor(instrumentation, root, "Equipada: " + wolverine.variants.get(1).name);
-            assertEquals(1, repository.load().count(InfinityStone.MIND, ForgeStage.COMPLETE));
+            for (InfinityStone stone : InfinityStone.values()) {
+                assertEquals(0, repository.load().count(stone, ForgeStage.COMPLETE));
+            }
         } finally {
             if (activity != null) {
                 MainActivity target = activity;

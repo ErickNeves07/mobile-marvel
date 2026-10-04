@@ -5,7 +5,8 @@ from pydantic import BaseModel
 
 from app.content.campaigns import CAMPAIGNS
 from app.content.characters import GAME_CHARACTERS
-from app.content.editorial_links import BATTLE_COMIC_VINE_IDS, ROSTER_COMIC_VINE_IDS
+from app.content.editorial_links import (BATTLE_COMIC_VINE_IDS, ROSTER_COMIC_VINE_IDS,
+                                         VARIANT_COVER_QUERIES)
 from app.schemas.campaigns import CampaignCatalogResponse
 from app.schemas.characters import GameCharacterCatalogResponse
 from app.schemas.editorial import (
@@ -115,6 +116,18 @@ def get_game_character_portrait(game_id: str) -> EditorialGamePortrait:
 
 @app.get("/v1/editorial/battle-opponents/{opponent_id}", response_model=EditorialGamePortrait)
 def get_battle_opponent_portrait(opponent_id: str) -> EditorialGamePortrait:
+    if opponent_id == "wakanda-tech":
+        try:
+            covers = comic_vine.find_issue_covers("Wakanda")
+        except ComicVineError as error:
+            raise _comic_vine_http_error(error) from None
+        if not covers:
+            raise HTTPException(status_code=404, detail={"code": "battle_scene_cover_missing"})
+        return EditorialGamePortrait(
+            game_id=opponent_id, character_name="Ameaça Tecnológica",
+            image_url=covers[0]["image_url"], site_url=covers[0]["site_url"],
+            image_credit=covers[0]["image_credit"],
+        )
     character_id = BATTLE_COMIC_VINE_IDS.get(opponent_id)
     if character_id is None:
         raise HTTPException(status_code=404, detail={"code": "unknown_battle_opponent"})
@@ -128,6 +141,35 @@ def get_battle_opponent_portrait(opponent_id: str) -> EditorialGamePortrait:
         character_name=editorial["name"],
         image_url=editorial["image_url"],
         site_url=editorial["site_url"],
+    )
+
+
+@app.get("/v1/editorial/game-characters/{game_id}/variants/{tier_id}",
+         response_model=EditorialGamePortrait)
+def get_game_variant_portrait(game_id: str, tier_id: str) -> EditorialGamePortrait:
+    character_id = ROSTER_COMIC_VINE_IDS.get(game_id)
+    if character_id is None:
+        raise HTTPException(status_code=404, detail={"code": "unknown_game_character"})
+    cover_index = {"origin": -1, "ascension": 0, "legendary": 1,
+                   "multiversal": 2, "infinity": 3}.get(tier_id)
+    if cover_index is None:
+        raise HTTPException(status_code=404, detail={"code": "unknown_variant_tier"})
+    try:
+        editorial = comic_vine.get_character(character_id)
+        cover = None
+        if cover_index >= 0:
+            covers = comic_vine.find_issue_covers(VARIANT_COVER_QUERIES[game_id])
+            if cover_index < len(covers):
+                cover = covers[cover_index]
+    except ComicVineError as error:
+        raise _comic_vine_http_error(error) from None
+    return EditorialGamePortrait(
+        game_id=game_id,
+        character_id=editorial["id"],
+        character_name=editorial["name"],
+        image_url=cover["image_url"] if cover else editorial["image_url"],
+        site_url=cover["site_url"] if cover else editorial["site_url"],
+        image_credit=cover["image_credit"] if cover else None,
     )
 
 

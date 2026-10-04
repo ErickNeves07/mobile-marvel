@@ -65,14 +65,25 @@ public final class LovableScreensTest {
         Thread.sleep(800);
         instrumentation.waitForIdleSync();
         View root = activity.getWindow().getDecorView();
-        assertTrue(hasText(root, "CAPÍTULO 01"));
-        assertTrue(hasText(root, "CAPÍTULO 06"));
-        assertTrue(countPortraits(root) == 6);
-        TextView enter = findText(root, "REJOGAR BATALHA");
-        if (enter == null) enter = findText(root, "ESCOLHER EQUIPE E BATALHAR");
+        assertTrue(hasText(root, "CAPÍTULO 1"));
+        assertTrue(hasText(root, "CAPÍTULO 9"));
+        assertTrue(countPortraits(root) == 9);
+        instrumentation.runOnMainSync(() -> capture(activity, root, "campaign-nine.png"));
+        View missionCard = clickableAncestor(findText(root, "Nova York em Ruptura"));
+        for (int attempt = 0; attempt < 20 && missionCard == null; attempt++) {
+            Thread.sleep(500);
+            instrumentation.waitForIdleSync();
+            missionCard = clickableAncestor(findText(root, "Nova York em Ruptura"));
+        }
+        assertTrue(missionCard != null);
+        View firstMission = missionCard;
+        instrumentation.runOnMainSync(firstMission::performClick);
+        instrumentation.waitForIdleSync();
+        TextView enter = findText(root, "ESCOLHER EQUIPE E BATALHAR");
+        if (enter == null) enter = findText(root, "REJOGAR BATALHA");
         assertTrue(enter != null);
-        TextView firstBattle = enter;
-        instrumentation.runOnMainSync(firstBattle::performClick);
+        TextView openBattle = enter;
+        instrumentation.runOnMainSync(openBattle::performClick);
         instrumentation.waitForIdleSync();
         assertTrue(hasText(root, "SELECIONADOS  3/3"));
         assertTrue(hasText(root, "Homem-Aranha"));
@@ -82,12 +93,12 @@ public final class LovableScreensTest {
         assertTrue(countPortraits(root) == 3);
         instrumentation.runOnMainSync(() -> capture(activity, root, "team-chooser.png"));
         instrumentation.runOnMainSync(() -> findText(root, "INICIAR BATALHA").performClick());
-        for (int attempt = 0; attempt < 10 && !hasText(root, "MAGNETO"); attempt++) {
+        for (int attempt = 0; attempt < 10 && !hasText(root, "REI DO CRIME"); attempt++) {
             Thread.sleep(500);
             instrumentation.waitForIdleSync();
         }
         instrumentation.runOnMainSync(() -> capture(activity, root, "battle-after-team-chooser.png"));
-        assertTrue(hasText(root, "MAGNETO"));
+        assertTrue(hasText(root, "REI DO CRIME"));
         assertTrue(countPortraits(root) == 4);
         instrumentation.runOnMainSync(() -> capture(activity, root, "battle-with-portraits.png"));
         instrumentation.runOnMainSync(activity::finish);
@@ -207,10 +218,10 @@ public final class LovableScreensTest {
         Method battle = MainActivity.class.getDeclaredMethod("showMagnetoBattle",
                 LovableBattle.class, CampaignState.class);
         battle.setAccessible(true);
-        CampaignState campaign = new CampaignState("xmen", 1,
+        CampaignState campaign = new CampaignState("rupture", 1,
                 Arrays.asList("homem-aranha", "wolverine", "tocha-humana"));
         try (ForgeRepository repository = new ForgeRepository(activity)) {
-            repository.loadCampaign("xmen", campaign.teamIds);
+            repository.loadCampaign("rupture", campaign.teamIds);
         }
         instrumentation.runOnMainSync(() -> invoke(battle, activity, new LovableBattle(31), campaign));
         instrumentation.waitForIdleSync();
@@ -236,8 +247,8 @@ public final class LovableScreensTest {
         Thread.sleep(800);
         instrumentation.waitForIdleSync();
         assertTrue(hasText(root, "RECOMPENSAS"));
-        assertTrue(hasText(root, "Fragmentos da Mente"));
-        assertTrue(hasText(root, "x4"));
+        assertTrue(hasText(root, "Fragmentos da Mente  +1"));
+        assertTrue(hasText(root, "Fragmentos do Espaço  +1"));
         assertTrue(hasText(root, "Créditos"));
         assertTrue(hasText(root, "+3.000"));
         assertTrue(hasText(root, "Experiência"));
@@ -260,7 +271,7 @@ public final class LovableScreensTest {
         Method battle = MainActivity.class.getDeclaredMethod("showMagnetoBattle",
                 LovableBattle.class, CampaignState.class);
         battle.setAccessible(true);
-        CampaignState campaign = new CampaignState("xmen", 1,
+        CampaignState campaign = new CampaignState("rupture", 1,
                 Arrays.asList("homem-aranha", "wolverine", "tocha-humana"));
         instrumentation.runOnMainSync(() -> invoke(battle, activity, new LovableBattle(29), campaign));
         instrumentation.waitForIdleSync();
@@ -325,6 +336,14 @@ public final class LovableScreensTest {
             }
         }
         return null;
+    }
+
+    private static View clickableAncestor(View view) {
+        while (view != null && !view.isClickable()) {
+            if (!(view.getParent() instanceof View)) return null;
+            view = (View) view.getParent();
+        }
+        return view;
     }
 
     private static void collectSpinners(View view, List<Spinner> result) {

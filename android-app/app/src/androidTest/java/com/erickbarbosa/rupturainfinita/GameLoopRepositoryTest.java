@@ -38,7 +38,7 @@ public final class GameLoopRepositoryTest {
         context.deleteDatabase("forge_inventory.db");
     }
 
-    @Test public void dailyWinPersistsAndGrantsOnlyOneFragment() {
+    @Test public void dailyWinGrantsMissingFragmentsForAllSixAndPersistsReceipt() {
         LocalDate date = LocalDate.of(2026, 9, 28);
         ChallengeState state = repository.loadOrCreateChallenge(roster, date);
         ChallengeState won = repository.submitGuess(state, state.targetId, roster);
@@ -46,11 +46,15 @@ public final class GameLoopRepositoryTest {
         assertEquals("WON", won.status);
         assertEquals(1, won.guesses.size());
         assertEquals(0, totalCount(ForgeStage.SHARD));
-        assertEquals(1, totalCount(ForgeStage.FRAGMENT));
+        assertEquals(24, totalCount(ForgeStage.FRAGMENT));
+        for (InfinityStone stone : InfinityStone.values()) {
+            assertEquals(4, repository.load().count(stone, ForgeStage.FRAGMENT));
+            assertEquals(Integer.valueOf(1), repository.loadRewardFragments("daily:" + date).get(stone));
+        }
 
         ChallengeState repeated = repository.submitGuess(won, state.targetId, roster);
         assertEquals("WON", repeated.status);
-        assertEquals(1, totalCount(ForgeStage.FRAGMENT));
+        assertEquals(24, totalCount(ForgeStage.FRAGMENT));
 
         repository.close();
         repository = new ForgeRepository(context);
@@ -58,7 +62,8 @@ public final class GameLoopRepositoryTest {
         assertEquals("WON", restored.status);
         assertEquals(state.targetId, restored.targetId);
         assertEquals(won.guesses, restored.guesses);
-        assertEquals(1, totalCount(ForgeStage.FRAGMENT));
+        assertEquals(24, totalCount(ForgeStage.FRAGMENT));
+        assertEquals(6, repository.loadRewardFragments("daily:" + date).size());
     }
 
     @Test public void dailyLossAfterSixGuessesPersistsWithoutReward() {
@@ -76,30 +81,42 @@ public final class GameLoopRepositoryTest {
 
         assertEquals(6, current.guesses.size());
         assertEquals("LOST", current.status);
-        assertEquals(0, totalCount(ForgeStage.FRAGMENT));
+        assertEquals(18, totalCount(ForgeStage.FRAGMENT));
         repository.close();
         repository = new ForgeRepository(context);
         ChallengeState restored = repository.loadOrCreateChallenge(roster, date);
         assertEquals("LOST", restored.status);
         assertEquals(current.guesses, restored.guesses);
-        assertEquals(0, totalCount(ForgeStage.FRAGMENT));
+        assertEquals(18, totalCount(ForgeStage.FRAGMENT));
     }
 
-    @Test public void fullFragmentInventoryRollsBackDailyWinAndAllowsRetry() {
+    @Test public void alreadySufficientInventoryGrantsZeroWithoutOverflow() {
         LocalDate date = LocalDate.of(2026, 10, 4);
         ChallengeState state = repository.loadOrCreateChallenge(roster, date);
         repository.getWritableDatabase().execSQL("UPDATE inventory SET count=999 WHERE stage='FRAGMENT'");
-        try {
-            repository.submitGuess(state, state.targetId, roster);
-            fail("Expected the full inventory to reject the daily reward");
-        } catch (ForgeException expected) {
-            assertEquals(ForgeException.Reason.INVENTORY_FULL, expected.reason);
-        }
-        assertEquals("ACTIVE", repository.loadOrCreateChallenge(roster, date).status);
-        repository.getWritableDatabase().execSQL("UPDATE inventory SET count=998 WHERE stage='FRAGMENT'");
         ChallengeState won = repository.submitGuess(state, state.targetId, roster);
         assertEquals("WON", won.status);
-        assertEquals(998 * InfinityStone.values().length + 1, totalCount(ForgeStage.FRAGMENT));
+        assertEquals(999 * InfinityStone.values().length, totalCount(ForgeStage.FRAGMENT));
+        for (InfinityStone stone : InfinityStone.values()) {
+            assertEquals(Integer.valueOf(0), repository.loadRewardFragments("daily:" + date).get(stone));
+        }
+    }
+
+    @Test public void dailyRewardCountsExistingNucleiShardsAndCompleteStones() {
+        repository.getWritableDatabase().execSQL("UPDATE inventory SET count=1 "
+                + "WHERE stone='SPACE' AND stage='COMPLETE'");
+        repository.getWritableDatabase().execSQL("UPDATE inventory SET count=2 "
+                + "WHERE stone='MIND' AND stage='SHARD'");
+        repository.getWritableDatabase().execSQL("UPDATE inventory SET count=0 "
+                + "WHERE stone='REALITY' AND stage='FRAGMENT'");
+        LocalDate date = LocalDate.of(2026, 10, 5);
+        ChallengeState state = repository.loadOrCreateChallenge(roster, date);
+        repository.submitGuess(state, state.targetId, roster);
+        java.util.Map<InfinityStone, Integer> receipt = repository.loadRewardFragments("daily:" + date);
+        assertEquals(Integer.valueOf(0), receipt.get(InfinityStone.SPACE));
+        assertEquals(Integer.valueOf(0), receipt.get(InfinityStone.MIND));
+        assertEquals(Integer.valueOf(4), receipt.get(InfinityStone.REALITY));
+        assertEquals(Integer.valueOf(1), receipt.get(InfinityStone.POWER));
     }
 
     @Test public void campaignRequiresSequentialMissionsAndPersistsIdempotentRewardsAndTeam() {
@@ -128,7 +145,7 @@ public final class GameLoopRepositoryTest {
         assertEquals(3, repository.loadCampaign("xmen", defaultTeam).unlockedMission);
         assertTrue(repository.completeMission("xmen", 3));
         assertFalse(repository.completeMission("xmen", 3));
-        assertEquals(12, totalCount(ForgeStage.FRAGMENT));
+        assertEquals(24, totalCount(ForgeStage.FRAGMENT));
         assertEquals(4, repository.load().count(InfinityStone.SPACE, ForgeStage.FRAGMENT));
         assertEquals(4, repository.load().count(InfinityStone.TIME, ForgeStage.FRAGMENT));
         assertEquals(10100, repository.loadPlayerResources().credits);
@@ -139,9 +156,35 @@ public final class GameLoopRepositoryTest {
         CampaignState restored = repository.loadCampaign("xmen", defaultTeam);
         assertEquals(3, restored.unlockedMission);
         assertEquals(selectedTeam, restored.teamIds);
-        assertEquals(12, totalCount(ForgeStage.FRAGMENT));
+        assertEquals(24, totalCount(ForgeStage.FRAGMENT));
         assertEquals(10100, repository.loadPlayerResources().credits);
         assertEquals(2860, repository.loadPlayerResources().xp);
+    }
+
+    @Test public void nineChapterMapUnlocksInOrderAndNeverDuplicatesRewards() {
+        List<String> team = Arrays.asList("homem-aranha", "wolverine", "tocha-humana");
+        CampaignState initial = repository.loadCampaign("rupture", team);
+        assertEquals(1, initial.unlockedMission);
+        for (int number = 1; number <= 9; number++) {
+            if (number == 9) {
+                try {
+                    repository.completeMission("rupture", 9);
+                    fail("Titan should require a complete Gauntlet");
+                } catch (IllegalStateException expected) { }
+                for (InfinityStone stone : InfinityStone.values()) {
+                    repository.getWritableDatabase().execSQL("UPDATE inventory SET count=1 "
+                            + "WHERE stone='" + stone.name() + "' AND stage='COMPLETE'");
+                }
+            }
+            assertTrue(repository.completeMission("rupture", number));
+            assertFalse(repository.completeMission("rupture", number));
+            assertEquals(Math.min(9, number + 1),
+                    repository.loadCampaign("rupture", team).unlockedMission);
+            assertEquals(6, repository.loadRewardFragments("campaign:rupture:" + number).size());
+        }
+        assertEquals(36600, repository.loadPlayerResources().credits);
+        assertEquals(11070, repository.loadPlayerResources().xp);
+        assertEquals(24, totalCount(ForgeStage.FRAGMENT));
     }
 
     @Test public void battleTeamUsesOwnedCrossFactionCharactersAndEquippedVariants() {
@@ -173,7 +216,7 @@ public final class GameLoopRepositoryTest {
         assertEquals(4, inventory.count(InfinityStone.POWER, ForgeStage.FRAGMENT));
         assertEquals(4, inventory.count(InfinityStone.REALITY, ForgeStage.FRAGMENT));
         assertEquals(4, inventory.count(InfinityStone.SOUL, ForgeStage.FRAGMENT));
-        assertEquals(12, totalCount(ForgeStage.FRAGMENT));
+        assertEquals(24, totalCount(ForgeStage.FRAGMENT));
         assertEquals(10600, repository.loadPlayerResources().credits);
         assertEquals(3060, repository.loadPlayerResources().xp);
     }

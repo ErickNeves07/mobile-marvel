@@ -54,11 +54,12 @@ class EditorialGamePortrait(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid")
 
     game_id: str = Field(min_length=1, max_length=100)
-    character_id: int = Field(gt=0)
+    character_id: int | None = Field(default=None, gt=0)
     character_name: str = Field(min_length=1, max_length=200)
     image_url: str | None = Field(default=None, max_length=2_000)
     site_url: str = Field(min_length=1, max_length=2_000)
     source_name: str = "Comic Vine"
+    image_credit: str | None = Field(default=None, max_length=200)
 
     _https_image = field_validator("image_url")(EditorialCharacter.image_uses_https.__func__)
     _site_attribution = field_validator("site_url")(EditorialCharacter.comic_vine_attribution_link.__func__)

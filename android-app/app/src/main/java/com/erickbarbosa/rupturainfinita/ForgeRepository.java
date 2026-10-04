@@ -18,7 +18,7 @@ import java.util.List;
 /** Local transactional inventory. Completion events are supplied only by real game flows. */
 final class ForgeRepository extends SQLiteOpenHelper {
     private static final String DB_NAME = "forge_inventory.db";
-    private static final int DB_VERSION = 6;
+    private static final int DB_VERSION = 7;
     private static final String[] STARTER_IDS = {"homem-aranha", "wolverine", "tocha-humana"};
     private static final String COUNTS = "inventory";
     private static final String REWARDS = "applied_rewards";
@@ -38,6 +38,7 @@ final class ForgeRepository extends SQLiteOpenHelper {
         createVariantTables(db);
         createResourceTable(db);
         createCharacterOwnership(db);
+        createRewardReceiptTable(db);
         db.beginTransaction();
         try {
             for (InfinityStone stone : InfinityStone.values()) {
@@ -45,7 +46,7 @@ final class ForgeRepository extends SQLiteOpenHelper {
                     ContentValues row = new ContentValues();
                     row.put("stone", stone.name());
                     row.put("stage", stage.name());
-                    row.put("count", 0);
+                    row.put("count", stage == ForgeStage.FRAGMENT ? 3 : 0);
                     db.insertOrThrow(COUNTS, null, row);
                 }
             }
@@ -76,6 +77,7 @@ final class ForgeRepository extends SQLiteOpenHelper {
             db.execSQL("INSERT OR IGNORE INTO character_ownership(character_id) "
                     + "SELECT DISTINCT character_id FROM variant_ownership");
         }
+        if (oldVersion < 7 && newVersion >= 7) createRewardReceiptTable(db);
         if (newVersion != DB_VERSION) throw new IllegalStateException("No Forge database migration is defined");
     }
 
@@ -100,6 +102,12 @@ final class ForgeRepository extends SQLiteOpenHelper {
                 + "CHECK(singleton_id=1), credits INTEGER NOT NULL CHECK(credits>=0), "
                 + "xp INTEGER NOT NULL CHECK(xp>=0))");
         db.execSQL("INSERT OR IGNORE INTO player_resources(singleton_id,credits,xp) VALUES(1,0,0)");
+    }
+
+    private void createRewardReceiptTable(SQLiteDatabase db) {
+        db.execSQL("CREATE TABLE IF NOT EXISTS reward_fragments (event_id TEXT NOT NULL, "
+                + "stone TEXT NOT NULL, count INTEGER NOT NULL CHECK(count BETWEEN 0 AND 999), "
+                + "PRIMARY KEY(event_id,stone))");
     }
 
     private void createCharacterOwnership(SQLiteDatabase db) {
@@ -154,6 +162,14 @@ final class ForgeRepository extends SQLiteOpenHelper {
         try (Cursor cursor = db.query("gauntlet_state", new String[]{"activated"}, "singleton_id=1", null, null, null, null)) {
             return cursor.moveToFirst() && cursor.getInt(0) == 1;
         }
+    }
+
+    boolean hasCompleteGauntlet() {
+        SQLiteDatabase db = getReadableDatabase();
+        for (InfinityStone stone : InfinityStone.values()) {
+            if (readCount(db, stone, ForgeStage.COMPLETE) < 1) return false;
+        }
+        return true;
     }
 
     boolean activateGauntlet() {
@@ -221,18 +237,61 @@ final class ForgeRepository extends SQLiteOpenHelper {
             java.util.Set<GameVariantTier> owned = loadOwnedTiers(characterId, true);
             if (owned.contains(tier)) { db.setTransactionSuccessful(); return false; }
             if (VariantProgression.next(owned) != tier) throw new IllegalStateException("Variant tier is not next");
-            if (readCount(db, tier.requiredStone, ForgeStage.COMPLETE) < 1) {
-                throw new ForgeException(ForgeException.Reason.INSUFFICIENT_ITEMS);
-            }
+            requireCompleteGauntlet(db);
             ContentValues row = new ContentValues();
             row.put("character_id", characterId); row.put("tier_id", tier.name());
             row.put("event_id", "variant:" + characterId + ":" + tier.id);
             db.insertOrThrow("variant_ownership", null, row);
             ContentValues equipped = new ContentValues(); equipped.put("character_id", characterId); equipped.put("tier_id", tier.name());
             db.insertWithOnConflict("equipped_variants", null, equipped, SQLiteDatabase.CONFLICT_REPLACE);
+            consumeCompleteGauntlet(db);
             db.setTransactionSuccessful();
             return true;
         } finally { db.endTransaction(); }
+    }
+
+    boolean unlockCharacter(String characterId, List<GameCatalogCharacter> roster) {
+        if (findCharacter(roster, characterId) == null) {
+            throw new IllegalArgumentException("Unknown character target");
+        }
+        SQLiteDatabase db = getWritableDatabase();
+        db.beginTransaction();
+        try {
+            if (!isGauntletActivated()) throw new IllegalStateException("Gauntlet is not active");
+            if (ownsCharacter(characterId)) { db.setTransactionSuccessful(); return false; }
+            requireCompleteGauntlet(db);
+            ContentValues character = new ContentValues();
+            character.put("character_id", characterId);
+            db.insertOrThrow("character_ownership", null, character);
+            ContentValues origin = new ContentValues();
+            origin.put("character_id", characterId);
+            origin.put("tier_id", GameVariantTier.ORIGIN.name());
+            origin.put("event_id", "gauntlet:character:" + characterId);
+            db.insertOrThrow("variant_ownership", null, origin);
+            ContentValues equipped = new ContentValues();
+            equipped.put("character_id", characterId);
+            equipped.put("tier_id", GameVariantTier.ORIGIN.name());
+            db.insertOrThrow("equipped_variants", null, equipped);
+            consumeCompleteGauntlet(db);
+            db.setTransactionSuccessful();
+            return true;
+        } finally { db.endTransaction(); }
+    }
+
+    private void requireCompleteGauntlet(SQLiteDatabase db) {
+        for (InfinityStone stone : InfinityStone.values()) {
+            if (readCount(db, stone, ForgeStage.COMPLETE) < 1) {
+                throw new ForgeException(ForgeException.Reason.INSUFFICIENT_ITEMS);
+            }
+        }
+    }
+
+    private void consumeCompleteGauntlet(SQLiteDatabase db) {
+        requireCompleteGauntlet(db);
+        for (InfinityStone stone : InfinityStone.values()) {
+            writeCount(db, stone, ForgeStage.COMPLETE,
+                    readCount(db, stone, ForgeStage.COMPLETE) - 1);
+        }
     }
 
     void equipVariant(String characterId, GameVariantTier tier, List<GameCatalogCharacter> roster) {
@@ -287,17 +346,18 @@ final class ForgeRepository extends SQLiteOpenHelper {
             row.put("guesses", encodeList(guesses));
             row.put("status", status);
             db.update("challenge_runs", row, "challenge_date=?", new String[]{current.date});
-            if (won) grantDailyFragmentReward("daily:" + current.date,
-                    stoneFor(current.date + ":stone"));
+            if (won) grantMissingGauntletFragments(db, "daily:" + current.date,
+                    "DAILY_CHALLENGE");
             db.setTransactionSuccessful();
             return new ChallengeState(current.date, current.targetId, guesses, status);
         } finally { db.endTransaction(); }
     }
 
     CampaignState loadCampaign(String campaignId, List<String> defaultTeam) {
-        if (!("xmen".equals(campaignId) || "fantastic-four".equals(campaignId)) || defaultTeam == null) {
+        if (defaultTeam == null) {
             throw new IllegalArgumentException("Unknown campaign");
         }
+        CampaignReward.missionCount(campaignId);
         SQLiteDatabase db = getWritableDatabase();
         try (Cursor cursor = db.query("campaign_progress", new String[]{"unlocked_mission", "team_ids"},
                 "campaign_id=?", new String[]{campaignId}, null, null, null)) {
@@ -344,9 +404,8 @@ final class ForgeRepository extends SQLiteOpenHelper {
                 db.setTransactionSuccessful();
                 return false;
             }
-            int currentFragments = readCount(db, reward.stone, ForgeStage.FRAGMENT);
-            if (currentFragments + CampaignReward.FRAGMENTS > ForgePolicy.MAX_COUNT) {
-                throw new ForgeException(ForgeException.Reason.INVENTORY_FULL);
+            if ("rupture".equals(campaignId) && missionNumber == 9 && !hasCompleteGauntlet()) {
+                throw new IllegalStateException("Final chapter requires the complete Gauntlet");
             }
             PlayerResources resources = readPlayerResources(db);
             long credits = Math.addExact(resources.credits, reward.credits);
@@ -356,12 +415,7 @@ final class ForgeRepository extends SQLiteOpenHelper {
             boolean first = db.insertWithOnConflict("completed_missions", null, complete,
                     SQLiteDatabase.CONFLICT_IGNORE) != -1;
             if (first) {
-                ContentValues event = new ContentValues();
-                event.put("event_id", "campaign:" + missionId);
-                event.put("source", "CAMPAIGN");
-                db.insertOrThrow(REWARDS, null, event);
-                writeCount(db, reward.stone, ForgeStage.FRAGMENT,
-                        currentFragments + CampaignReward.FRAGMENTS);
+                grantMissingGauntletFragments(db, "campaign:" + missionId, "CAMPAIGN");
                 ContentValues balance = new ContentValues();
                 balance.put("credits", credits);
                 balance.put("xp", xp);
@@ -370,7 +424,8 @@ final class ForgeRepository extends SQLiteOpenHelper {
                 }
                 ContentValues progress = new ContentValues();
                 progress.put("campaign_id", campaignId);
-                progress.put("unlocked_mission", Math.max(state.unlockedMission, Math.min(3, missionNumber + 1)));
+                progress.put("unlocked_mission", Math.max(state.unlockedMission,
+                        Math.min(CampaignReward.missionCount(campaignId), missionNumber + 1)));
                 progress.put("team_ids", encodeList(state.teamIds));
                 db.insertWithOnConflict("campaign_progress", null, progress, SQLiteDatabase.CONFLICT_REPLACE);
             }
@@ -493,26 +548,44 @@ final class ForgeRepository extends SQLiteOpenHelper {
         }
     }
 
-    private boolean grantDailyFragmentReward(String eventId, InfinityStone stone) {
-        SQLiteDatabase db = getWritableDatabase();
-        db.beginTransaction();
-        try {
-            ContentValues event = new ContentValues();
-            event.put("event_id", eventId);
-            event.put("source", "DAILY_CHALLENGE");
-            if (db.insertWithOnConflict(REWARDS, null, event, SQLiteDatabase.CONFLICT_IGNORE) == -1) {
-                db.setTransactionSuccessful();
-                return false;
+    Map<InfinityStone, Integer> fragmentsNeededForGauntlet() {
+        return GauntletFragmentPlan.forInventory(load());
+    }
+
+    Map<InfinityStone, Integer> loadRewardFragments(String eventId) {
+        EnumMap<InfinityStone, Integer> result = new EnumMap<>(InfinityStone.class);
+        try (Cursor cursor = getReadableDatabase().query("reward_fragments",
+                new String[]{"stone", "count"}, "event_id=?", new String[]{eventId},
+                null, null, null)) {
+            while (cursor.moveToNext()) {
+                result.put(InfinityStone.valueOf(cursor.getString(0)), cursor.getInt(1));
             }
+        }
+        return Collections.unmodifiableMap(result);
+    }
+
+    private void grantMissingGauntletFragments(SQLiteDatabase db, String eventId, String source) {
+        ContentValues event = new ContentValues();
+        event.put("event_id", eventId);
+        event.put("source", source);
+        if (db.insertWithOnConflict(REWARDS, null, event, SQLiteDatabase.CONFLICT_IGNORE) == -1) {
+            return;
+        }
+        for (InfinityStone stone : InfinityStone.values()) {
             int current = readCount(db, stone, ForgeStage.FRAGMENT);
-            if (current >= ForgePolicy.MAX_COUNT) {
+            int needed = GauntletFragmentPlan.missing(
+                    readCount(db, stone, ForgeStage.SHARD), current,
+                    readCount(db, stone, ForgeStage.UNSTABLE_CORE),
+                    readCount(db, stone, ForgeStage.COMPLETE));
+            if (current + needed > ForgePolicy.MAX_COUNT) {
                 throw new ForgeException(ForgeException.Reason.INVENTORY_FULL);
             }
-            writeCount(db, stone, ForgeStage.FRAGMENT, current + 1);
-            db.setTransactionSuccessful();
-            return true;
-        } finally {
-            db.endTransaction();
+            if (needed > 0) writeCount(db, stone, ForgeStage.FRAGMENT, current + needed);
+            ContentValues receipt = new ContentValues();
+            receipt.put("event_id", eventId);
+            receipt.put("stone", stone.name());
+            receipt.put("count", needed);
+            db.insertOrThrow("reward_fragments", null, receipt);
         }
     }
 

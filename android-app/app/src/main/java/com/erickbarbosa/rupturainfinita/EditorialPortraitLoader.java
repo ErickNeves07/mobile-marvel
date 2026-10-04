@@ -24,7 +24,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-/** Loads one attributed Comic Vine portrait per game character, reused by all variants. */
+/** Loads attributed character portraits or distinct editorial issue covers per variant. */
 final class EditorialPortraitLoader {
     private static final int MAX_IMAGE_BYTES = 12_000_000;
     private static final long METADATA_MAX_AGE_MS = 24L * 60 * 60 * 1000;
@@ -47,6 +47,12 @@ final class EditorialPortraitLoader {
 
     void loadOpponent(String opponentId, String name, ImageView image, TextView attribution) {
         load("battle:" + opponentId, name, image, attribution);
+    }
+
+    void loadVariant(String gameId, GameVariantTier tier, String name,
+                     ImageView image, TextView attribution) {
+        if (tier == null) throw new IllegalArgumentException("Variant tier is required");
+        load("variant:" + gameId + ":" + tier.id, name, image, attribution);
     }
 
     void prefetch(String gameId) {
@@ -99,19 +105,18 @@ final class EditorialPortraitLoader {
         Portrait portrait = null;
         try {
             boolean opponent = gameId.startsWith("battle:");
-            String editorialId = opponent ? gameId.substring("battle:".length()) : gameId;
-            JSONObject metadata = backend.cachedGetFresh((opponent
-                            ? "/v1/editorial/battle-opponents/"
-                            : "/v1/editorial/game-characters/") + editorialId,
-                    METADATA_MAX_AGE_MS);
-            if (!editorialId.equals(metadata.getString("game_id"))) {
-                throw new IllegalStateException("Portrait game ID mismatch");
-            }
-            String imageUrl = metadata.optString("image_url", "");
-            String siteUrl = metadata.getString("site_url");
-            validateComicVineUrl(siteUrl);
-            if (!imageUrl.isEmpty()) {
-                portrait = new Portrait(downloadImage(imageUrl), siteUrl);
+            boolean variant = gameId.startsWith("variant:");
+            String[] parts = variant ? gameId.split(":", 3) : null;
+            String editorialId = opponent ? gameId.substring("battle:".length())
+                    : variant && parts.length == 3 ? parts[1] : gameId;
+            String basePath = (opponent ? "/v1/editorial/battle-opponents/"
+                    : "/v1/editorial/game-characters/") + editorialId;
+            try {
+                portrait = fetchPortrait(variant ? basePath + "/variants/" + parts[2] : basePath,
+                        editorialId);
+            } catch (Exception variantError) {
+                if (variant) portrait = fetchPortrait(basePath, editorialId);
+                else throw variantError;
             }
         } catch (Exception ignored) {
             // Missing backend or image leaves the offline game usable.
@@ -135,6 +140,19 @@ final class EditorialPortraitLoader {
                 else apply(gameId, target, result);
             }
         });
+    }
+
+    private Portrait fetchPortrait(String path, String editorialId) throws Exception {
+        JSONObject metadata = backend.cachedGetFresh(path, METADATA_MAX_AGE_MS);
+        if (!editorialId.equals(metadata.getString("game_id"))) {
+            throw new IllegalStateException("Portrait game ID mismatch");
+        }
+        String imageUrl = metadata.optString("image_url", "");
+        String siteUrl = metadata.getString("site_url");
+        validateComicVineUrl(siteUrl);
+        if (imageUrl.isEmpty()) throw new IllegalStateException("Editorial image is missing");
+        return new Portrait(downloadImage(imageUrl), siteUrl,
+                metadata.optString("image_credit", ""));
     }
 
     private static Bitmap downloadImage(String address) throws Exception {
@@ -204,7 +222,9 @@ final class EditorialPortraitLoader {
         target.image.setContentDescription("Retrato editorial de " + target.characterName
                 + ", fonte Comic Vine; a imagem pode não representar esta variante");
         if (target.attribution != null) {
-            target.attribution.setText(R.string.editorial_portrait_credit);
+            target.attribution.setText(portrait.credit.isEmpty()
+                    ? getCreditLabel(target.attribution)
+                    : "CAPA: " + portrait.credit + " · COMIC VINE · ABRIR FONTE");
             target.attribution.setClickable(true);
             target.attribution.setFocusable(true);
             target.attribution.setOnClickListener(view -> {
@@ -213,6 +233,10 @@ final class EditorialPortraitLoader {
                 catch (android.content.ActivityNotFoundException ignored) { }
             });
         }
+    }
+
+    private static String getCreditLabel(TextView view) {
+        return view.getContext().getString(R.string.editorial_portrait_credit);
     }
 
     private void showUnavailable(String gameId, Target target) {
@@ -240,10 +264,12 @@ final class EditorialPortraitLoader {
     private static final class Portrait {
         final Bitmap bitmap;
         final String siteUrl;
+        final String credit;
 
-        Portrait(Bitmap bitmap, String siteUrl) {
+        Portrait(Bitmap bitmap, String siteUrl, String credit) {
             this.bitmap = bitmap;
             this.siteUrl = siteUrl;
+            this.credit = credit;
         }
     }
 

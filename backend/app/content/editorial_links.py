@@ -24,9 +24,40 @@ ROSTER_COMIC_VINE_IDS: dict[str, int] = {
     "deadpool": 7606,
 }
 
+# Solo issue titles used only for attributed editorial cover discovery.
+VARIANT_COVER_QUERIES: dict[str, str] = {
+    "homem-de-ferro": "Iron Man",
+    "capitao-america": "Captain America",
+    "thor": "Thor",
+    "hulk": "Hulk",
+    "feiticeira-escarlate": "Scarlet Witch",
+    "pantera-negra": "Black Panther",
+    "homem-aranha": "Spider-Man",
+    "doutor-estranho": "Doctor Strange",
+    "wolverine": "Wolverine",
+    "ciclope": "Cyclops",
+    "jean-grey": "Jean Grey",
+    "professor-xavier": "Professor X",
+    "senhor-fantastico": "Fantastic Four",
+    "mulher-invisivel": "Invisible Woman",
+    "tocha-humana": "Human Torch",
+    "coisa": "The Thing",
+    "rocket-raccoon": "Rocket Raccoon",
+    "groot": "Groot",
+    "surfista-prateado": "Silver Surfer",
+    "loki": "Loki",
+    "deadpool": "Deadpool",
+}
+
 # Opponents are editorial illustrations, never unlockable roster members.
 BATTLE_COMIC_VINE_IDS: dict[str, int] = {
+    "rei-do-crime": 1483,
+    "ultron": 2242,
+    "dormammu": 2205,
+    "ronan": 4818,
     "magneto": 1441,
+    "annihilus": 10964,
+    "thanos": 7607,
     "master-mold": 10254,
     "doombot": 89418,
     "doutor-destino": 1468,
