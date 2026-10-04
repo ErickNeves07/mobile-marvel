@@ -1,0 +1,3 @@
+# 024 — Android/backend — Design
+
+Use Java `HttpURLConnection` and a dedicated ExecutorService to avoid dependency installation; no network on UI thread. Generate `BuildConfig.BACKEND_BASE_URL` from Gradle property. Empty URL means offline mode. Debug permits explicitly configured development cleartext, while release URL must be HTTPS. Add `INTERNET` permission. Parse bounded JSON with existing org.json; keep DTOs at data boundary. Cache editorial API responses locally with update timestamps and attribution, never mix Comic Vine editorial facts with `shared/game_catalog.json` gameplay data. Android build supports LAN config, but public release is not usable online until a hosted URL exists.

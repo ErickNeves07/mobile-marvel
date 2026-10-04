@@ -1,0 +1,1 @@
+"""Ruptura Infinita backend package."""

@@ -1,0 +1,12 @@
+gradle.beforeProject { project ->
+    def validationRoot = System.getenv('RI_VALIDATION_DIR')
+    if (validationRoot == null || validationRoot.isBlank()) {
+        validationRoot = new File(project.rootProject.projectDir, '.validation-output').absolutePath
+    }
+    def projectName = project.path == ':'
+            ? 'root'
+            : project.path.substring(1).replace(':', '_')
+    project.layout.buildDirectory.set(
+            new File(validationRoot, projectName)
+    )
+}

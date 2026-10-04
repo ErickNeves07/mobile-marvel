@@ -1,0 +1,10 @@
+# 023 — Comic Vine — Evidence
+
+- Official API root: account login is required to obtain a key; policy says 200 calls per resource/hour, velocity detection, recommends caching, requires backlink/credit, is non-commercial and forbids redistribution: https://comicvine.gamespot.com/api/
+- Official docs list `/search`, `/characters`, `/character`, publisher fields, `field_list`, `limit`, `offset`: https://comicvine.gamespot.com/api/documentation
+- On 2026-10-02 Erick authorized importing a temporary 40-character key from `Downloads/.env` into the Git-ignored root `.env` as `COMIC_VINE_API_KEY`; the existing Groq entry was preserved. Only key presence, length and source/destination equality were checked; no value was printed or copied into tracked files.
+- With the two keys loaded into the local backend process, `TestClient(app).get('/ready')` returned HTTP 200 with `integrations.comic_vine=true`, `integrations.groq=true`, `status=ok`. This checks configuration only; no Comic Vine request was made and the key is not configured in Render.
+# Verificação live 2026-10-04
+
+- A busca Wolverine respondeu `status_code=1`, mas o proxy inicialmente montava `/character/{id}/`, que recebeu `status_code=102` (formato de URL inválido). O detalhe correto `/character/4005-{id}/` foi confirmado pelo provedor. O primeiro detalhe real revelou `publisher.id=31`, `publisher.name=Marvel`; o filtro anterior usava o prefixo de tipo `4010` como se fosse ID da editora. Contrato/spec e testes corrigidos antes do código.
+- Após a última edição backend: `backend/.venv/Scripts/python.exe -m pytest -q` no diretório `backend` passou **41/41**. Consulta live `ComicVineGateway.search_characters('Wolverine', limit=1)` passou e retornou ID 1440, editora Marvel, URL editorial HTTPS, URL da imagem e link de volta Comic Vine. A amostra JPEG 781 × 1200 px/89.200 bytes foi inspecionada internamente em `reports/lovable-research/`, ignorado pelo Git. Nenhuma chave foi impressa ou incorporada ao APK; nenhuma imagem Comic Vine foi incorporada ao app. Limitação: Android ainda precisa de backend HTTPS configurado e não renderiza `image_url`.

@@ -1,0 +1,676 @@
+{
+    "items":  [
+                  {
+                      "id":  "homem-de-ferro",
+                      "name":  "Homem de Ferro",
+                      "group_id":  "avengers-allies",
+                      "variants":  [
+                                       {
+                                           "id":  "homem-de-ferro-origin",
+                                           "tier_id":  "origin",
+                                           "name":  "Armadura Mark Clássica"
+                                       },
+                                       {
+                                           "id":  "homem-de-ferro-ascension",
+                                           "tier_id":  "ascension",
+                                           "name":  "Armadura de Cerco"
+                                       },
+                                       {
+                                           "id":  "homem-de-ferro-legendary",
+                                           "tier_id":  "legendary",
+                                           "name":  "Armadura Extremis"
+                                       },
+                                       {
+                                           "id":  "homem-de-ferro-multiversal",
+                                           "tier_id":  "multiversal",
+                                           "name":  "Ferreiro do Nexus"
+                                       },
+                                       {
+                                           "id":  "homem-de-ferro-infinity",
+                                           "tier_id":  "infinity",
+                                           "name":  "Coração do Poder"
+                                       }
+                                   ]
+                  },
+                  {
+                      "id":  "capitao-america",
+                      "name":  "Capitão América",
+                      "group_id":  "avengers-allies",
+                      "variants":  [
+                                       {
+                                           "id":  "capitao-america-origin",
+                                           "tier_id":  "origin",
+                                           "name":  "Sentinela da Liberdade"
+                                       },
+                                       {
+                                           "id":  "capitao-america-ascension",
+                                           "tier_id":  "ascension",
+                                           "name":  "Comandante Vingador"
+                                       },
+                                       {
+                                           "id":  "capitao-america-legendary",
+                                           "tier_id":  "legendary",
+                                           "name":  "Capitão Nômade"
+                                       },
+                                       {
+                                           "id":  "capitao-america-multiversal",
+                                           "tier_id":  "multiversal",
+                                           "name":  "Guardião das Realidades"
+                                       },
+                                       {
+                                           "id":  "capitao-america-infinity",
+                                           "tier_id":  "infinity",
+                                           "name":  "Bastião do Espaço"
+                                       }
+                                   ]
+                  },
+                  {
+                      "id":  "thor",
+                      "name":  "Thor",
+                      "group_id":  "avengers-allies",
+                      "variants":  [
+                                       {
+                                           "id":  "thor-origin",
+                                           "tier_id":  "origin",
+                                           "name":  "Deus do Trovão"
+                                       },
+                                       {
+                                           "id":  "thor-ascension",
+                                           "tier_id":  "ascension",
+                                           "name":  "Senhor da Tempestade"
+                                       },
+                                       {
+                                           "id":  "thor-legendary",
+                                           "tier_id":  "legendary",
+                                           "name":  "Rei de Asgard"
+                                       },
+                                       {
+                                           "id":  "thor-multiversal",
+                                           "tier_id":  "multiversal",
+                                           "name":  "Thor da Última Tempestade"
+                                       },
+                                       {
+                                           "id":  "thor-infinity",
+                                           "tier_id":  "infinity",
+                                           "name":  "Trovão do Espaço"
+                                       }
+                                   ]
+                  },
+                  {
+                      "id":  "hulk",
+                      "name":  "Hulk",
+                      "group_id":  "avengers-allies",
+                      "variants":  [
+                                       {
+                                           "id":  "hulk-origin",
+                                           "tier_id":  "origin",
+                                           "name":  "Hulk Indomável"
+                                       },
+                                       {
+                                           "id":  "hulk-ascension",
+                                           "tier_id":  "ascension",
+                                           "name":  "Hulk Gladiador"
+                                       },
+                                       {
+                                           "id":  "hulk-legendary",
+                                           "tier_id":  "legendary",
+                                           "name":  "Quebra-Mundos"
+                                       },
+                                       {
+                                           "id":  "hulk-multiversal",
+                                           "tier_id":  "multiversal",
+                                           "name":  "Titã Gama"
+                                       },
+                                       {
+                                           "id":  "hulk-infinity",
+                                           "tier_id":  "infinity",
+                                           "name":  "Avatar do Poder"
+                                       }
+                                   ]
+                  },
+                  {
+                      "id":  "feiticeira-escarlate",
+                      "name":  "Feiticeira Escarlate",
+                      "group_id":  "avengers-allies",
+                      "variants":  [
+                                       {
+                                           "id":  "feiticeira-escarlate-origin",
+                                           "tier_id":  "origin",
+                                           "name":  "Bruxa Escarlate"
+                                       },
+                                       {
+                                           "id":  "feiticeira-escarlate-ascension",
+                                           "tier_id":  "ascension",
+                                           "name":  "Mestra do Caos"
+                                       },
+                                       {
+                                           "id":  "feiticeira-escarlate-legendary",
+                                           "tier_id":  "legendary",
+                                           "name":  "Nexus Escarlate"
+                                       },
+                                       {
+                                           "id":  "feiticeira-escarlate-multiversal",
+                                           "tier_id":  "multiversal",
+                                           "name":  "Rainha da Probabilidade"
+                                       },
+                                       {
+                                           "id":  "feiticeira-escarlate-infinity",
+                                           "tier_id":  "infinity",
+                                           "name":  "Realidade Carmesim"
+                                       }
+                                   ]
+                  },
+                  {
+                      "id":  "pantera-negra",
+                      "name":  "Pantera Negra",
+                      "group_id":  "avengers-allies",
+                      "variants":  [
+                                       {
+                                           "id":  "pantera-negra-origin",
+                                           "tier_id":  "origin",
+                                           "name":  "Protetor de Wakanda"
+                                       },
+                                       {
+                                           "id":  "pantera-negra-ascension",
+                                           "tier_id":  "ascension",
+                                           "name":  "Traje Cinético"
+                                       },
+                                       {
+                                           "id":  "pantera-negra-legendary",
+                                           "tier_id":  "legendary",
+                                           "name":  "Rei dos Mortos"
+                                       },
+                                       {
+                                           "id":  "pantera-negra-multiversal",
+                                           "tier_id":  "multiversal",
+                                           "name":  "Pantera do Eclipse"
+                                       },
+                                       {
+                                           "id":  "pantera-negra-infinity",
+                                           "tier_id":  "infinity",
+                                           "name":  "Alma de Wakanda"
+                                       }
+                                   ]
+                  },
+                  {
+                      "id":  "homem-aranha",
+                      "name":  "Homem-Aranha",
+                      "group_id":  "avengers-allies",
+                      "variants":  [
+                                       {
+                                           "id":  "homem-aranha-origin",
+                                           "tier_id":  "origin",
+                                           "name":  "Amigo da Vizinhança"
+                                       },
+                                       {
+                                           "id":  "homem-aranha-ascension",
+                                           "tier_id":  "ascension",
+                                           "name":  "Aranha Simbionte"
+                                       },
+                                       {
+                                           "id":  "homem-aranha-legendary",
+                                           "tier_id":  "legendary",
+                                           "name":  "Aranha de Ferro"
+                                       },
+                                       {
+                                           "id":  "homem-aranha-multiversal",
+                                           "tier_id":  "multiversal",
+                                           "name":  "Tecelão do Nexus"
+                                       },
+                                       {
+                                           "id":  "homem-aranha-infinity",
+                                           "tier_id":  "infinity",
+                                           "name":  "Aranha do Espaço"
+                                       }
+                                   ]
+                  },
+                  {
+                      "id":  "doutor-estranho",
+                      "name":  "Doutor Estranho",
+                      "group_id":  "avengers-allies",
+                      "variants":  [
+                                       {
+                                           "id":  "doutor-estranho-origin",
+                                           "tier_id":  "origin",
+                                           "name":  "Mestre das Artes Místicas"
+                                       },
+                                       {
+                                           "id":  "doutor-estranho-ascension",
+                                           "tier_id":  "ascension",
+                                           "name":  "Arquimago"
+                                       },
+                                       {
+                                           "id":  "doutor-estranho-legendary",
+                                           "tier_id":  "legendary",
+                                           "name":  "Estranho Supremo"
+                                       },
+                                       {
+                                           "id":  "doutor-estranho-multiversal",
+                                           "tier_id":  "multiversal",
+                                           "name":  "Cartógrafo do Impossível"
+                                       },
+                                       {
+                                           "id":  "doutor-estranho-infinity",
+                                           "tier_id":  "infinity",
+                                           "name":  "Guardião do Tempo"
+                                       }
+                                   ]
+                  },
+                  {
+                      "id":  "wolverine",
+                      "name":  "Wolverine",
+                      "group_id":  "x-men",
+                      "variants":  [
+                                       {
+                                           "id":  "wolverine-origin",
+                                           "tier_id":  "origin",
+                                           "name":  "Arma X Rebelde"
+                                       },
+                                       {
+                                           "id":  "wolverine-ascension",
+                                           "tier_id":  "ascension",
+                                           "name":  "Caçador de Madripoor"
+                                       },
+                                       {
+                                           "id":  "wolverine-legendary",
+                                           "tier_id":  "legendary",
+                                           "name":  "Velho Logan"
+                                       },
+                                       {
+                                           "id":  "wolverine-multiversal",
+                                           "tier_id":  "multiversal",
+                                           "name":  "Lobo de Adamantium"
+                                       },
+                                       {
+                                           "id":  "wolverine-infinity",
+                                           "tier_id":  "infinity",
+                                           "name":  "Fera da Alma"
+                                       }
+                                   ]
+                  },
+                  {
+                      "id":  "ciclope",
+                      "name":  "Ciclope",
+                      "group_id":  "x-men",
+                      "variants":  [
+                                       {
+                                           "id":  "ciclope-origin",
+                                           "tier_id":  "origin",
+                                           "name":  "Líder de Campo"
+                                       },
+                                       {
+                                           "id":  "ciclope-ascension",
+                                           "tier_id":  "ascension",
+                                           "name":  "Comandante X"
+                                       },
+                                       {
+                                           "id":  "ciclope-legendary",
+                                           "tier_id":  "legendary",
+                                           "name":  "Revolucionário Mutante"
+                                       },
+                                       {
+                                           "id":  "ciclope-multiversal",
+                                           "tier_id":  "multiversal",
+                                           "name":  "Prisma Vivo"
+                                       },
+                                       {
+                                           "id":  "ciclope-infinity",
+                                           "tier_id":  "infinity",
+                                           "name":  "Olhar do Poder"
+                                       }
+                                   ]
+                  },
+                  {
+                      "id":  "jean-grey",
+                      "name":  "Jean Grey",
+                      "group_id":  "x-men",
+                      "variants":  [
+                                       {
+                                           "id":  "jean-grey-origin",
+                                           "tier_id":  "origin",
+                                           "name":  "Telepata Marvel"
+                                       },
+                                       {
+                                           "id":  "jean-grey-ascension",
+                                           "tier_id":  "ascension",
+                                           "name":  "Jean da Fênix"
+                                       },
+                                       {
+                                           "id":  "jean-grey-legendary",
+                                           "tier_id":  "legendary",
+                                           "name":  "Fênix Negra"
+                                       },
+                                       {
+                                           "id":  "jean-grey-multiversal",
+                                           "tier_id":  "multiversal",
+                                           "name":  "Fênix Branca do Nexus"
+                                       },
+                                       {
+                                           "id":  "jean-grey-infinity",
+                                           "tier_id":  "infinity",
+                                           "name":  "Mente Eterna"
+                                       }
+                                   ]
+                  },
+                  {
+                      "id":  "professor-xavier",
+                      "name":  "Professor Xavier",
+                      "group_id":  "x-men",
+                      "variants":  [
+                                       {
+                                           "id":  "professor-xavier-origin",
+                                           "tier_id":  "origin",
+                                           "name":  "Professor X"
+                                       },
+                                       {
+                                           "id":  "professor-xavier-ascension",
+                                           "tier_id":  "ascension",
+                                           "name":  "Mestre do Cerebro"
+                                       },
+                                       {
+                                           "id":  "professor-xavier-legendary",
+                                           "tier_id":  "legendary",
+                                           "name":  "Xavier Astral"
+                                       },
+                                       {
+                                           "id":  "professor-xavier-multiversal",
+                                           "tier_id":  "multiversal",
+                                           "name":  "Arquiteto dos Sonhos"
+                                       },
+                                       {
+                                           "id":  "professor-xavier-infinity",
+                                           "tier_id":  "infinity",
+                                           "name":  "Consciência Suprema"
+                                       }
+                                   ]
+                  },
+                  {
+                      "id":  "senhor-fantastico",
+                      "name":  "Senhor Fantástico",
+                      "group_id":  "fantastic-four",
+                      "variants":  [
+                                       {
+                                           "id":  "senhor-fantastico-origin",
+                                           "tier_id":  "origin",
+                                           "name":  "Gênio Elástico"
+                                       },
+                                       {
+                                           "id":  "senhor-fantastico-ascension",
+                                           "tier_id":  "ascension",
+                                           "name":  "Explorador Dimensional"
+                                       },
+                                       {
+                                           "id":  "senhor-fantastico-legendary",
+                                           "tier_id":  "legendary",
+                                           "name":  "Reed do Conselho"
+                                       },
+                                       {
+                                           "id":  "senhor-fantastico-multiversal",
+                                           "tier_id":  "multiversal",
+                                           "name":  "Arquiteto Flexível"
+                                       },
+                                       {
+                                           "id":  "senhor-fantastico-infinity",
+                                           "tier_id":  "infinity",
+                                           "name":  "Mente do Espaço"
+                                       }
+                                   ]
+                  },
+                  {
+                      "id":  "mulher-invisivel",
+                      "name":  "Mulher Invisível",
+                      "group_id":  "fantastic-four",
+                      "variants":  [
+                                       {
+                                           "id":  "mulher-invisivel-origin",
+                                           "tier_id":  "origin",
+                                           "name":  "Força Invisível"
+                                       },
+                                       {
+                                           "id":  "mulher-invisivel-ascension",
+                                           "tier_id":  "ascension",
+                                           "name":  "Mestra dos Campos"
+                                       },
+                                       {
+                                           "id":  "mulher-invisivel-legendary",
+                                           "tier_id":  "legendary",
+                                           "name":  "Malice Redimida"
+                                       },
+                                       {
+                                           "id":  "mulher-invisivel-multiversal",
+                                           "tier_id":  "multiversal",
+                                           "name":  "Imperatriz do Vazio"
+                                       },
+                                       {
+                                           "id":  "mulher-invisivel-infinity",
+                                           "tier_id":  "infinity",
+                                           "name":  "Horizonte da Realidade"
+                                       }
+                                   ]
+                  },
+                  {
+                      "id":  "tocha-humana",
+                      "name":  "Tocha Humana",
+                      "group_id":  "fantastic-four",
+                      "variants":  [
+                                       {
+                                           "id":  "tocha-humana-origin",
+                                           "tier_id":  "origin",
+                                           "name":  "Chama Acesa"
+                                       },
+                                       {
+                                           "id":  "tocha-humana-ascension",
+                                           "tier_id":  "ascension",
+                                           "name":  "Supernova Azul"
+                                       },
+                                       {
+                                           "id":  "tocha-humana-legendary",
+                                           "tier_id":  "legendary",
+                                           "name":  "Arauto da Zona Negativa"
+                                       },
+                                       {
+                                           "id":  "tocha-humana-multiversal",
+                                           "tier_id":  "multiversal",
+                                           "name":  "Sol Errante"
+                                       },
+                                       {
+                                           "id":  "tocha-humana-infinity",
+                                           "tier_id":  "infinity",
+                                           "name":  "Chama do Poder"
+                                       }
+                                   ]
+                  },
+                  {
+                      "id":  "coisa",
+                      "name":  "Coisa",
+                      "group_id":  "fantastic-four",
+                      "variants":  [
+                                       {
+                                           "id":  "coisa-origin",
+                                           "tier_id":  "origin",
+                                           "name":  "Ídolo de Pedra"
+                                       },
+                                       {
+                                           "id":  "coisa-ascension",
+                                           "tier_id":  "ascension",
+                                           "name":  "Blindagem Baxter"
+                                       },
+                                       {
+                                           "id":  "coisa-legendary",
+                                           "tier_id":  "legendary",
+                                           "name":  "Campeão da Arena"
+                                       },
+                                       {
+                                           "id":  "coisa-multiversal",
+                                           "tier_id":  "multiversal",
+                                           "name":  "Monólito da Zona Negativa"
+                                       },
+                                       {
+                                           "id":  "coisa-infinity",
+                                           "tier_id":  "infinity",
+                                           "name":  "Fundamento da Realidade"
+                                       }
+                                   ]
+                  },
+                  {
+                      "id":  "rocket-raccoon",
+                      "name":  "Rocket Raccoon",
+                      "group_id":  "cosmic-specials",
+                      "variants":  [
+                                       {
+                                           "id":  "rocket-raccoon-origin",
+                                           "tier_id":  "origin",
+                                           "name":  "Artilheiro Galáctico"
+                                       },
+                                       {
+                                           "id":  "rocket-raccoon-ascension",
+                                           "tier_id":  "ascension",
+                                           "name":  "Comandante de Arsenal"
+                                       },
+                                       {
+                                           "id":  "rocket-raccoon-legendary",
+                                           "tier_id":  "legendary",
+                                           "name":  "Rocket Mecha"
+                                       },
+                                       {
+                                           "id":  "rocket-raccoon-multiversal",
+                                           "tier_id":  "multiversal",
+                                           "name":  "Corsário do Nexus"
+                                       },
+                                       {
+                                           "id":  "rocket-raccoon-infinity",
+                                           "tier_id":  "infinity",
+                                           "name":  "Engenheiro da Realidade"
+                                       }
+                                   ]
+                  },
+                  {
+                      "id":  "groot",
+                      "name":  "Groot",
+                      "group_id":  "cosmic-specials",
+                      "variants":  [
+                                       {
+                                           "id":  "groot-origin",
+                                           "tier_id":  "origin",
+                                           "name":  "Groot Guardião"
+                                       },
+                                       {
+                                           "id":  "groot-ascension",
+                                           "tier_id":  "ascension",
+                                           "name":  "Groot Ancião"
+                                       },
+                                       {
+                                           "id":  "groot-legendary",
+                                           "tier_id":  "legendary",
+                                           "name":  "Rei Groot"
+                                       },
+                                       {
+                                           "id":  "groot-multiversal",
+                                           "tier_id":  "multiversal",
+                                           "name":  "Árvore do Nexus"
+                                       },
+                                       {
+                                           "id":  "groot-infinity",
+                                           "tier_id":  "infinity",
+                                           "name":  "Raiz da Alma"
+                                       }
+                                   ]
+                  },
+                  {
+                      "id":  "surfista-prateado",
+                      "name":  "Surfista Prateado",
+                      "group_id":  "cosmic-specials",
+                      "variants":  [
+                                       {
+                                           "id":  "surfista-prateado-origin",
+                                           "tier_id":  "origin",
+                                           "name":  "Arauto Prateado"
+                                       },
+                                       {
+                                           "id":  "surfista-prateado-ascension",
+                                           "tier_id":  "ascension",
+                                           "name":  "Liberto de Galactus"
+                                       },
+                                       {
+                                           "id":  "surfista-prateado-legendary",
+                                           "tier_id":  "legendary",
+                                           "name":  "Guardião do Cosmo"
+                                       },
+                                       {
+                                           "id":  "surfista-prateado-multiversal",
+                                           "tier_id":  "multiversal",
+                                           "name":  "Surfista do Horizonte Negro"
+                                       },
+                                       {
+                                           "id":  "surfista-prateado-infinity",
+                                           "tier_id":  "infinity",
+                                           "name":  "Arauto do Espaço"
+                                       }
+                                   ]
+                  },
+                  {
+                      "id":  "loki",
+                      "name":  "Loki",
+                      "group_id":  "cosmic-specials",
+                      "variants":  [
+                                       {
+                                           "id":  "loki-origin",
+                                           "tier_id":  "origin",
+                                           "name":  "Deus da Trapaça"
+                                       },
+                                       {
+                                           "id":  "loki-ascension",
+                                           "tier_id":  "ascension",
+                                           "name":  "Rei das Ilusões"
+                                       },
+                                       {
+                                           "id":  "loki-legendary",
+                                           "tier_id":  "legendary",
+                                           "name":  "Loki Agente de Asgard"
+                                       },
+                                       {
+                                           "id":  "loki-multiversal",
+                                           "tier_id":  "multiversal",
+                                           "name":  "Loki das Mil Faces"
+                                       },
+                                       {
+                                           "id":  "loki-infinity",
+                                           "tier_id":  "infinity",
+                                           "name":  "Mentira da Realidade"
+                                       }
+                                   ]
+                  },
+                  {
+                      "id":  "deadpool",
+                      "name":  "Deadpool",
+                      "group_id":  "cosmic-specials",
+                      "variants":  [
+                                       {
+                                           "id":  "deadpool-origin",
+                                           "tier_id":  "origin",
+                                           "name":  "Mercenário Tagarela"
+                                       },
+                                       {
+                                           "id":  "deadpool-ascension",
+                                           "tier_id":  "ascension",
+                                           "name":  "Deadpool Tático"
+                                       },
+                                       {
+                                           "id":  "deadpool-legendary",
+                                           "tier_id":  "legendary",
+                                           "name":  "Deadpool X-Force"
+                                       },
+                                       {
+                                           "id":  "deadpool-multiversal",
+                                           "tier_id":  "multiversal",
+                                           "name":  "Deadpool Fora do Roteiro"
+                                       },
+                                       {
+                                           "id":  "deadpool-infinity",
+                                           "tier_id":  "infinity",
+                                           "name":  "Deadpool — Não Canônico"
+                                       }
+                                   ]
+                  }
+              ]
+}

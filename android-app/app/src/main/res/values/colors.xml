@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="infinity_gold">#FFD84A</color>
+    <color name="canvas">#05070C</color>
+    <color name="surface_primary">#0D111B</color>
+    <color name="surface_elevated">#171D29</color>
+    <color name="surface_selected">#172F39</color>
+    <color name="text_primary">#F2F5FB</color>
+    <color name="text_secondary">#9AA5B8</color>
+    <color name="border_subtle">#2A3342</color>
+    <color name="accent_gold">#E0B45C</color>
+    <color name="accent_cyan">#48E0FF</color>
+    <color name="accent_deadpool">#E53945</color>
+    <color name="accent_xmen">#FFB020</color>
+    <color name="accent_quartet">#4FA8FF</color>
+    <color name="accent_latveria">#5FE0A0</color>
+    <color name="stone_space">#2E7BFF</color>
+    <color name="stone_mind">#FFD84A</color>
+    <color name="stone_reality">#E53945</color>
+    <color name="stone_power">#9B5CFF</color>
+    <color name="stone_time">#36D17E</color>
+    <color name="stone_soul">#FF8A3D</color>
+    <color name="status_surface">#262E3D</color>
+    <color name="deadpool_paper">#ECECEC</color>
+    <color name="deadpool_ink">#111111</color>
+    <color name="deadpool_body">#444444</color>
+    <color name="deadpool_white">#FFFFFF</color>
+</resources>

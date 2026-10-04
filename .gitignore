@@ -1,0 +1,50 @@
+# Secrets
+.env
+.env.*
+!.env.example
+local.properties
+*.jks
+*.keystore
+secrets.properties
+
+# Android/Gradle
+.gradle/
+build/
+**/build/
+**/.validation-output/
+.idea/
+*.iml
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Python
+.venv/
+.venv*/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# OS/editor
+.DS_Store
+.vscode/
+
+# Local agent/runtime
+.codex/
+.wolf/
+*.log
+
+# Generated/media
+artifacts/
+reports/
+*.apk
+*.aab
+
+# Local release signing material
+*.p12
+release-artifacts/

@@ -1,0 +1,168 @@
+package com.erickbarbosa.rupturainfinita;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+import android.content.Context;
+
+import androidx.test.ext.junit.runners.AndroidJUnit4;
+import androidx.test.platform.app.InstrumentationRegistry;
+
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+@RunWith(AndroidJUnit4.class)
+public final class GameLoopRepositoryTest {
+    private Context context;
+    private ForgeRepository repository;
+    private List<GameCatalogCharacter> roster;
+
+    @Before public void setUp() throws Exception {
+        context = InstrumentationRegistry.getInstrumentation().getTargetContext();
+        context.deleteDatabase("forge_inventory.db");
+        repository = new ForgeRepository(context);
+        roster = GameCatalogParser.read(context.getAssets());
+    }
+
+    @After public void tearDown() {
+        repository.close();
+        context.deleteDatabase("forge_inventory.db");
+    }
+
+    @Test public void dailyWinPersistsAndGrantsOnlyOneFragment() {
+        LocalDate date = LocalDate.of(2026, 9, 28);
+        ChallengeState state = repository.loadOrCreateChallenge(roster, date);
+        ChallengeState won = repository.submitGuess(state, state.targetId, roster);
+
+        assertEquals("WON", won.status);
+        assertEquals(1, won.guesses.size());
+        assertEquals(0, totalCount(ForgeStage.SHARD));
+        assertEquals(1, totalCount(ForgeStage.FRAGMENT));
+
+        ChallengeState repeated = repository.submitGuess(won, state.targetId, roster);
+        assertEquals("WON", repeated.status);
+        assertEquals(1, totalCount(ForgeStage.FRAGMENT));
+
+        repository.close();
+        repository = new ForgeRepository(context);
+        ChallengeState restored = repository.loadOrCreateChallenge(roster, date);
+        assertEquals("WON", restored.status);
+        assertEquals(state.targetId, restored.targetId);
+        assertEquals(won.guesses, restored.guesses);
+        assertEquals(1, totalCount(ForgeStage.FRAGMENT));
+    }
+
+    @Test public void dailyLossAfterSixGuessesPersistsWithoutReward() {
+        LocalDate date = LocalDate.of(2026, 9, 29);
+        ChallengeState state = repository.loadOrCreateChallenge(roster, date);
+        List<String> wrongGuesses = new ArrayList<>();
+        for (GameCatalogCharacter character : roster) {
+            if (!character.id.equals(state.targetId) && wrongGuesses.size() < 6) {
+                wrongGuesses.add(character.id);
+            }
+        }
+
+        ChallengeState current = state;
+        for (String guess : wrongGuesses) current = repository.submitGuess(current, guess, roster);
+
+        assertEquals(6, current.guesses.size());
+        assertEquals("LOST", current.status);
+        assertEquals(0, totalCount(ForgeStage.FRAGMENT));
+        repository.close();
+        repository = new ForgeRepository(context);
+        ChallengeState restored = repository.loadOrCreateChallenge(roster, date);
+        assertEquals("LOST", restored.status);
+        assertEquals(current.guesses, restored.guesses);
+        assertEquals(0, totalCount(ForgeStage.FRAGMENT));
+    }
+
+    @Test public void fullFragmentInventoryRollsBackDailyWinAndAllowsRetry() {
+        LocalDate date = LocalDate.of(2026, 10, 4);
+        ChallengeState state = repository.loadOrCreateChallenge(roster, date);
+        repository.getWritableDatabase().execSQL("UPDATE inventory SET count=999 WHERE stage='FRAGMENT'");
+        try {
+            repository.submitGuess(state, state.targetId, roster);
+            fail("Expected the full inventory to reject the daily reward");
+        } catch (ForgeException expected) {
+            assertEquals(ForgeException.Reason.INVENTORY_FULL, expected.reason);
+        }
+        assertEquals("ACTIVE", repository.loadOrCreateChallenge(roster, date).status);
+        repository.getWritableDatabase().execSQL("UPDATE inventory SET count=998 WHERE stage='FRAGMENT'");
+        ChallengeState won = repository.submitGuess(state, state.targetId, roster);
+        assertEquals("WON", won.status);
+        assertEquals(998 * InfinityStone.values().length + 1, totalCount(ForgeStage.FRAGMENT));
+    }
+
+    @Test public void campaignRequiresSequentialMissionsAndPersistsIdempotentRewardsAndTeam() {
+        List<String> defaultTeam = Arrays.asList("wolverine", "ciclope", "jean-grey");
+        CampaignState initial = repository.loadCampaign("xmen", defaultTeam);
+        assertEquals(1, initial.unlockedMission);
+
+        List<String> selectedTeam = Arrays.asList("wolverine", "ciclope", "professor-xavier");
+        CampaignState saved = repository.saveTeam("xmen", selectedTeam, roster, "x-men");
+        assertEquals(selectedTeam, saved.teamIds);
+        try {
+            repository.completeMission("xmen", 2);
+            fail("Expected the second mission to remain locked");
+        } catch (IllegalStateException expected) { }
+        assertEquals(0, totalCount(ForgeStage.SHARD));
+
+        assertTrue(repository.completeMission("xmen", 1));
+        assertFalse(repository.completeMission("xmen", 1));
+        assertEquals(2, repository.loadCampaign("xmen", defaultTeam).unlockedMission);
+        assertEquals(0, totalCount(ForgeStage.SHARD));
+        assertEquals(4, repository.load().count(InfinityStone.MIND, ForgeStage.FRAGMENT));
+        assertEquals(3000, repository.loadPlayerResources().credits);
+        assertEquals(840, repository.loadPlayerResources().xp);
+
+        assertTrue(repository.completeMission("xmen", 2));
+        assertEquals(3, repository.loadCampaign("xmen", defaultTeam).unlockedMission);
+        assertTrue(repository.completeMission("xmen", 3));
+        assertFalse(repository.completeMission("xmen", 3));
+        assertEquals(12, totalCount(ForgeStage.FRAGMENT));
+        assertEquals(4, repository.load().count(InfinityStone.SPACE, ForgeStage.FRAGMENT));
+        assertEquals(4, repository.load().count(InfinityStone.TIME, ForgeStage.FRAGMENT));
+        assertEquals(10100, repository.loadPlayerResources().credits);
+        assertEquals(2860, repository.loadPlayerResources().xp);
+
+        repository.close();
+        repository = new ForgeRepository(context);
+        CampaignState restored = repository.loadCampaign("xmen", defaultTeam);
+        assertEquals(3, restored.unlockedMission);
+        assertEquals(selectedTeam, restored.teamIds);
+        assertEquals(12, totalCount(ForgeStage.FRAGMENT));
+        assertEquals(10100, repository.loadPlayerResources().credits);
+        assertEquals(2860, repository.loadPlayerResources().xp);
+    }
+
+    @Test public void fantasticFourUsesItsOwnThreeRewardsOnceEach() {
+        List<String> team = Arrays.asList("senhor-fantastico", "mulher-invisivel", "tocha-humana");
+        repository.loadCampaign("fantastic-four", team);
+        assertTrue(repository.completeMission("fantastic-four", 1));
+        assertTrue(repository.completeMission("fantastic-four", 2));
+        assertTrue(repository.completeMission("fantastic-four", 3));
+        assertFalse(repository.completeMission("fantastic-four", 3));
+        ForgeInventory inventory = repository.load();
+        assertEquals(4, inventory.count(InfinityStone.POWER, ForgeStage.FRAGMENT));
+        assertEquals(4, inventory.count(InfinityStone.REALITY, ForgeStage.FRAGMENT));
+        assertEquals(4, inventory.count(InfinityStone.SOUL, ForgeStage.FRAGMENT));
+        assertEquals(12, totalCount(ForgeStage.FRAGMENT));
+        assertEquals(10600, repository.loadPlayerResources().credits);
+        assertEquals(3060, repository.loadPlayerResources().xp);
+    }
+
+    private int totalCount(ForgeStage stage) {
+        int total = 0;
+        for (InfinityStone stone : InfinityStone.values()) total += repository.load().count(stone, stage);
+        return total;
+    }
+}

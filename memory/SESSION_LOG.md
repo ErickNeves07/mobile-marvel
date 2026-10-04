@@ -1,0 +1,349 @@
+# Log de sessões
+
+## 2026-10-04 — campanha com recompensas distintas e teste de arte
+
+- Erick removeu `Homem-Aranha +1`, confirmou substituição dos três Estilhaços por missão, valores diferentes por missão e nenhum pagamento retroativo. Aprovou seis pacotes de Joia/créditos/XP; spec 028 atualizada antes da implementação. O estágio de Joia no desafio diário permanece em Q-040.
+- `CampaignReward` contém a tabela authored; `ForgeRepository` v5 grava quatro Fragmentos, créditos, XP e missão/unlock numa transação idempotente. O Nexus mostra saldos persistidos. A tela de recompensa usa três cartões e botões alinhados à captura Lovable, ver `specs/028-lovable-economy-parity/campaign-reward.png`.
+- Após a última edição Android, `validate-local.ps1 -Target android` passou, instrumentação **20/20** passou, e `build-release.ps1` validou assinatura v2. APK candidato: 5.103.690 bytes, SHA-256 `5F33258F54A79F3E58B08F70D3F85F0404FBC91257588300FC191DC4D8A172D5`. Nenhum deploy, commit, push ou instalação física.
+- Prompt Wolverine Arma X Rebelde 2:3 registrado no guia. Erick relatou recusa do gerador GPT. Confirmado em fontes oficiais: Leonardo.Ai aceita imagem de referência, mas só deve ser usada imagem com direito de edição/reuso; Comic Vine proíbe manipulação/reprodução do conteúdo da API. Nenhuma imagem incorporada.
+- Próximo passo: obter de Erick o estágio do prêmio diário, atualizar spec 028 e implementação/testes se aprovado; testar uma referência autorizada no Leonardo.Ai e integrar artes revisadas; configurar host HTTPS/backend e validar o APK em aparelho físico.
+
+## 2026-10-04 — 2:1 prospectivo e opção gratuita de arte
+
+- Erick confirmou fusão 2:1 para novas operações, sem compensação das antigas. Spec 028 atualizada antes do código; `ForgePolicy.INPUT_COUNT=2`, textos da Forja e testes ajustados. `validate-local.ps1 -Target android` passou, instrumentação **17/17**; release assinada v2 candidata de 5.098.742 bytes, SHA-256 `2846E13085DBA6987383D01A15D9CC9C8B6C5E1E6FC524792DF8F9044F616954`. Recompensas não mudaram.
+- Erick escolheu os quatro prêmios mostrados no Lovable. Q-040 continua pedindo definição da semântica de `Homem-Aranha +1` e se o prêmio substitui os três Estilhaços por missão; perguntas enviadas sem bloquear o trabalho independente. Nenhuma migração de créditos/XP/cópias foi presumida.
+- Hardware local: Intel Iris Xe integrada (~2 GB reportados), i7-1255U, ~16 GB RAM. Pesquisa de ferramenta gratuita recomendou Leonardo.Ai Free para a primeira amostra, documentado no guia de artes; 150 tokens/dia e imagens públicas conforme a página oficial. Não houve login, upload, instalação nem geração externa.
+
+## 2026-10-04 — equipe influente, Manopla e orientação de artes
+
+- Erick aprovou derrota com nova tentativa e esclareceu que a equipe escolhida deve influenciar o combate. Spec 029 atualizada antes da implementação; Q-044 resolvida, DEC-067 registrada. A equipe salva aparece na cena Magneto e seu poder authored escala dano causado/recebido. Teste cobre vitória e derrota/retry sem recompensa com trio válido. Nenhum atributo vem da Comic Vine/IA.
+- Spec 027 ganhou Manopla nativa com desenho de três anéis, seis encaixes, realce das Joias completas e painel de ressonância do SQLite real. Capturas instrumentadas da Manopla e da derrota foram revisadas visualmente contra a referência Lovable. Não há valores de demonstração no Android.
+- `validate-local.ps1 -Target android` passou; instrumentação **16/16** passou após a última edição de código. `build-release.ps1` passou e gerou APK assinado v2 candidato de 5.098.650 bytes, SHA-256 `B68BED194E4B8C6F2BE84B4B6C182F5B771640EFD40E2745A94467C2F610952A`. Backend não mudou nesta sessão; último pytest registrado 39/39. Não houve commit, deploy ou chamada externa paga/live.
+- Revisados termos oficiais Comic Vine e guia oficial de geração OpenAI/ComfyUI; `docs/07-CHARACTER-ART-WORKFLOW.md` orienta uma amostra e lote com procedência. A consulta live Comic Vine revelou dois bugs de contrato no proxy (URL de detalhe e ID da editora), corrigidos na spec 023/código/testes. Backend passou **41/41** após correção; busca real Wolverine retornou imagem editorial 781 × 1200 px, visualmente inspecionada em arquivo ignorado pelo Git. Q-041 ainda requer ferramenta/acesso para produzir 105 artes. Q-039/Q-040 ainda bloqueiam economia Lovable. Backend público, APK em telefone físico e inspeção manual acessível seguem pendentes.
+
+## 2026-10-04 — publicação Lovable de batalha/comparação
+
+- Erick confirmou publicação. Rotas `/batalha` e `/comparar` capturadas novamente em viewport móvel; bundles `batalha-BBpUQYMu.js`, `comparar-Dy7nbkjE.js` e `characters-BL6XEGoz.js` inspecionados. Q-042 resolvida, spec 029 atualizada antes do código.
+- Implementados `LovableBattle`, comparação independente de personagem/variante, atributos authored para 21 × cinco variantes, efeitos de impacto/anel, navegação de retorno e correção do time inicial X-Men inválido. Equipe antiga inválida é reparada ao abrir campanha; recompensa SQLite atual mantida. Q-044 pergunta como a equipe selecionada deve influir na cena fixa do protótipo.
+- Após a última edição de produção: `validate-local.ps1 -Target android` passou (JVM/lint/debug); instrumentação **14/14**. Conferência de todos os 21 atributos Java contra bundle Lovable e catálogo compartilhado: zero divergências. Teste de interface desenhou capturas Android das views mesmo com ANR do System UI sobre o AVD. A diferença visual das artes consta da spec.
+- `build-release.ps1` gerou APK assinado v2 candidato em `artifacts/Marvel-Ruptura-Infinita-release.apk`, 5.094.402 bytes, SHA-256 `7AF9D66DC0707E30E69C2C816DF4B34B6AF5F5022A417F033B5399FE7461FA77`, versionCode 2. Sem commit, push, deploy, chamada Comic Vine live ou segredo no APK.
+- Próximo passo: receber decisão Q-044, aplicar e repetir testes/build; resolver Q-039/Q-040/Q-041 para economia, recompensa e artes; validar em telefone físico ou AVD sem ANR antes de chamar entrega final.
+
+## 2026-10-04 — Auditoria para entrega e novos ajustes Lovable
+
+- Erick informou entrega em 2026-10-05 e pediu estado/garantia funcional. O Android atual ainda é refatoração parcial; foram priorizados testes e release assinada sem adicionar mudanças de UI de último momento.
+- Backend: `pip check` limpo, pytest 39/39. Android: `scripts/validate-local.ps1 -Target android` passou após última edição Java/XML; `scripts/run-android-instrumentation.ps1` passou 13/13 no AVD. `scripts/build-release.ps1` passou JVM/lintRelease/assembleRelease, zipalign e assinatura v2; APK de avaliação 5.082.062 bytes, SHA-256 `371850E3D4B894498A22776E52B7B2B25A39A246C493EC3816EC90B3C4C3331B`.
+- Smoke visual em AVD limpo seguiu bloqueado por ANR do System UI à frente da abertura; o modo imersivo já estava revertido. Não houve confirmação de fluxo navegável nesta build nem teste em telefone físico.
+- Erick pediu batalha com mais efeitos e escolhas e comparação de cada variante. URL pública Lovable ainda apresentou batalha antiga de avanço único e comparação só entre personagens, com os mesmos bundles JS; spec 029 e Q-042 registram dependência de preview publicado/export. Nenhuma mecânica nova foi inventada ou implementada.
+- Recompensa/compensação de fusões e ferramenta para 105 artes ainda aguardam respostas Q-039/Q-040/Q-041. Próximo passo: receber referência atualizada e decisões, implementar em specs, repetir verificação integral e reconstruir release.
+
+## 2026-10-02 — Referência renderizada, economia Lovable e artes
+
+- Erick autorizou adotar mecânicas do Lovable. Inspeção dos bundles confirmou fusão 2:1; tela de recompensa lista x4 Fragmentos da Mente, +3.000 créditos, +840 XP e Homem-Aranha +1, mas o código só registra créditos/XP. Desafio diário mostra prêmio distinto. Criada spec 028, com perguntas sobre contrato por missão e compensação de fusões antigas; nenhuma regra ou saldo foi alterado enquanto esses detalhes críticos estão abertos.
+- Chrome headless/CDP capturou onze rotas públicas em 390 × 844, resolvendo Q-037 para comparação visual. Referências ficam em `reports/lovable-research/` ignorado. Comparação inicial mostra lacunas na grade/retratos da Coleção, inventário compacto da Forja, campanhas/subfluxos e bordas do viewport.
+- Avaliada arte promocional oficial de Wolverine (1920 × 728, nítida). Cobertura de 105 variantes e licença para empacotamento não foram encontradas; não incorporada. Registrada avaliação da fonte na spec 027. A ferramenta integrada falhou quatro vezes anteriormente; Erick recebeu opções de ComfyUI local, CLI OpenAI com chave própria e artes fornecidas.
+- Um ajuste de modo imersivo compilou, mas coincidiu com ANRs repetidos do System UI/Pixel Launcher no AVD. Foi revertido. `scripts/validate-local.ps1 -Target android` passou após a reversão; captura AVD limpa e repetição da instrumentação seguem pendentes. Nenhuma autenticação, instalação de ferramenta, chamada paga, commit ou publicação ocorreu.
+- Próximo passo: resolver Q-039/Q-040/Q-041, implementar spec 028 por contrato, gerar/importar e revisar as 105 artes, continuar paridade visual e testes no AVD estável.
+
+## 2026-10-02 — Continuação da spec 027
+
+- Erick aprovou o design e a abertura/navegação do Lovable, exigiu artes distintas para as 105 variantes e pediu consulta antes de mudanças em regras/recompensas. Q-039/Q-040 registram conflitos 2:1 versus 3:1 e recompensa demonstrativa versus Android; comportamento vigente foi preservado.
+- Adicionados tokens/temas/fontes licenciadas, painéis angulares, abertura, barra inferior, Nexus com portal de anéis e contagem real da Manopla, seis encaixes/inventário expansível na Forja, mapa de Campanhas em trilha, Coleção com progresso/busca/filtros e página Deadpool em papel. Cartões de campanha abrem equipe/missões sem alterar o fluxo. O seletor do desafio e da equipe recebeu texto claro. Grade da Coleção e artes seguem pendentes; nenhuma arte das 105 variantes foi incorporada.
+- A ferramenta integrada de geração de arte respondeu `moderation_blocked` em quatro tentativas. Q-041 e consulta a Erick registram caminhos alternativos para as artes. Também foram pedidas capturas 390 × 844 do Lovable para comparação exata, pois a sessão não dispõe de navegador visual.
+- `scripts/validate-local.ps1 -Target android` passou após a última alteração Java/XML; instrumentação **13/13** passou antes da última mudança estrutural da Coleção. Capturas de abertura, Nexus, Forja fechada/aberta, Campanhas fechada/aberta, Coleção e Deadpool estão na spec 027. Nenhum commit, push, publicação ou autenticação ocorreu.
+- Próximo passo: seguir T03–T07, resolver Q-041 para artes, obter referência renderizada para G4 e testar novamente após a última edição.
+
+## 2026-10-02 — Discovery da refatoração visual Lovable
+
+- Lidos README, estado, documentos 01–04, memória e spec ativa 026; auditados `MainActivity`, recursos visuais e destinos Android.
+- URL pública Lovable respondeu HTTP 200 via acesso de leitura; analisados HTML/CSS/JS compilados em `reports/lovable-research/` (ignorado). Identificados tokens, fontes, cinco destinos e rotas de demonstração. O HTML apontou para o projeto do editor `lovp_252yras1v388ht85hfar7wgg1c`; a página sem sessão não expôs o fonte. Nenhuma autenticação foi necessária para a pesquisa pública.
+- Criada spec 027 proposta com mapeamento visual, critérios de aceite, tarefas e plano de evidências. Nenhum código de feature nem build foi executado, pois a spec ainda não está aprovada.
+- Q-036/Q-037 registradas: delimitação entre refatoração visual e alteração de fluxos/regras; necessidade de editor/export/capturas para fidelidade exata. Próximo passo: revisão de Erick, depois implementação nativa com testes/AVD.
+- Erick reforçou fidelidade exata ao protótipo, substituindo as silhuetas por visuais reais dos personagens. Requisitos/design/tarefas da spec 027 foram revisados; Q-038 registra decisão pendente entre 21 retratos e 105 artes de variantes.
+- Erick autorizou chave Comic Vine temporária em Downloads. Conteúdo validado em memória como chave hexadecimal de 40 caracteres e adicionado ao `.env` raiz (ignorado) sem imprimir o valor. Confirmação local por `/ready`: HTTP 200, `comic_vine=true`, `groq=true`, `status=ok`; nenhuma consulta à API externa nem upload ao Render. Evidence da spec 023 e Q-027/Q-032 atualizadas.
+- Erick aprovou a spec 027 com fidelidade visual ao Lovable, preservação das regras e consulta antes de mudar ponto crucial do jogo. Pediu 105 artes distintas, com criação própria quando necessário. Q-036/Q-038 resolvidas; Q-037 permanece como limite de comparação visual exata.
+
+## 2026-09-28 — Tentativa de compilar e executar a suíte completa
+
+- Tentativa Android padrão falhou antes do build ao não criar o lock do Wrapper no Gradle home do perfil. Wrapper direto e distribuição Gradle 8.13 locais foram localizados; numa pasta temporária, daemon inicia, mas AGP `8.13.2` não resolve offline apesar dos JAR/POM presentes. SDK Android apontado retorna `Access Denied`; adb não localizado. APKs em `.validation-output` e `artifacts/` têm timestamps anteriores às mudanças atuais; nenhum é produto desta execução.
+- Testes backend completos falham na coleta de quatro módulos FastAPI: `.venv` contém Pydantic Core CPython 3.13 e Python 3.11 global lança `ModuleNotFoundError`. O Python 3.13 da venv não está acessível. `python -m pytest -q tests/test_comic_vine.py tests/test_groq_narrative.py` passa 19 testes; compileall também passa. `pip check` acusa Pydantic Core 3.13 não suportado pelo Python 3.11.
+- Resultado: código atual não foi compilado/testado em Android e não se pode garantir funcionamento total. Q-034/Q-035 registram a toolchain bloqueada. Próximos passos: restaurar SDK e runtimes, atualizar/gerar cache Gradle AGP offline ou conectividade aprovada, executar suíte completa, corrigir, gerar APK assinado e validar aparelho físico.
+
+## 2026-09-28 — Implementação do loop jogável e integrações
+
+- Criadas specs 022–025 para desafio/campanhas/recompensas, Comic Vine editorial, cliente Android e IA narrativa Deadpool.
+- Android fonte: migration SQLite 2→3, estado diário com seis tentativas, equipes de três, três missões por campanha, combate determinístico, rewards idempotentes e UI. Adicionados cliente HTTP Android HTTPS configurável, cache GET, busca Comic Vine e Deadpool com fallback.
+- Backend fonte: gateway Comic Vine com Marvel publisher validation, cache, rate limiter e erros sanitizados; rotas de busca/detalhe e Deadpool; resposta Groq limitada/sanitizada. Atualizadas docs de uso.
+- Verificação final: `python -m compileall -q app tests`, validação JSON/XML e 12 testes Comic Vine + 7 testes Groq passaram. `pip check` registra Pydantic Core cp313 incompatível com Python 3.11. A suíte completa FastAPI não coleta. Android Gradle tentou offline e depois wrapper fetch em diretório temp, mas distribuição 8.13 não existe/cache acessível; tentativa de rede bloqueada. SDK/adb indisponíveis.
+- Sem acesso a deploy/host configurado, chave Comic Vine, requisição Groq real ou celular físico. Não foi gerada release nova; APK assinado 0.1.0 é anterior ao fonte atual. Q-031/Q-032 registram os bloqueios técnicos.
+- Próximo passo: restaurar runtimes locais, passar testes completos, corrigir se necessário, configurar serviços autorizados e host HTTPS, construir/assinar APK atualizado e verificar em aparelho físico. Manopla/Câmara e progressão de variantes ainda precisam implementação.
+
+## 2026-09-27 — Shell Android e identidade visual inicial
+
+- Erick resolveu Q-016 a Q-019: destinos Nexus/Campanhas/Forja/Coleção/Deadpool, Forja inicial, placeholders permitidos, barra inferior sugerida, identidade visual delegada ao agente; confirmou importação Android Studio da spec 001.
+- Registradas DEC-020 e DEC-021. Workflow documenta exceção de desenvolvimento temporária de 8 horas, sem dispensar specs, decisões críticas, testes ou autorização específica para operações externas.
+- Fechadas requirements/design da spec 002 e autorizada implementação dentro do escopo: cinco painéis placeholder locais, bottom navigation e destino inicial Forja.
+- Criada spec 003 para tokens visuais e definida direção cinematográfica noturna, paleta azul-grafite/ciano/ouro e escala tipográfica/espacial em recursos Android.
+- Implementados `AppDestination`, `MainActivity` com navegação, placeholders acessíveis, restauração do destino no `savedInstanceState`, tokens XML e testes unitários da ordem/destino inicial/metadados.
+- Gradle offline falhou antes da compilação por acesso negado pelo sandbox ao `.zip.lck` na distribuição sob `%USERPROFILE%\.gradle`; não houve tentativa elevada.
+- XML local: 5 recursos bem formados, 14 cores/20 dimensões/17 strings inventariados, referências do layout resolvidas. Contrastes principais: 9.94:1 a 18.20:1. Visual AVD/TalkBack ainda não observado.
+- SDK/ADB, Python base e Git fora do workspace também foram negados nesta sessão; não houve commit. O runner agora informa os caminhos bloqueados antes de invocar toolchains.
+- Avançada a tarefa explícita “CI local” do MVP 0: spec 004, `scripts/validate-local.ps1` para Android/backend sem instalação, e help local. Parser PowerShell passou (572 tokens); a execução integral foi registrada como pendente pelas mesmas permissões do ambiente.
+- Runner iterado para detectar e informar acesso negado ao SDK/Python antes de invocar os comandos; parser passou com 716 tokens. Alvos `android` e `backend` saíram com código 1 identificando os caminhos bloqueados, sem instalar nada.
+- Preparada a spec 005 da Forja com requisitos estáveis e Q-020–Q-024 para proporções, aquisição, reversibilidade, persistência e limites. Nenhuma regra econômica foi inventada nem código de merge foi iniciado.
+- Revisão final estática após os vetores: 10 XML bem formados, referências `R.*` resolvidas, Java 24/24 chaves balanceadas e 3 testes de destino definidos. Gradle/ADB permanecem inacessíveis no sandbox, portanto não há confirmação compilada ou visual.
+- Continuação desta sessão: corrigi estilos tipográficos, centralizando display/title/body/label/caption em `values/styles.xml`; a revisão PowerShell/.NET passou com 11 XML bem formados e todas as referências Java (cores/dimensões/strings/drawables/estilos) resolvidas. Build ainda bloqueado fora do workspace.
+
+## 2026-09-27 — Discovery da spec 002
+
+- Confirmado que a spec 001 tem build, lint, teste Android, runtime, instalação limpa Python, `pip check` e `/health` verificados; AC-04 permanece sem confirmação visual no Android Studio porque esta sessão não dispõe de controlador para a IDE.
+- Removida a duplicação do bloqueio técnico em `memory/CURRENT_STATE.md`; a instalação limpa em `.venv-repro` já está registrada na spec 001.
+- Consultados roadmap, domínio/UX, requisitos, arquitetura e workflow SDD. O MVP 0 pede navegação e tokens; seus cinco destinos conceituais não definem ordem, conteúdo de shell, padrão de navegação nem escala concreta de design.
+- Criada `specs/002-android-app-shell/` com requirements, design, tasks e evidence em estado de proposta. Q-016 a Q-019 foram registrados; nenhum código de feature foi alterado e nenhum gate foi marcado como aprovado.
+- Revisão UTF-8 e busca de consistência dos arquivos da spec/memória concluídas. A tentativa de `git status`/`git diff --check` via caminho absoluto foi negada pelo sandbox ao acessar `%LOCALAPPDATA%\Programs\Git\cmd\git.exe`; pendência registrada como técnica.
+- Próximo passo executável: resolver Q-016 a Q-019 e aprovar G0/G1/G2; manter Comic Vine/IA/assets finais condicionados às questões críticas existentes.
+- Nenhuma instalação adicional, autenticação, chamada de serviço externo, commit/push ou operação destrutiva nesta etapa.
+
+## 2026-09-27 — Fechamento da instalação limpa backend
+
+- Reconsultada a spec 001; pendência local era AC-06 (reprodução de instalação) e AC-04 (import visual IDE).
+- Criada `backend/.venv-repro` isolada e instalada a partir de `requirements-dev.txt` com `--require-hashes`, usando PyPI público autorizado pelo pedido de Erick. Nenhum pacote global foi instalado e a `.venv` principal não foi alterada.
+- `pip check` passou e pytest retornou `1 passed in 0.86s`; evidências e status AC-06/T05 atualizados.
+- AC-04 permanece: `cua_repl` não expõe apps Windows nem permite inspecionar o Android Studio. A IDE não foi aberta porque não há meio de confirmar modo offline/sync.
+- Nenhuma autenticação, commit, push ou alteração de requisito foi feita.
+- Próximo passo: confirmar import visual offline no Android Studio; depois encerrar T03/T08.
+
+## 2026-09-27 — Resolução dos bloqueios da spec 001
+
+- Corrigido o `gradle-wrapper.jar` inválido usando os componentes Gradle 8.13 já presentes no cache local; a classe principal do Wrapper respondeu a `--version` offline.
+- Corrigido `gradlew.bat`: variáveis de caminho agora usam `set "VAR=..."`, protegendo `&` no diretório `Instituto J&F`.
+- Adicionado `gradle/isolated-builds.init.gradle` e ignorado `.validation-output/`; a saída é configurável por `RI_VALIDATION_DIR` para evitar substituição de arquivos bloqueados pelo OneDrive.
+- Gradle Wrapper: `testDebugUnitTest`, `lintDebug` e `assembleDebug` passaram offline; 49 tarefas executadas. O teste JUnit resultou em 1/1; o APK debug foi gerado.
+- AVD `Medium_Phone_API_36.1`: APK instalado, `MainActivity` aberta, processo ativo e Activity no topo.
+- Backend: pytest 1/1 passou; `pip check` sem dependências quebradas; `pip install --dry-run --no-index --require-hashes -r requirements-dev.txt` confirmou pins já instalados; Uvicorn respondeu `/health` com HTTP 200 em loopback.
+- Varredura por padrões de credenciais em APK e código/testes sem ocorrências; busca de `SNAPSHOT`, `latest` e versões dinâmicas sem resultados.
+- Nenhuma instalação/download, autenticação, chamada externa, commit/push ou ação destrutiva. Importação visual manual no Android Studio não verificada porque o plugin de controle não expôs apps Windows.
+- Importação visual do Android Studio permaneceu pendente: o controlador de UI disponível não expôs apps Windows. Na sessão seguinte, AC-06 foi fechado em uma `.venv-repro` isolada; AC-04 segue pendente.
+- Próximo passo: confirmar import visual offline; depois iniciar spec aprovada de feature sem dependência das perguntas críticas externas.
+
+## 2026-09-27 — Bootstrap SDD
+
+- Consolidado conceito e briefing oficial.
+- Corrigida fonte externa: Comic Vine, não Marvel Developer API.
+- Confirmado Android nativo com Java.
+- Criado repositório local em `~/Desktop/Marvel-Ruptura-Infinita`.
+- Criados documentos de visão, requisitos, arquitetura, SDD, roadmap, agentes, Git, integrações e domínio.
+- Próximo passo: validar repositório e iniciar spec 001 em uma nova sessão Codex.
+
+## 2026-09-27 — Discovery e proposta da spec 001
+
+- Lida a documentação obrigatória, os templates SDD e as regras de roadmap/qualidade.
+- Inspecionado o ambiente local sem instalar, autenticar ou criar projetos.
+- Encontrados Android Studio com JBR 21, Python 3.11 e Codex CLI; Git/Gradle/SDK não estão no `PATH` e o SDK não pôde ser confirmado pelo sandbox.
+- Identificada inconsistência entre Java 26 no `PATH`, `JAVA_HOME` em JRE 8 e JBR 21 do Android Studio.
+- Listados 7 modelos visíveis no catálogo local e registrados os perfis `gpt-6-astra`/`high` e `gpt-6-luna`/`medium`.
+- Criada `specs/001-project-bootstrap/` com requirements, design, tasks e evidence em estado proposto.
+- Nenhuma implementação, instalação, autenticação, chamada Comic Vine/Gemini, commit ou push foi feita.
+- Próximo passo: Erick responder Q-007 e Q-009 a Q-012 e aprovar G0/G1/G2 antes do bootstrap.
+- Erick respondeu Q-007/Q-009/Q-010, autorizou consulta oficial e aprovou G0/G1/G2.
+- Documentação oficial confirmou a matriz AGP 8.13.2/Gradle 8.13/JBR 21 para API 36.
+- Inspeção elevada somente leitura confirmou SDK 36, Build Tools 36.0.0, emulator, AVD API 36.1 e Git 2.49 já instalados.
+- Discovery oficial encontrou que Android 16 ignora portrait em `sw600dp+`; abertas Q-013/Q-014 e mantida Q-012 para autorização operacional exata.
+- Erick escolheu a opção A (`sw600dp+` fora do primeiro ciclo), aprovou Python 3.13.15 side-by-side e autorizou o plano operacional; G0 foi fechado novamente e a implementação começou.
+# Sessão 2026-09-27 — execução durante ausência
+
+- Erick autorizou operações locais e reversíveis e builds/testes/lint; vedou instalações, serviços externos, autenticação, commit/push e ações destrutivas.
+- Releitura da documentação obrigatória e spec 001. A memória estava desatualizada: `android-app/` e `backend/` já existem.
+- Inspecionados os manifestos, Java/XML, FastAPI, teste de saúde, versões e locks; sem alteração nos esqueletos.
+- Build Android offline falhou ao carregar `org.gradle.wrapper.GradleWrapperMain`, embora o JAR esteja presente.
+- Pytest não iniciou pois o executável Python 3.13.15 referenciado pela `.venv` teve acesso negado. Git por caminho absoluto também foi negado. JBR 21.0.8 executou.
+- Atualizadas memória, tasks e evidence. Próximo passo: retomar verificações quando executáveis locais forem acessíveis; sem instalar, baixar ou limpar arquivos.
+
+## Continuação 2026-09-27 — shell verificado e MVP 0 avançado
+
+- A autorização vigente incluiu trabalho local e reversível, execução de testes/builds e dispensa temporária de aprovação individual de specs; nenhuma permissão externa foi usada.
+- APK debug final foi instalado/reaberto no AVD; UIAutomator confirmou processo ativo e `Forja, selecionado`.
+- A validação visual anterior percorreu os cinco destinos; verificados 411×914 dp, 390×844 dp e fonte 1.3. Alvos medem 48 dp; capturas ficam na pasta ignorada `android-app/.validation-output/`.
+- `scripts/validate-local.ps1 -Target all`: Android build/testes/lint e backend pip check/pytest passaram. `-Target android` passou novamente, e comparação no PowerShell confirmou restauração das quatro variáveis ambientais ao valor anterior.
+- Android reporta quatro avisos de lint conhecidos; sem erro. AVD apresentou ANR de System UI, sem falha observada no processo do app. Leitura falada em TalkBack ainda não ensaiada.
+- Corrigidas specs/evidências 002–004 e estado/memória, removendo bloqueios técnicos históricos já superados. Specs 002–004 estão concluídas; 005 segue documentada e sem merge funcional por Q-020–Q-024.
+- Próxima frente escolhida por autonomia: fechar um contrato de demo local Android↔backend com dados fake em memória; requer infraestrutura clara, sem API externa, banco ou nova dependência.
+
+## Continuação 2026-09-27 — catálogo local de campanhas
+
+- Criada spec 006 para o `GET /v1/campaigns` já listado em `docs/03-ARCHITECTURE.md`.
+- Implementado schema Pydantic imutável e registro X-Men/Magneto, usando exclusivamente fatos dos requisitos globais.
+- Endpoint testado via TestClient: shape permitido, ausência de objetivo/recompensa/dificuldade/roster, payload determinístico.
+- Backend pytest: 4 passed; `pip check`: sem dependências quebradas; OpenAPI local referencia `CampaignCatalogResponse`.
+- Android continua offline/sem permissão INTERNET; nenhum host/endereço foi presumido para conectar o app. Próxima etapa exige discovery de transporte/ambiente e conteúdo de campanhas adicionais quando aplicável.
+- Revisão de completude incluiu a campanha própria do Quarteto Fantástico, prevista no requisito global. Como chefe não está definido, o campo é omitido. Teste backend repetido passou (7 total) e `pip check` permaneceu limpo.
+
+## Continuação 2026-09-27 — índice local do roster
+
+- Nova spec 007 protege separação de catálogo de jogo e futuro editorial Comic Vine.
+- Implementado `GET /v1/game/characters` com 21 nomes/grupos copiados do roster de domínio e IDs internos explícitos. Xavier aparece em X-Men; Magneto, definido chefe não jogável, está ausente.
+- Schema inclui somente `id`, `name`, `group_id`; sem poderes, atributos, variantes, IDs Comic Vine ou imagens.
+- Suíte backend: 7 passed; `pip check` limpo; schema conferido por OpenAPI.
+- Documentos de arquitetura e roadmap atualizados. Próxima feature Android permanece condicionada a decisão técnica concreta sobre transporte/ambiente; não foi inventado endereço nem concedida permissão de rede.
+
+## Atualização final de validação e planejamento — 2026-09-27
+
+- Completude revisada: ambos os títulos de campanha requeridos aparecem; chefe omitido onde desconhecido. Specs 006–007 concluídas.
+- Matriz combinada final `scripts/validate-local.ps1 -Target all`: Android `BUILD SUCCESSFUL`; backend `pip check` limpo e 7 testes aprovados.
+- Q-025 registrada para a conexão do Android ao serviço local: host, variante de build, acesso por AVD/dispositivo físico e configuração de segurança ainda não foram definidos. A implementação de rede permanece suspensa; outros incrementos locais concluídos.
+- Tentativa de `git status/diff` foi impedida porque `git` não está no PATH e acesso a executável em caminho per-user foi negado; não houve operação Git, commit ou push.
+
+## Continuação 2026-09-27 — prévias de campanha na UI
+
+- Criada spec 008 para usar os fatos aprovados do catálogo sem ativar gameplay.
+- A aba Campanhas exibe dois cartões locais: X-Men (chefe Magneto) e Quarteto Fantástico (sem chefe atribuído). Ambos dizem “Campanha em desenvolvimento”; cartões não são ações.
+- APK recompilado e instalado no AVD; UIAutomator verificou cabeçalho, equipes, Magneto e os dois status.
+- Escala de fonte 1.3 e perfil compacto foram testados com rolagem; os dois cartões/status ficam visíveis acima da barra inferior. Configuração original do AVD foi restaurada.
+- Captura principal `android-app/.validation-output/campaigns-preview.png`; variantes `campaigns-font130-scrolled.png` e `campaigns-compact-scrolled.png`.
+- Verificação completa após as mudanças: Android build, testes unitários, lint e assemble passaram; backend 7 testes e `pip check` passaram. Nenhuma rede ou instalação.
+- Reinício do APK final confirmado separadamente: `Forja, selecionado` permanece como entrada.
+
+## Continuação 2026-09-27 — atalhos do Nexus
+
+- Criada spec 009 com escopo de hub estático; atalhos para Campanhas, Forja, Coleção e Deadpool não acrescentam estado fictício.
+- Centralizada a seleção de destino em método único usado pela barra e atalhos; `AppDestination.nexusShortcuts()` fixa a ordem e um novo unit test cobre o mapeamento.
+- Android AVD confirmou os quatro destinos e seleção da barra; Deadpool foi tocado após rolagem. Alvo final aprox. 76dp, ou 88dp com fonte 1.3.
+- Fonte ampliada e perfil compacto inspecionados visualmente; capturas `nexus-shortcuts*.png` ficam em `.validation-output/`.
+- Tocar o atalho Deadpool foi confirmado em fonte 1.3 e viewport compacto; a barra e o acesso após rolagem permanecem funcionais.
+
+## Continuação 2026-09-27 — prévia informativa da Forja
+
+- Criada spec 010 sem regras de economia. Enum Java tipado e teste unitário cobrem as seis Joias e sua ordem aprovada.
+- A Forja exibe a cadeia dos quatro estágios e seis cartões com nome/aviso, sem dados ou ações de merge.
+- Instalação AVD confirmou conteúdo e rolagem até Alma. Fonte 1.3 e viewport compacto inspecionados; barra segue fixa e visível; configurações restauradas.
+- Matriz após a mudança: Android `BUILD SUCCESSFUL`, 6 testes/0 falhas, lint/assemble; backend 7 testes e `pip check` limpo.
+- Capturas `forge-stones*.png` registradas em pasta local ignorada pelo Git. Q-020–Q-024 seguem bloqueando implementação econômica.
+- Full local validation: Android build/lint/assemble, 5 testes unitários, backend 7 testes e `pip check` passaram. Forja continua destino inicial.
+
+## Continuação 2026-09-28 — catálogo local compartilhado da Coleção
+
+- Spec 011 concluída conforme SDD; `shared/game_catalog.json` reúne 21 personagens, quatro grupos e 105 variantes derivadas da tabela de domínio. O mesmo arquivo alimenta API backend e asset Android.
+- `/v1/game/characters` agora retorna as cinco variantes por personagem; testes verificam cardinalidade, ordem, grupos, IDs, exclusões editoriais e roster.
+- Coleção Android carrega o asset offline e mostra grupo, personagem e cinco nomes por cartão; nenhuma posse, imagem, atributo, ID Comic Vine ou dado de usuário foi inventado.
+- `scripts/validate-local.ps1 -Target all`: Android `BUILD SUCCESSFUL`, lint/assemble e 6 testes/0 falhas; backend `pip check` limpo e 8 testes aprovados.
+- AVD confirmou todos os registros via hierarquia e capturas do último grupo/personagem em viewport compacto e fonte 1.3. Barra inferior preservada; configurações do AVD restauradas.
+- Atualizados arquitetura, README do backend, roadmap e specs 007/011 para refletir o contrato estendido. Sem acesso externo, instalação ou Git.
+- Próximo passo: resolver Q-025 para transporte/base URL Android↔backend; investigar ensaio falado do TalkBack se já estiver disponível. Economia da Forja segue condicionada a Q-020–Q-024.
+- Ensaio TalkBack adicional em 2026-09-28: pacote preexistente ativado apenas no AVD; serviço confirmou bound/enabled e TTS sintetizou durante navegação por teclado. Hierarquia confirmou nomes/seleção dos destinos. Locale en-US impede validar pronúncia pt-BR; não houve captura acústica. Prompt de notificações não foi concedido; flags foram restaurados e serviço desligado.
+
+## Continuação 2026-09-28 — identidade visual do Nexus
+
+- Spec 012 derivada da delegação visual DEC-020; Canvas nativo desenha gradiente e geometria de ruptura com os tokens atuais apenas no hero Nexus.
+- Primeira inspeção encontrou arcos chegando à área do texto; corrigi limites verticais para a decoração ficar na faixa superior antes de aprovar o visual.
+- Runner Android passou após alteração final: build/assemble/lint e 6 testes, sem novas dependências. Capturas AVD padrão, fonte 1.3 e viewport 390×844 dp revisadas; Forja de controle permanece sem a decoração.
+- AVD voltou para font_scale 1.0, resolução/densidade reset, TalkBack desligado e app reaberto; sem rede, instalações ou Git.
+- Próximas frentes críticas seguem: Q-025 para rede; Q-020–024 para economia; Q-001–006/Q-008 para conteúdo externo/licenças. Próxima tarefa segura: auditar outros aprimoramentos visuais nativos autorizados, mantendo-os locais e sem decisões de produto.
+
+## Continuação 2026-09-28 — tratamento visual das campanhas
+
+- Spec 013 aplica filete gold em X-Men e cyan no Quarteto, com base nas paletas existentes no documento de direção visual. Não altera dados, ações, estado ou cópia.
+- `scripts/validate-local.ps1 -Target android`: `BUILD SUCCESSFUL`, 6 testes, lint e assemble; sem nova dependência.
+- Capturas de ambos os cartões em tamanho padrão, viewport compacto e fonte 1.3 foram inspecionadas. Nos perfis ampliado/compacto, o segundo cartão permanece completo por rolagem acima da barra fixa.
+- UIAutomator confirmou Campanhas selecionado e filetes fora da semântica de acessibilidade; AVD restaurado para configurações padrão.
+
+## Continuação 2026-09-28 — assinatura de quadrinhos do Deadpool
+
+- Spec 014 aplica `ComicPanelDrawable` somente no cartão hero de Deadpool, com geometria ciano/ouro estática e sem texto, lore ou IA.
+- Verificações Android passaram: 6 testes, lint, assemble/build; nenhuma dependência nova.
+- AVD normal, compacto e fonte 1.3 inspecionados; captura controle confirma Forja sem decoração. Hierarquia sem nó/foco extra.
+- Resolução, escala de fonte e TalkBack foram restaurados; Forja ficou aberta ao final.
+- Revisão de performance: os shaders de Nexus/Deadpool agora são reaproveitados quando bounds não mudam, e alpha opaco evita camada offscreen. Matriz combinada final passou: Android 6 testes/build/lint/assemble, backend 8 testes e `pip check` limpo. APK reinstalado e Forja inicial confirmada.
+
+## Continuação 2026-09-28 — variantes acessíveis na Coleção
+
+- Spec 015 substituiu o bloco multilinha por um TextView por tier, preservando rótulos localizados, nomes e ordem do JSON.
+- Android build/testes/lint passaram; UIAutomator agregou 21 personagens e 105 linhas em 17 posições de rolagem e encontrou `Infinito: Deadpool — Não Canônico`.
+- AVD fonte padrão, font_scale 1.3 e viewport compacto inspecionados. TalkBack ficou desligado; teste acústico por variante não foi feito.
+- AVD restaurado para font_scale 1.0, 1080×2400 e Forja inicial.
+## Continuação 2026-09-28 — baseline observacional de inicialização Android
+
+- Spec 016 atendeu RNF-005 sem inventar SLO ou modificar código/dependências.
+- Cinco comandos `am start -W` confirmaram `LaunchState: COLD`: TotalTime 1664, 4510, 3228, 3505, 2108 ms; WaitTime 1686, 4544, 3378, 3605, 2188 ms. Medianas 3228/3378 ms; mínimos 1664/1686 e máximos 4510/4544.
+- `ThisTime` não veio na saída desta imagem Android e foi registrado N/R. AVD `Medium_Phone_API_36.1`, 1080×2400, 420 dpi, fonte 1.0, acessibilidade desativada; Forja continua destino aberto.
+- Atualizados requisitos/design/tasks/evidence da spec 016, README e estado atual. Sem build novo porque nenhum código foi alterado; última matriz completa após Spec 015 passou (Android 6 testes/build/lint/assemble; backend 8 testes e pip check limpo).
+- Bloqueios críticos seguem restritos à integração externa/licenciada (Q-001–006/Q-008), conexão Android–backend (Q-025) e economia/merge (Q-020–024). Próxima frente segura: auditoria local de contratos e cobertura dos comportamentos já implementados, sem alargar requisitos de produto.
+## Continuação 2026-09-28 — hardening de contrato do catálogo (Spec 017)
+
+- Auditoria local achou que a API e o parser Android não defendiam campos obrigatórios whitespace nem unicidade global fora do dataset atual.
+- Pydantic agora rejeita strings em branco e IDs duplicados em personagens/variantes. Android faz validação equivalente no parser e preserva a ordem/cardinalidade dos cinco tiers.
+- Runner combinado passou: Android build/lint/assemble e 7 testes (0 falhas); backend `pip check` limpo e 11 testes aprovados.
+- Asset canônico e contrato HTTP não mudaram. A JVM Android usa stub de `org.json`; como nenhuma implementação estava no cache e não foi instalada, testes negativos estruturais do parser Android permanecem sem execução host. Teste JVM confirma as cardinalidades do asset; backend cobre dados malformados.
+- Sem rede, dependências novas, instalação, Git ou alteração de regra de produto. Bloqueios Q-001–006/Q-008, Q-020–025 seguem delimitados às frentes já registradas.
+## Continuação 2026-09-28 — respostas de Erick sobre integração e Forja
+
+- Anonimato se aplica somente ao vídeo; data final não bloqueia trabalho local.
+- Erick autorizou assets que declara poder usar; prioridades delegadas: Homem de Ferro, Homem-Aranha, Wolverine, Mulher Invisível, Surfista Prateado e Deadpool. Fontes e termos serão registrados por asset.
+- Comic Vine seguirá pelo proxy FastAPI, sob limite delegado de 100 chamadas por recurso/hora e uma por segundo, com cache. Termos oficiais consultados indicam limite publicado de 200/recurso/hora e detecção adicional de velocidade.
+- Android precisa aceitar AVD e dispositivo físico; host de LAN ficará configurável em build local. endereço de rede é requisito operacional para teste físico, não bloqueia arquitetura local.
+- Forja: inventário inicial vazio; merge irreversível; persistir cada ação, com débito/crédito atômico. Proporção 3:1 em cada etapa foi apresentada apenas como sugestão, ainda sem aprovação. Fonte/quantidade de Estilhaços e valor/escopo do máximo também seguem pendentes.
+- `.env` contém `GROQ_API_KEY`; usuário pediu “Grok”. xAI documenta `XAI_API_KEY`, Groq documenta `GROQ_API_KEY`; provedor aguarda confirmação. A chave Gemini foi exposta no chat: recomendada revogação, sem reutilização.
+- A autorização para dependency testing foi usada: `org.json:json:20250517` em `testImplementation`; Gradle resolveu e matriz offline passou com 11 testes Android e 11 backend, lint/assemble e pip check.
+
+## Continuação 2026-09-28 — Forja funcional, adapter Groq e APK para dispositivo
+
+- Spec 005 implementada: seis inventários locais SQLite iniciam vazios; merge 3:1 por etapa é irreversível, confirmado na UI e gravado atomicamente; recompensas futuras são idempotentes, sujeitas ao teto de 999. Campanhas/desafios placeholder não concedem itens.
+- AVD: confirmação/cancelamento verificados; cancelamento não consome itens e merge confirmado sobreviveu ao force-stop/reabertura. Corrigido o plural “3 Estilhaços” no texto de confirmação.
+- Validação final antes da edição documental: `scripts/validate-local.ps1 -Target all` passou, com Android unit tests, lint, `assembleDebug`, `assembleDebugAndroidTest`, backend `pip check` e 18 pytest. `scripts/run-android-instrumentation.ps1` passou com 7 testes SQLite no AndroidJUnitRunner direto. A integração UTP do Gradle não anexou nesta máquina; o runner direto foi bem-sucedido.
+- Implementado adapter Groq backend com stdlib, limites e erros sanitizados; testes mockados cobrem chave ausente, contrato, resposta e falhas. Nenhuma chamada externa/autenticada foi feita.
+- Gerada arte abstrata original de ruptura cósmica para o hero Nexus. Não inclui personagens ou logos.
+- Preparado `render.yaml`, sem segredo. Deploy real não foi possível: ambiente não tem sessão/token Render/Vercel nem remote Git visível. App ainda não tem cliente Android para backend; API não é necessária para testar a build atual.
+- Pendências em Q-026 (host público e transporte Android), Q-027 (credencial Comic Vine) e Q-028 (aparelho físico); APK debug produzido em `artifacts/Marvel-Ruptura-Infinita-debug.apk`.
+- APK SHA-256: `3CF3D04AC35D452EBFE83CCD31EA81230FA6FEBBF706A022AA725E55E135E32B`; tamanho 6,092,820 bytes. Build debuggable não é release assinado; inclui controle de recompensa de teste apenas nesse variant.
+
+## Continuação 2026-09-28 — release 0.1.0 assinada
+
+- Configurado `release` não debuggable e signing opt-in via ambiente local. Criada keystore RSA 3072 em `%LOCALAPPDATA%\RupturaInfinita\release-signing`; senha aleatória cifrada por DPAPI do usuário atual, ACL local restrita. Valores não foram impressos nem gravados no projeto.
+- `scripts/build-release.ps1` lê a senha cifrada no perfil Windows atual, executa testes JVM + `lintRelease` + `assembleRelease`, valida `zipalign`/`apksigner` e copia o artefato.
+- APK `artifacts/Marvel-Ruptura-Infinita-release.apk`, 4,798,726 bytes; SHA-256 `C34A60FD4098E13F3B29C29798EB8DEADD3E29973315D8F90447B4C53F05104A`. Assinatura v2 válida; digest do certificado SHA-256 `A83204728D8669E0D497B45917C7F0A8220F3AB83914BB67692F328A340F1374`. AAPT confirmou package/version/SDK; manifest não pede INTERNET.
+- Build debug/unit/lint/test APK e release build passaram; suíte instrumentada 7/7 e backend pytest 18/pip check passaram na execução anterior; não houve mudança de domínio desde então.
+- Nenhum telefone físico disponível; release não instalada no AVD para evitar remover o app Debug com mesmo ID e apagar dados de teste.
+- Trata-se de uma release assinada do MVP offline. Comic Vine, campanhas/batalhas, desafios/recompensas, Android/FastAPI, IA Deadpool e Manopla/Câmara não estão completas; instalação nova começa sem shards. Ver Q-030 e `RELEASE_NOTES.md`.
+- A keystore permite atualizações se for preservada. O segredo DPAPI não é portável para outro Windows/usuário; Q-029 registra a necessidade de backup protegido testado antes de migração.
+
+## Continuação 2026-09-28 — Manopla/Câmara e readiness do backend
+
+- Criada spec 026 e implementadas regras reversíveis: gate da Manopla pelas seis Joias completas sem consumo; tiers sequenciais por personagem; Space/Mind/Reality/Power/Time exigidos pelos cinco tiers; Joias não consumidas; equipamento persistente; sem efeito em stats. Origin é persistida por personagem no primeiro acesso da Câmara após ativação, derivada do catálogo (sem roster fixo no banco).
+- Android SQLite schema v4 e UI Forge/Coleção alterados. Instrumented tests incluem ativação/idempotência/não consumo, desbloqueio sequencial/persistência e migração v3 preservando inventário/campanha. Nenhum teste Android compilou/executou nesta sessão.
+- Backend adicionou `/ready` sem divulgar segredos; `/health` segue como liveness. Blueprint Render declara `COMIC_VINE_API_KEY`/`GROQ_API_KEY` com `sync: false`. Atualizados docs/specs 020/026.
+- Python `compileall` passou; 19 testes isolados Comic Vine/Groq passaram. FastAPI route suite não coletou por binário `pydantic_core` CPython 3.13 incompatível com Python 3.11. Gradle 8.13 executou, mas `testDebugUnitTest` falhou offline ao resolver AGP 8.13.2; nenhum APK atual produzido. SDK/adb não acessíveis.
+- Smoke real Groq tentou a chave local do `.env`; o adapter retornou erro sanitizado. Conectividade e validade da credencial permanecem desconhecidas; nenhum valor ou detalhe da resposta foi impresso. Não existe chave Comic Vine, token Render ou URL de host; deploy não ocorreu.
+- Próximo passo: restaurar toolchains compatíveis, rodar testes backend/Android, corrigir erros; então conectar Render, cadastrar secrets no painel, obter URL, validar Groq/Comic Vine em HTTPS, buildar e validar a release no aparelho. Q-026/Q-027/Q-031/Q-032/Q-034/Q-035 atualizadas.
+## Fechamento da continuação 2026-09-28 — validação e release atualizada
+
+- Elevação autorizada removeu os bloqueios locais aparentes e executou o Gradle/SDK existentes; nenhuma ferramenta global foi instalada.
+- Build inicial revelou cases `coisa`/`senhor-fantastico` duplicados em `GameRules` e captura inválida de `ready` no lambda da Manopla. Corrigidos preservando poderes já authorados. `scripts/validate-local.ps1 -Target android` passou unit tests, APK instrumentado, lint e assemble.
+- `scripts/run-android-instrumentation.ps1` passou **10/10** no `emulator-5554`; cobre gate/não consumo da Manopla, desbloqueio sequencial idempotente, persistência e migração v3→v4 mantendo inventário/campanha.
+- FastAPI `.venv` Python 3.13: **39 testes aprovados**, `pip check` limpo. `/ready` confirma só booleanos de presença; segredos não aparecem.
+- Inspeção visual AVD confirmou Forja inicial e as cinco variantes da Coleção bloqueadas antes da Manopla. Capturas salvas em `specs/026-gauntlet-variant-progression/`.
+- `scripts/build-release.ps1` compilou/lintou e assinou release atualizada; apksigner validou v2/certificado. APK 4,840,322 bytes; SHA-256 `E18D47C3644C50461CAE29B2CD6E7808DC5F1ADB6BD208B89E99D29458B53307`. `RELEASE_NOTES.md`, specs 020/021/022/026, README e memória atualizados.
+- Smoke Groq real falhou mesmo fora do sandbox e retornou apenas erro sanitizado; chave/API/rede não confirmadas. Comic Vine key, URL e token Render ausentes; publicação não ocorreu. Nenhum celular físico conectado. Q-026/Q-027/Q-028/Q-032 continuam pendentes; Q-031/Q-033/Q-034/Q-035 resolvidas localmente.
+## Correção da release para atualização 0.2.0 — 2026-09-28
+
+- A primeira recompilação manteve versionCode 1; para permitir atualização pela versão instalada 0.1.0, foi incrementado para versionCode 2/versionName 0.2.0 (DEC-056).
+- O diretório temporário padrão teve lock concorrente em `classes.dex`; nova compilação em diretório isolado `%TEMP%\RupturaInfinita-release-020` passou (`testDebugUnitTest`, `lintRelease`, `assembleRelease`). `apksigner` confirmou v2 e certificado persistente; `aapt` confirmou 0.2.0/code 2, minSdk 26/target 36.
+- Artefato final: `artifacts/Marvel-Ruptura-Infinita-release.apk`, 4,840,290 bytes, SHA-256 `8DA29343000CB79B00142A07B80D6CEFC73CBA8CFC36F66BAF3D357D217BED0F`.
+- Não instalado sobre o app Debug no AVD porque isso exigiria removê-lo (assinaturas distintas) e apagaria os dados locais desse app. O telefone físico não está conectado.
+
+- Rebuild final apos otimizacao do acesso ao estado equipado: `scripts/validate-local.ps1 -Target android` passou, instrumentacao repetiu 10/10 e `scripts/build-release.ps1` passou em diretorio isolado. APK 0.2.0/versionCode 2 final: 4,840,290 bytes, SHA-256 `8DA29343000CB79B00142A07B80D6CEFC73CBA8CFC36F66BAF3D357D217BED0F`; aapt confirmou versionCode 2 e apksigner v2.
+
+## Complemento de cobertura da spec 022 — 2026-09-28
+
+- `scripts/validate-local.ps1 -Target android` passou: JVM unit tests, compilação do APK instrumentado (incluindo `GameLoopRepositoryTest`), lint e assemble debug.
+- `scripts/run-android-instrumentation.ps1` passou **13/13** no AVD preservado: 10 testes de Forja/Manopla e 3 novos testes do loop. Vitória diária concede três estilhaços uma única vez e persiste; derrota após seis palpites não concede recompensa e persiste; campanha bloqueia missão fora de ordem, persiste equipe de três personagens e concede recompensa idempotente por missão.
+- T08/T09 da spec 022 concluídas. APK release 0.2.0 permanece válido: esta etapa alterou somente instrumentação e documentação.
+- Tentativa de iniciar uma segunda instância somente leitura foi recusada porque o AVD existente não foi iniciado em modo read-only. O AVD em uso foi preservado; nenhuma reinstalação, remoção ou limpeza de dados foi feita.
+- Permanecem bloqueios externos Q-026/Q-027/Q-028/Q-032: sem URL/token Render, chave Comic Vine, smoke Groq sem diagnóstico após erro sanitizado e telefone físico indisponível nesta execução. Próximo passo local executável: continuar revisão de specs e consistência de documentação sem expor credenciais.
+- Nota de fechamento: uma segunda execução de `scripts/validate-local.ps1 -Target android` após a atualização documental foi bloqueada antes do Gradle por acesso negado ao SDK em `%LOCALAPPDATA%\Android\Sdk`; a matriz prévia já havia passado e a instrumentação posterior completou 13/13 no AVD.
+
+## Continuação 2026-10-04 — Fragmento diário, retratos Comic Vine e GitHub/Render
+
+- Erick escolheu um Fragmento da Joia do dia por primeira vitória diária e aceitou retratos Comic Vine por personagem, repetidos nas cinco variantes temporariamente. Spec 028 e spec 030 atualizadas; chave permanece fora do Git e do APK.
+- Auditoria real Comic Vine validou 21/21 IDs Marvel com imagem HTTPS; rota de imagem editorial, carregador Android com cache/crédito/link e fallback foram implementados. Live Wolverine respondeu 200. Sem host HTTPS, o APK exibe fallback.
+- Validação após a última edição de código: Android JVM/lint/assemble passou; AVD **22/22**; backend **45/45**; release lint/build/zipalign/apksigner v2 passou. APK candidato offline 5.107.462 bytes, SHA-256 `9382C92F2228F700FB52EA09DD6A46924F5CC67583CAC62D08BEAE3290F6DAA5`.
+- Erick autorizou push ao GitHub `ErickNeves07/mobile-marvel` e deploy Render. Remoto conectado; havia apenas `LICENSE` no branch remoto. `render.yaml` e `docs/11-RENDER-DEPLOY.md` preparados. O painel Render ainda requer login e inserção de secrets; tentativa de acessar a janela Chrome atual foi recusada pelo auto-review por ser WhatsApp, e Erick foi solicitado a abrir Render em aba própria.
+- Próximo passo: concluir revisão Git/segredos, integrar ao `origin/main`, fazer commit/push; depois criar Blueprint Render no painel, configurar chaves, confirmar `/health`/`/ready`/retratos, recompilar APK com URL e testar no telefone. Grade da Coleção, demais diferenças Lovable e Groq live seguem pendentes.
