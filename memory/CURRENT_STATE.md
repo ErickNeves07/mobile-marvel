@@ -2,6 +2,15 @@
 
 Última atualização: 2026-10-04
 
+## Spec 032 — recuperação de gameplay e design (em andamento, 2026-10-04)
+
+- O Android agora inicia um novo banco v6 com **Homem-Aranha, Wolverine e Tocha Humana** possuídos na Origem. Migração preserva variantes já possuídas; a regra para adquirir os outros 18 depende de Q-045. Coleção raiz mostra 21 personagens gerais; detalhe mostra cinco variantes, atributos de jogo e fatos editoriais Comic Vine.
+- As seis missões com recompensas já aprovadas aparecem como seis capítulos individuais. Cada capítulo abre escolha visual de três personagens possuídos de qualquer facção; o poder da variante equipada altera o combate. Há quatro rounds, decisões, efeitos, derrota/nova tentativa e recompensa só na primeira vitória. A possível substituição pelos nove capítulos do Lovable depende de Q-046; não foram inventados três pacotes extras.
+- Forja mostra receitas 2:1 disponíveis sem expandir detalhes; botão debug que criava itens foi removido. Personagem inicial pode ativar Manopla completa a partir do detalhe e subir para o próximo patamar; teste instrumentado confirmou Wolverine Ascensão sem consumir a Joia.
+- Retratos usam Comic Vine via proxy, com ajuste de limite para o Homem-Aranha de 8,29 MB, pré-carregamento de trio/Reed/Estranho, alinhamento central e retry. AVD live verificou Homem de Ferro, Homem-Aranha e Tocha Humana; Nexus capturado com Reed/Estranho carregados. Backend tem nova rota para oponentes, ainda não publicada no Render. Desafio diário ganhou tela própria fiel à hierarquia Lovable, palpite vazio obrigatório e fala visual. Deadpool usa modelo padrão novo porque o anterior foi descontinuado; geração real ainda não testada devido Q-047.
+- Após última edição de gameplay/UI/teste, backend **47/47**, Android JVM/lint/debug e instrumentação AVD **27/27** passaram. AVD segue com ANR do System UI para toque manual, mas a captura direta das views funcionou. `versionCode 3`/`0.3.0` passou build release, lint release, zipalign e assinatura v2: APK 5.119.606 bytes, SHA-256 `C948C701A437BB85EDC32C2529AD4C06AED72C1B126B6C5F966785514F512CA5`. Telefone físico estava desconectado. O código Android/backend foi enviado ao GitHub em `37a78d2` e `afa518f`; a rota nova do backend ainda retornou 404 no Render após o push.
+- Corrigido o build comum do Android Studio: sem `-PriApiBaseUrl`, debug e release usam `https://mobile-marvel-8qex.onrender.com` (confirmado em `BuildConfig.java`). Matriz direta sem propriedade passou JVM/lint/debug e **27/27** instrumentados; release assinada repetida sem override e manteve o mesmo hash. Próximos passos: enviar esta última correção/documentação ao GitHub, verificar Render após deploy, instalar debug sobre 0.2.0 no telefone quando conectado, obter respostas Q-045/Q-046 e autorização específica para POST Groq se desejada.
+
 ## Telefone físico atualizado de 0.1.0 para 0.2.0 — 2026-10-04
 
 - A tela “Fundação Android pronta para a próxima ruptura” vinha do APK `0.1.0` ainda instalado no aparelho, mesmo após o build local do projeto `0.2.0`. A assinatura desse APK antigo corresponde à chave debug local; a release usa outra assinatura.

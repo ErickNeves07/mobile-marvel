@@ -1,5 +1,11 @@
 # Dúvidas abertas
 
+## Spec 032 — revisão física de gameplay e design (2026-10-04)
+
+- **Q-045 — CRÍTICA, pergunta enviada:** Erick definiu Homem-Aranha, Wolverine e Tocha Humana como trio inicial. Como os outros 18 personagens gerais passam a ser possuídos? O app atual não tem aquisição de personagens; só variantes, e batalha restrita ao trio inicial sem uma via de obtenção impediria ampliar a equipe. Não criar gatilho de desbloqueio ou migração antes da resposta.
+- **Q-046 — CRÍTICA, pergunta enviada:** Lovable publicado mostra nove capítulos, enquanto o Android tem duas campanhas de três missões com seis pacotes de recompensa aprovados. Erick quer nove batalhas substituindo essa estrutura ou seis batalhas interativas com o mapa visual revisado? Não inventar três pacotes extras ou redistribuir as seis recompensas antes da resposta.
+- **Q-047 — Teste Groq live:** a revisão automática rejeitou o POST de smoke em `/v1/ai/deadpool-line` por poder gerar cobrança sem autorização explícita para a chamada paga. `/ready` só prova presença da chave. Implementação e testes mockados podem avançar; o teste real depende de autorização específica após a correção estar pronta.
+
 ## Spec 029 — novos ajustes Lovable (2026-10-04)
 
 - **Q-042 — Resolvida em 2026-10-04:** Erick publicou a versão nova. Bundles `batalha-BBpUQYMu.js`, `comparar-Dy7nbkjE.js` e `characters-BL6XEGoz.js` inspecionados; capturas móveis atualizadas. Contrato mapeado na spec 029.

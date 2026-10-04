@@ -1,5 +1,11 @@
 # Log de sessões
 
+## 2026-10-04 — recuperação de gameplay, imagens e build Android online
+
+- Spec 032 implementada nas partes aprovadas: trio inicial Homem-Aranha/Wolverine/Tocha Humana, posse persistida, seleção de qualquer trio possuído, seis missões como batalhas interativas separadas, efeitos/retry, Coleção geral com variantes/atributos/editorial, merge 2:1 visível, ativação da Manopla e avanço de variante, retratos Comic Vine, Nexus/Desafio/Deadpool revisados. Q-045 e Q-046 ainda pedem regra de aquisição e estrutura final de capítulos.
+- Backend 47/47 passou; Android direto sem `-PriApiBaseUrl` passou JVM, lint debug, `assembleDebug` e **27/27** instrumentados. O Run comum do Android Studio agora inclui a URL Render. Release 0.3.0 assinada verificada com `scripts/build-release.ps1`, 5.119.606 bytes, SHA-256 `C948C701A437BB85EDC32C2529AD4C06AED72C1B126B6C5F966785514F512CA5`.
+- Código enviado ao GitHub nos commits `37a78d2` e `afa518f`; a última correção da URL padrão e documentação seguem para commit/push. Render ainda respondeu 404 na rota nova dos oponentes; Erick recebeu instrução de deploy manual se nenhum estiver em andamento. Telefone físico estava desconectado. Teste Groq real foi rejeitado por revisão automática devido possível cobrança, Q-047.
+
 ## 2026-10-04 — campanha com recompensas distintas e teste de arte
 
 - Erick removeu `Homem-Aranha +1`, confirmou substituição dos três Estilhaços por missão, valores diferentes por missão e nenhum pagamento retroativo. Aprovou seis pacotes de Joia/créditos/XP; spec 028 atualizada antes da implementação. O estágio de Joia no desafio diário permanece em Q-040.
@@ -379,3 +385,10 @@
 - Erick relatou a tela antiga “Fundação Android pronta para a próxima ruptura”. O texto não existe no source 0.2.0; ADB mostrou o telefone conectado com o package correto, mas `versionName=0.1.0`, `versionCode=1`.
 - O certificado do APK antigo coincidiu com a chave debug local e diferiu da release. Gerei debug 0.2.0 com URL Render, validei certificado/versão/BuildConfig e instalei com `adb install -r` sem apagar dados. `dumpsys package` confirmou versão 0.2.0 e UIAutomator mostrou a Coleção com filtros, personagem e navegação; a tela antiga não apareceu. Logcat recente sem erro fatal do app.
 - Documentado que Build Project apenas compila e que Run `app` atualiza o telefone. Teste físico completo de gameplay e retratos continua pendente.
+
+## Spec 032 — revisão de coleção, batalhas, Manopla e imagens — 2026-10-04
+
+- Comparadas capturas móveis publicadas do Lovable com Android. Q-045/Q-046 foram enviadas para aquisição dos demais personagens e nove capítulos/recompensas; Q-047 registra rejeição automática de smoke pago da Groq.
+- Implementados trio inicial no SQLite v6, equipe cross-faction somente com personagens possuídos, poder da variante equipada, seis batalhas individuais com retratos de equipe/oponentes, Coleção de 21 gerais, fatos Comic Vine/atributos no detalhe, fusões 2:1 visíveis, ativação da Manopla a partir do detalhe, Nexus e desafio diário revisados, Deadpool acionável e modelo Groq atualizado. Retirado botão debug que gerava itens.
+- Auditados 21 tamanhos de imagens: Homem-Aranha 8,294,024 bytes ultrapassava o limite anterior. AVD live carregou Homem de Ferro, Homem-Aranha, Tocha Humana, Reed e Estranho. Capturas instrumentadas em `reports/lovable-research/android-032/` (ignoradas pelo Git). O System UI do AVD ainda apresentou ANR por cima da tela durante toque manual.
+- Backend pytest 47/47; Android `testDebugUnitTest`, `lintDebug`, `connectedDebugAndroidTest` 27/27 e `assembleDebug` passaram após última edição de gameplay/UI/teste. `versionCode 3`/`0.3.0` passou release build/lint/zipalign/assinatura v2; APK 5.119.606 bytes, SHA-256 `C948C701A437BB85EDC32C2529AD4C06AED72C1B126B6C5F966785514F512CA5`. Push/Render/telefone ainda são próximos passos; telefone ADB desconectado.
