@@ -95,6 +95,7 @@
     <string name="collection_discovered_count">%1$d/%2$d</string>
     <string name="collection_search_hint">Buscar herói</string>
     <string name="collection_filter_all">Todos</string>
+    <string name="collection_filter_owned">Desbloqueados</string>
     <string name="collection_all_tiers">Todos patamares</string>
     <string name="collection_empty">Nenhuma variante encontrada.</string>
     <string name="collection_back">Voltar à Coleção</string>

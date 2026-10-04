@@ -890,6 +890,7 @@ public final class MainActivity extends AppCompatActivity {
                     forgeRepository.loadOwnedTiers(character.id, gauntletActive));
         }
         String[] selectedGroup = {null};
+        boolean[] onlyOwned = {false};
         Runnable update = () -> {
             gallery.removeAllViews();
             String query = search.getText().toString().trim().toLowerCase(java.util.Locale.ROOT);
@@ -899,6 +900,7 @@ public final class MainActivity extends AppCompatActivity {
                     if (selectedGroup[0] != null
                             && !selectedGroup[0].equals(character.groupId)) continue;
                     java.util.Set<GameVariantTier> owned = ownedByCharacter.get(character.id);
+                    if (onlyOwned[0] && owned.isEmpty()) continue;
                     GameVariantTier tier = owned.isEmpty() ? GameVariantTier.ORIGIN
                             : tierById(forgeRepository.loadEquippedTier(character.id));
                     GameCatalogVariant variant = null;
@@ -950,7 +952,7 @@ public final class MainActivity extends AppCompatActivity {
             }
             @Override public void afterTextChanged(android.text.Editable s) { }
         });
-        filterFilters(filters, selectedGroup, update);
+        filterFilters(filters, selectedGroup, onlyOwned, update);
         update.run();
     }
 
@@ -1259,7 +1261,8 @@ public final class MainActivity extends AppCompatActivity {
         return result.toString();
     }
 
-    private void filterFilters(LinearLayout filters, String[] selectedGroup, Runnable update) {
+    private void filterFilters(LinearLayout filters, String[] selectedGroup,
+                               boolean[] onlyOwned, Runnable update) {
         filters.removeAllViews();
         String[] ids = {null, "avengers-allies", "x-men", "fantastic-four", "cosmic-specials"};
         int[] labels = {R.string.collection_filter_all, R.string.catalog_group_avengers_allies,
@@ -1285,11 +1288,29 @@ public final class MainActivity extends AppCompatActivity {
                 chip.setFocusable(true);
                 chip.setOnClickListener(view -> {
                     selectedGroup[0] = id;
-                    filterFilters(filters, selectedGroup, update);
+                    filterFilters(filters, selectedGroup, onlyOwned, update);
                     update.run();
                 });
             }
         }
+        TextView ownedChip = text(R.string.collection_filter_owned,
+                R.style.TextAppearance_Ruptura_Label,
+                onlyOwned[0] ? R.color.accent_cyan : R.color.text_secondary, true);
+        ownedChip.setAllCaps(true);
+        ownedChip.setGravity(Gravity.CENTER);
+        ownedChip.setMinHeight(dimension(R.dimen.target_min));
+        ownedChip.setPadding(dimension(R.dimen.space_3), 0, dimension(R.dimen.space_3), 0);
+        ownedChip.setBackground(background(onlyOwned[0] ? R.color.surface_selected
+                : R.color.surface_primary, onlyOwned[0] ? R.color.accent_cyan
+                : R.color.border_subtle, 0));
+        ownedChip.setClickable(true);
+        ownedChip.setFocusable(true);
+        filters.addView(ownedChip, new LinearLayout.LayoutParams(-2, -2));
+        ownedChip.setOnClickListener(view -> {
+            onlyOwned[0] = !onlyOwned[0];
+            filterFilters(filters, selectedGroup, onlyOwned, update);
+            update.run();
+        });
     }
 
     private BackendClient backendClient() { return new BackendClient(this, BuildConfig.API_BASE_URL); }
@@ -1968,7 +1989,8 @@ public final class MainActivity extends AppCompatActivity {
                 R.style.TextAppearance_Ruptura_Caption, R.color.accent_cyan, true));
         missionCard.addView(text(mission.title, R.style.TextAppearance_Ruptura_Title,
                 R.color.text_primary, true));
-        missionCard.addView(text(mission.location + "  ·  " + mission.opponentName,
+        missionCard.addView(text(mission.location + "  ·  " + mission.opponentName
+                        + "  ·  AMEAÇA " + mission.difficulty + "/6",
                 R.style.TextAppearance_Ruptura_Caption, R.color.text_secondary, false));
         ImageView enemy = editorialImage(missionCard, dimension(R.dimen.space_8) * 4);
         TextView source = text(R.string.editorial_portrait_loading,
@@ -2443,7 +2465,8 @@ public final class MainActivity extends AppCompatActivity {
         LinearLayout titles = new LinearLayout(this);
         titles.setOrientation(LinearLayout.VERTICAL);
         heading.addView(titles, new LinearLayout.LayoutParams(0, -2, 1f));
-        titles.addView(text("ROUND " + Math.min(battle.round + 1, 4) + "/4  ·  "
+        titles.addView(text("ROUND " + Math.min(battle.round + 1, LovableBattle.MAX_ROUNDS)
+                        + "/" + LovableBattle.MAX_ROUNDS + "  ·  "
                         + battle.mission.title.toUpperCase(java.util.Locale.ROOT),
                 R.style.TextAppearance_Ruptura_Caption, R.color.accent_xmen, true));
         titles.addView(text(battle.mission.location.toUpperCase(java.util.Locale.ROOT),
@@ -2461,7 +2484,7 @@ public final class MainActivity extends AppCompatActivity {
         healthParams.topMargin = dimension(R.dimen.space_3);
         screen.addView(health, healthParams);
         battleMeter(health, battle.mission.opponentName.toUpperCase(java.util.Locale.ROOT),
-                battle.boss, R.color.accent_deadpool);
+                battle.boss, battle.maxBoss, R.color.accent_deadpool);
         battleMeter(health, "EQUIPE", battle.team, R.color.accent_latveria);
 
         ScrollView central = new ScrollView(this);
@@ -2553,29 +2576,29 @@ public final class MainActivity extends AppCompatActivity {
             charge.setGravity(Gravity.CENTER_VERTICAL);
             screen.addView(charge, new LinearLayout.LayoutParams(-1, -2));
             charge.addView(text("ϟ", R.style.TextAppearance_Ruptura_Title,
-                    R.color.stone_mind, true));
-            addBattleBar(charge, battle.charge, R.color.stone_mind);
+                    R.color.accent_gold, true));
+            addBattleBar(charge, battle.charge, R.color.accent_gold);
             charge.addView(text(battle.charge + "%", R.style.TextAppearance_Ruptura_Caption,
-                    R.color.stone_mind, true));
+                    R.color.accent_gold, true));
             if (battle.canSpecial()) {
-                TextView special = action("ESPECIAL · LANÇA PSÍQUICA", () -> {
+                TextView special = action("ESPECIAL · " + BattleSpecial.nameForTeam(campaign.teamIds)
+                        .toUpperCase(java.util.Locale.ROOT), () -> {
                     if (battleAnimating || !battle.canSpecial()) return;
                     battleAnimating = true;
                     battle.special();
                     renderMagnetoBattle(battle, campaign);
-                    showBattleImpact("KRAKOOM", battle.lastBossDamage, 0, true);
+                    showBattleImpact("KRAKOOM", battle.lastBossDamage, battle.lastTeamDamage, true);
                     contentContainer.postDelayed(() -> { battleAnimating = false;
                         renderMagnetoBattle(battle, campaign); }, animationDelay(1200));
                 });
                 special.setEnabled(!battleAnimating);
                 screen.addView(special, new LinearLayout.LayoutParams(-1, -2));
-            } else {
-                LinearLayout choices = new LinearLayout(this);
-                screen.addView(choices, new LinearLayout.LayoutParams(-1, -2));
-                battleChoice(choices, "⚔\nINVESTIR\nDANO ALTO", LovableBattle.Choice.ATTACK, battle, campaign);
-                battleChoice(choices, "⬡\nPROTEGER\nREDUZ IMPACTO", LovableBattle.Choice.DEFEND, battle, campaign);
-                battleChoice(choices, "✦\nDESESTABILIZAR\n+ CARGA", LovableBattle.Choice.CONTROL, battle, campaign);
             }
+            LinearLayout choices = new LinearLayout(this);
+            screen.addView(choices, new LinearLayout.LayoutParams(-1, -2));
+            battleChoice(choices, "⚔\nINVESTIR\nDANO ALTO", LovableBattle.Choice.ATTACK, battle, campaign);
+            battleChoice(choices, "⬡\nPROTEGER\nREDUZ IMPACTO", LovableBattle.Choice.DEFEND, battle, campaign);
+            battleChoice(choices, "✦\nDESESTABILIZAR\n+ CARGA", LovableBattle.Choice.CONTROL, battle, campaign);
         } else {
             TextView reward = action("COLETAR RECOMPENSA", () -> {
                 if (battleClaiming || !battle.victory) return;
@@ -2650,7 +2673,7 @@ public final class MainActivity extends AppCompatActivity {
             GradientDrawable circle = new GradientDrawable();
             circle.setShape(GradientDrawable.OVAL);
             circle.setColor(0x00303060);
-            circle.setStroke(dimension(R.dimen.space_1), getColor(R.color.stone_mind));
+            circle.setStroke(dimension(R.dimen.space_1), getColor(R.color.accent_gold));
             ring.setBackground(circle);
             FrameLayout.LayoutParams ringParams = new FrameLayout.LayoutParams(
                     dimension(R.dimen.space_8) * 5, dimension(R.dimen.space_8) * 5, Gravity.CENTER);
@@ -2662,7 +2685,7 @@ public final class MainActivity extends AppCompatActivity {
         TextView impact = text(label + "\n-" + bossDamage + " CHEFE"
                         + (teamDamage > 0 ? " · -" + teamDamage + " EQUIPE" : ""),
                 R.style.TextAppearance_Ruptura_Title,
-                special ? R.color.stone_mind : R.color.accent_deadpool, true);
+                special ? R.color.accent_gold : R.color.accent_deadpool, true);
         impact.setGravity(Gravity.CENTER);
         impact.setElevation(dimension(R.dimen.space_4));
         impact.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
@@ -2674,6 +2697,10 @@ public final class MainActivity extends AppCompatActivity {
     }
 
     private void battleMeter(LinearLayout parent, String label, int value, int color) {
+        battleMeter(parent, label, value, 100, color);
+    }
+
+    private void battleMeter(LinearLayout parent, String label, int value, int maximum, int color) {
         LinearLayout meter = new LinearLayout(this);
         meter.setOrientation(LinearLayout.VERTICAL);
         meter.setPadding(dimension(R.dimen.space_2), dimension(R.dimen.space_2),
@@ -2682,9 +2709,10 @@ public final class MainActivity extends AppCompatActivity {
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(0, -2, 1f);
         params.setMargins(dimension(R.dimen.space_1), 0, dimension(R.dimen.space_1), 0);
         parent.addView(meter, params);
-        meter.addView(text(label + "  " + value + "%", R.style.TextAppearance_Ruptura_Caption,
+        meter.addView(text(label + "  " + value + "/" + maximum,
+                R.style.TextAppearance_Ruptura_Caption,
                 R.color.text_primary, true));
-        addBattleBar(meter, value, color);
+        addBattleBar(meter, Math.round(value * 100f / maximum), color);
     }
 
     private void addBattleBar(LinearLayout parent, int value, int color) {

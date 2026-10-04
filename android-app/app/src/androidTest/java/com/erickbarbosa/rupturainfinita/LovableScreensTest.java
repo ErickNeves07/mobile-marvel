@@ -106,6 +106,13 @@ public final class LovableScreensTest {
         View root = activity.getWindow().getDecorView();
         assertTrue(hasText(root, "Homem de Ferro"));
         assertTrue(countPortraits(root) == 21);
+        instrumentation.runOnMainSync(() -> findText(root, "Desbloqueados").performClick());
+        instrumentation.waitForIdleSync();
+        assertTrue(countPortraits(root) == 3);
+        assertTrue(findText(root, "Homem de Ferro") == null);
+        instrumentation.runOnMainSync(() -> findText(root, "Desbloqueados").performClick());
+        instrumentation.waitForIdleSync();
+        assertTrue(countPortraits(root) == 21);
         assertTrue(hasText(root, "Retrato indisponível")
                 || hasText(root, "Retrato editorial · Comic Vine")
                 || hasText(root, "Carregando retrato editorial"));
@@ -207,7 +214,7 @@ public final class LovableScreensTest {
         }
         instrumentation.runOnMainSync(() -> invoke(battle, activity, new LovableBattle(31), campaign));
         instrumentation.waitForIdleSync();
-        assertTrue(hasText(root, "ESTILHAÇOS ORBITAIS"));
+        assertTrue(hasText(root, "INVESTIDA DIRETA"));
         instrumentation.runOnMainSync(() -> capture(activity, root, "battle-initial.png"));
         for (String choice : new String[]{"PROTEGER", "DESESTABILIZAR", "INVESTIR", "DESESTABILIZAR"}) {
             instrumentation.runOnMainSync(() -> {
@@ -218,8 +225,8 @@ public final class LovableScreensTest {
             Thread.sleep(950);
             instrumentation.waitForIdleSync();
         }
-        assertTrue(hasText(root, "ESPECIAL · LANÇA PSÍQUICA"));
-        instrumentation.runOnMainSync(() -> findText(root, "ESPECIAL · LANÇA PSÍQUICA").performClick());
+        assertTrue(hasText(root, "ESPECIAL · TEIAS, GARRAS E CHAMAS"));
+        instrumentation.runOnMainSync(() -> findText(root, "ESPECIAL · TEIAS, GARRAS E CHAMAS").performClick());
         Thread.sleep(1300);
         instrumentation.waitForIdleSync();
         assertTrue(hasText(root, "VITÓRIA"));
@@ -260,7 +267,8 @@ public final class LovableScreensTest {
         assertTrue(hasText(root, "Homem-Aranha"));
         assertTrue(hasText(root, "Wolverine"));
         assertTrue(hasText(root, "Tocha Humana"));
-        for (String choice : new String[]{"DESESTABILIZAR", "INVESTIR", "DESESTABILIZAR", "INVESTIR"}) {
+        for (String choice : new String[]{"PROTEGER", "PROTEGER", "PROTEGER",
+                "PROTEGER", "PROTEGER", "PROTEGER"}) {
             instrumentation.runOnMainSync(() -> findText(root, choice).performClick());
             Thread.sleep(950);
             instrumentation.waitForIdleSync();
@@ -271,7 +279,7 @@ public final class LovableScreensTest {
         instrumentation.runOnMainSync(() -> capture(activity, root, "battle-defeat.png"));
         instrumentation.runOnMainSync(() -> findText(root, "TENTAR NOVAMENTE").performClick());
         instrumentation.waitForIdleSync();
-        assertTrue(hasText(root, "ESTILHAÇOS ORBITAIS"));
+        assertTrue(hasText(root, "INVESTIDA DIRETA"));
         assertTrue(hasText(root, "Homem-Aranha"));
         instrumentation.runOnMainSync(activity::finish);
     }

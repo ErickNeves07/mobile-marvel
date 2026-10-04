@@ -8,88 +8,63 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 
 public final class LovableBattleTest {
-    @Test public void correctCountersFollowPublishedDamageAndCharge() {
+    @Test public void defenseAloneCannotWinOrChargeSpecial() {
+        LovableBattle scene = new LovableBattle(31);
+        while (scene.canChoose()) scene.choose(LovableBattle.Choice.DEFEND);
+        assertTrue(scene.defeat);
+        assertEquals(scene.maxBoss, scene.boss);
+        assertFalse(scene.canSpecial());
+        assertTrue(scene.team > 0);
+    }
+
+    @Test public void readingIntentsAndUsingSpecialWinsFirstBattle() {
         LovableBattle scene = new LovableBattle(31);
         scene.choose(LovableBattle.Choice.DEFEND);
-        assertEquals(84, scene.boss);
-        assertEquals(98, scene.team);
-        assertEquals(43, scene.charge);
         scene.choose(LovableBattle.Choice.CONTROL);
-        assertEquals(62, scene.boss);
-        assertEquals(93, scene.team);
-        assertEquals(77, scene.charge);
         scene.choose(LovableBattle.Choice.ATTACK);
-        assertEquals(34, scene.boss);
-        assertEquals(88, scene.team);
         scene.choose(LovableBattle.Choice.CONTROL);
-        assertEquals(12, scene.boss);
-        assertEquals(83, scene.team);
-        assertEquals(100, scene.charge);
         assertTrue(scene.canSpecial());
         scene.special();
         assertTrue(scene.victory);
         assertEquals(0, scene.boss);
+        assertTrue(scene.team > 0);
         assertThrows(IllegalStateException.class, scene::special);
     }
 
-    @Test public void poorChoicesStillRequireFourthRoundAndSpecial() {
+    @Test public void attackingBlindlyLosesDespiteSurviving() {
         LovableBattle scene = new LovableBattle(31);
-        for (int i = 0; i < 4; i++) scene.choose(LovableBattle.Choice.ATTACK);
-        assertEquals(15, scene.boss);
-        assertEquals(53, scene.team);
-        assertFalse(scene.victory);
-        assertThrows(IllegalStateException.class, () -> scene.choose(LovableBattle.Choice.ATTACK));
-        scene.special();
-        assertTrue(scene.victory);
+        while (scene.canChoose()) scene.choose(LovableBattle.Choice.ATTACK);
+        assertTrue(scene.defeat);
+        assertTrue(scene.boss > 0);
     }
 
-    @Test public void selectedTeamPowerAndChoicesCanCauseDefeatAndRetry() {
-        LovableBattle weak = new LovableBattle(29);
-        LovableBattle stronger = new LovableBattle(31);
-        LovableBattle.Choice[] mistakes = {LovableBattle.Choice.CONTROL,
-                LovableBattle.Choice.ATTACK, LovableBattle.Choice.CONTROL,
-                LovableBattle.Choice.ATTACK};
-        for (LovableBattle.Choice choice : mistakes) {
-            weak.choose(choice);
-            stronger.choose(choice);
-        }
-        assertTrue(weak.defeat);
-        assertEquals(0, weak.team);
-        assertFalse(weak.canSpecial());
-        assertThrows(IllegalStateException.class, weak::special);
-        assertFalse(stronger.defeat);
-        assertTrue(stronger.canSpecial());
-        stronger.special();
-        assertTrue(stronger.victory);
-
-        LovableBattle retried = new LovableBattle(29);
-        retried.choose(LovableBattle.Choice.DEFEND);
-        retried.choose(LovableBattle.Choice.CONTROL);
-        retried.choose(LovableBattle.Choice.ATTACK);
-        retried.choose(LovableBattle.Choice.CONTROL);
-        assertTrue(retried.canSpecial());
-        retried.special();
-        assertTrue(retried.victory);
-    }
-
-    @Test public void sixMissionScenesHaveDistinctProgressionAndInteractiveOutcomes() {
-        assertEquals(6, BattleMission.ALL.size());
-        java.util.Set<String> ids = new java.util.HashSet<>();
+    @Test public void laterMissionsAreHarderAndRequireMorePower() {
+        int previousBoss = 0;
         for (BattleMission mission : BattleMission.ALL) {
-            assertTrue(ids.add(mission.campaignId + ":" + mission.number));
-            LovableBattle scene = new LovableBattle(25, mission);
-            for (int round = 0; round < 4; round++) {
-                assertTrue(scene.canChoose());
-                assertTrue(scene.warning().contains(mission.opponentName)
-                        || mission.counterOffset == 0);
-                LovableBattle.Choice[] counters = {
-                        LovableBattle.Choice.DEFEND, LovableBattle.Choice.CONTROL,
-                        LovableBattle.Choice.ATTACK, LovableBattle.Choice.CONTROL};
-                scene.choose(counters[(round + mission.counterOffset) % counters.length]);
-            }
-            assertTrue(scene.canSpecial());
-            scene.special();
-            assertTrue(scene.victory);
+            LovableBattle scene = new LovableBattle(31, mission);
+            assertTrue(scene.maxBoss > previousBoss);
+            previousBoss = scene.maxBoss;
         }
+        LovableBattle finalWeak = new LovableBattle(31, BattleMission.ALL.get(5));
+        LovableBattle finalStrong = new LovableBattle(50, BattleMission.ALL.get(5));
+        for (int round = 0; round < 4; round++) {
+            LovableBattle.Choice counter = counterFor(finalWeak.warning());
+            finalWeak.choose(counter);
+            finalStrong.choose(counter);
+        }
+        assertTrue(finalWeak.canSpecial());
+        assertTrue(finalStrong.canSpecial());
+        finalWeak.special();
+        finalStrong.special();
+        if (finalWeak.canChoose()) finalWeak.choose(counterFor(finalWeak.warning()));
+        if (finalStrong.canChoose()) finalStrong.choose(counterFor(finalStrong.warning()));
+        assertTrue(finalWeak.defeat);
+        assertTrue(finalStrong.victory);
+    }
+
+    private static LovableBattle.Choice counterFor(String warning) {
+        if (warning.contains("Proteja")) return LovableBattle.Choice.DEFEND;
+        if (warning.contains("Desestabilize")) return LovableBattle.Choice.CONTROL;
+        return LovableBattle.Choice.ATTACK;
     }
 }
