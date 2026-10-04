@@ -26,8 +26,8 @@ Define a public HTTPS host path for FastAPI so a phone can access APIs outside t
 - [x] Health check and runtime version are explicit.
 - [x] No API keys or `.env` contents are included in configuration.
 - [x] Provider secret names use `sync: false`; `/ready` reveals booleans only.
-- [ ] Deploy a public URL and verify health/readiness/catalog/provider endpoints (requires connected platform account/repository and provider keys).
-- [ ] Connect Android build configuration to a chosen host and verify on physical device.
+- [ ] Public URL, health/readiness, catalogs and Comic Vine passed; real Groq response remains unverified.
+- [ ] Android build uses published HTTPS host and AVD loaded real portraits; physical device remains pending.
 
 ## Runtime tradeoff
 

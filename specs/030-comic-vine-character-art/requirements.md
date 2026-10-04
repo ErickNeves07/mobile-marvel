@@ -19,9 +19,9 @@ Mostrar personagens reconhecíveis em lugar de silhuetas na Coleção, detalhe/c
 
 - [x] 21 vínculos de personagem verificados por ID/nome/editora; nenhum DC ou personagem incorreto entra na resposta.
 - [x] Backend retorna imagem HTTPS, origem e atribuição sem expor segredo; cache e rate limit permanecem.
-- [ ] Android carrega imagem fora da main thread, limita tamanho/cache e mostra crédito/link; código e fallback testados, falta validar rede no APK com host HTTPS.
+- [x] Android carrega imagem fora da main thread, limita tamanho/cache e mostra crédito/link; rede no APK configurado, Coleção e Comparação verificadas no AVD.
 - [x] Erro/host ausente não derruba Coleção, comparação, batalha ou progressão.
-- [x] Testes backend/Android após última edição e release reconstruída; screenshots offline registradas. Screenshot com rede permanece em T04.
+- [x] Testes backend/Android após última edição e release reconstruída; screenshots offline e com rede registradas.
 
 ## Fora de escopo
 

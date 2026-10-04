@@ -26,7 +26,7 @@ import org.junit.runner.RunWith;
 
 @RunWith(AndroidJUnit4.class)
 public final class LovableScreensTest {
-    @Test public void collectionHasAttributedPortraitSlotsAndWorksOffline() throws Exception {
+    @Test public void collectionHasPortraitSlotsAndLoadingOrAttribution() throws Exception {
         Instrumentation instrumentation = InstrumentationRegistry.getInstrumentation();
         MainActivity activity = (MainActivity) instrumentation.startActivitySync(
                 new Intent(instrumentation.getTargetContext(), MainActivity.class)
@@ -40,7 +40,17 @@ public final class LovableScreensTest {
         assertTrue(hasText(root, "Homem de Ferro"));
         assertTrue(countPortraits(root) >= 105);
         assertTrue(hasText(root, "Retrato indisponível offline")
-                || hasText(root, "Retrato editorial · Comic Vine"));
+                || hasText(root, "Retrato editorial · Comic Vine")
+                || hasText(root, "Carregando retrato editorial"));
+        if (!BuildConfig.API_BASE_URL.isEmpty()) {
+            for (int attempt = 0; attempt < 25
+                    && !hasText(root, "Retrato editorial · Comic Vine"); attempt++) {
+                Thread.sleep(1000);
+                instrumentation.waitForIdleSync();
+            }
+            assertTrue("The published backend did not load a Comic Vine portrait",
+                    hasText(root, "Retrato editorial · Comic Vine"));
+        }
         instrumentation.runOnMainSync(() -> capture(activity, root, "collection-portraits.png"));
         instrumentation.runOnMainSync(activity::finish);
     }
@@ -82,6 +92,15 @@ public final class LovableScreensTest {
         instrumentation.runOnMainSync(() -> spinners.get(1).setSelection(4));
         instrumentation.waitForIdleSync();
         assertTrue(hasText(root, "Fera da Alma"));
+        if (!BuildConfig.API_BASE_URL.isEmpty()) {
+            for (int attempt = 0; attempt < 25
+                    && countText(root, "Retrato editorial · Comic Vine") < 2; attempt++) {
+                Thread.sleep(1000);
+                instrumentation.waitForIdleSync();
+            }
+            assertTrue("Both comparison portraits should load from Comic Vine",
+                    countText(root, "Retrato editorial · Comic Vine") >= 2);
+        }
         instrumentation.runOnMainSync(() -> capture(activity, root, "compare-variant.png"));
 
         Method battle = MainActivity.class.getDeclaredMethod("showMagnetoBattle",
@@ -180,6 +199,18 @@ public final class LovableScreensTest {
     }
 
     private static boolean hasText(View view, String target) { return findText(view, target) != null; }
+
+    private static int countText(View view, String target) {
+        int count = view instanceof TextView
+                && ((TextView) view).getText().toString().contains(target) ? 1 : 0;
+        if (view instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) view;
+            for (int index = 0; index < group.getChildCount(); index++) {
+                count += countText(group.getChildAt(index), target);
+            }
+        }
+        return count;
+    }
 
     private static TextView findText(View view, String target) {
         if (view instanceof TextView && ((TextView) view).getText().toString().contains(target))

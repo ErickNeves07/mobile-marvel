@@ -34,10 +34,14 @@
 
 - FastAPI `python -m pytest -q` no diretório `backend`: **45 testes passaram**, incluindo mapeamento 21/21, DTO, ID inválido e erro sanitizado. Primeira tentativa a partir da raiz falhou apenas na coleta por `PYTHONPATH`/diretório; repetida na pasta correta com sucesso.
 - Após a última alteração no carregador de retratos, Android `validate-local.ps1 -Target android`: build/testes JVM/lint passaram. Instrumentação AVD **22/22**; inclui 105 slots de variantes, fallback offline e Fragmento diário. `scripts/build-release.ps1` passou build/lint release, zipalign e assinatura v2. APK offline: 5.107.462 bytes, SHA-256 `9382C92F2228F700FB52EA09DD6A46924F5CC67583CAC62D08BEAE3290F6DAA5`.
-- Capturas `collection-portraits.png` e `compare-variant.png` mostram os slots e estado sem host. O app compilado ainda não dispõe de URL HTTPS do backend, então a imagem real no APK e seu link não foram verificados visualmente; esse é o critério pendente.
+- Capturas `collection-portraits.png` e `compare-variant.png` mostram os slots sem host. Após configurar a URL Render, as capturas locais ignoradas pelo Git `collection-portraits-live.png` e `compare-variant-live.png` mostram Homem de Ferro, Wolverine e Professor Xavier reais com crédito/link. Elas não são reproduzidas no repositório por conterem retratos editoriais. O teste AVD esperou os retratos carregarem antes de capturar e passou **22/22** após a última edição da instrumentação. O link foi conferido pelo código e presença/clickability na UI; abertura no navegador externo não foi ensaiada no aparelho.
+
+## Integração hospedada, 2026-10-04
+
+- Render `https://mobile-marvel-8qex.onrender.com`: `/health` respondeu `ok`; `/ready` respondeu `ok`, Comic Vine e Groq configurados; catálogos retornaram 21 personagens e duas campanhas. Consulta de todos os IDs por `/v1/editorial/game-characters/{id}`: **21/21** game IDs, fonte Comic Vine e host de imagem `comicvine.gamespot.com` corretos. A presença da chave Groq não prova resposta real do provedor.
+- `scripts/build-release.ps1` com `ORG_GRADLE_PROJECT_riApiBaseUrl` gerou APK assinado de **5.107.614 bytes**, SHA-256 `195005E67AC093A57C11457718BE6391D5FBF65F5C4D5B3BBAC743EFA77C09FD`; URL confirmada no DEX, `zipalign` e assinatura v2 verificados. `validate-local.ps1 -Target android` e `run-android-instrumentation.ps1` passaram com a mesma URL e a última versão dos testes.
 
 ## Pendências para encerramento
 
-- Publicar o backend no Render, cadastrar secrets no painel e obter URL HTTPS.
-- Recompilar Android com `-PriApiBaseUrl=<URL>`, verificar retratos reais dos 21 personagens, crédito/link e fallback no dispositivo, então reconstruir APK final assinado.
-- Comparar a Coleção renderizada com Lovable. A grade e os cards ainda divergem do protótipo além da fonte de imagem; spec 027 continua aberta.
+- Abrir o link de origem e exercer fallback sem rede em aparelho físico; a implementação e o estado offline foram testados no AVD, mas o toque manual no telefone ainda falta.
+- A grade e os cards da Coleção ainda divergem do Lovable além da fonte de imagem; paridade global segue aberta na spec 027.

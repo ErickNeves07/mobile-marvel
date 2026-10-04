@@ -1,6 +1,6 @@
 # Marvel: Ruptura Infinita
 
-Projeto Android Java + FastAPI. O fonte inclui gameplay offline de desafios/campanhas/recompensas, APIs Comic Vine/Deadpool e progressão local da Manopla/Câmara de Variantes. A release assinada 0.2.0 foi reconstruída e validada localmente; a publicação Render e o APK com URL pública continuam pendentes. Detalhes, hash e limites em [RELEASE_NOTES.md](RELEASE_NOTES.md).
+Projeto Android Java + FastAPI. O fonte inclui gameplay offline de desafios/campanhas/recompensas, APIs Comic Vine/Deadpool e progressão local da Manopla/Câmara de Variantes. O backend está publicado no Render e a release assinada 0.2.0 foi reconstruída com sua URL HTTPS. Detalhes, hash e limites em [RELEASE_NOTES.md](RELEASE_NOTES.md).
 
 ## Desenvolvimento
 
@@ -19,8 +19,8 @@ Projeto Android Java + FastAPI. O fonte inclui gameplay offline de desafios/camp
 
 ## Estado e limitacoes
 
-- Android: testes JVM, lint, debug/release assemble e instrumentação no AVD (22/22) passaram após fusão 2:1, recompensas de campanha e Fragmento diário. Release assinada 0.2.0 candidata foi reconstruída; veja [RELEASE_NOTES.md](RELEASE_NOTES.md).
+- Android: testes JVM, lint, debug/release assemble e instrumentação no AVD (22/22) passaram com `https://mobile-marvel-8qex.onrender.com`. Retratos reais e créditos foram capturados na Coleção e nos dois lados da Comparação. Release assinada 0.2.0 candidata foi reconstruída; veja [RELEASE_NOTES.md](RELEASE_NOTES.md).
 - Backend: 45 testes passaram, inclusive proxy e vínculo dos 21 retratos Comic Vine; `pip check` foi validado anteriormente.
 - Manopla/Camara e progressao de variantes foram implementadas e validadas localmente em `specs/026`.
-- A chave Comic Vine está apenas no `.env` local ignorado pelo Git. Os 21 personagens foram conferidos na API real; o Android já possui slots, cache, crédito e link para os retratos, mas o APK ainda precisa de host HTTPS para mostrá-los. Smoke real Groq falhou com erro sanitizado. Teste em aparelho físico pendente; veja Q-026/Q-028/Q-032.
+- A chave Comic Vine está apenas no `.env` local ignorado pelo Git e no ambiente privado do Render. Os 21 personagens foram conferidos na API publicada; o APK usa a URL HTTPS e o AVD carregou retratos com crédito. A configuração Groq foi detectada por `/ready`, mas a resposta real do provedor segue sem validação. Teste em aparelho físico pendente; veja Q-028/Q-032.
 - A refatoração visual fiel ao protótipo Lovable está especificada em `specs/027-lovable-visual-refactor/` e segue parcial, especialmente na grade da Coleção e em subfluxos.

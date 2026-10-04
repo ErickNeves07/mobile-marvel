@@ -44,6 +44,8 @@ artifacts/
 reports/
 *.apk
 *.aab
+# Capturas locais com retratos editoriais Comic Vine; não reproduzir no repositório.
+specs/030-comic-vine-character-art/*-live.png
 
 # Local release signing material
 *.p12

@@ -53,6 +53,8 @@ Arquivos oficiais [Barlow Condensed](https://github.com/google/fonts/tree/main/o
 
 ## Limitações e riscos residuais
 
+Atualização 2026-10-04: o plano de 105 artes exclusivas foi substituído por decisão de Erick: retratos Comic Vine temporários por personagem, repetidos nas variantes. Render e APK online passaram no AVD; imagens e créditos reais estão em `specs/030-comic-vine-character-art/collection-portraits-live.png` e `compare-variant-live.png`. Comparação com `reports/lovable-research/lovable-colecao-mobile.png`: o retrato melhora o card, mas a Coleção Android ainda é uma lista longa; o Lovable mostra dois trilhos de filtros, card destacado e grade de duas colunas. Esta diferença visual permanece em T06, sem alterar as regras de jogo.
+
 - A URL publicada não concede acesso ao fonte editável nem a uma sessão Lovable autenticada; capturas renderizadas públicas foram obtidas.
 - A abertura e navegação foram aprovadas por Erick; regras e recompensas divergentes permanecem Q-039/Q-040.
 - A geração integrada de arte retornou `moderation_blocked` em quatro tentativas. Q-041 define a dependência de uma alternativa viável para 105 retratos.

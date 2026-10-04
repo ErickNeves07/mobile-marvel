@@ -353,3 +353,10 @@
 
 - Erick informou que o menu **New** do seu painel oferece Web Services, mas não Blueprint. A documentação oficial Render confirma criação manual via Web Service a partir de GitHub; `docs/11-RENDER-DEPLOY.md` agora lista branch, runtime, diretório raiz, comandos, plano, healthcheck e variáveis exatas. O `render.yaml` segue como registro opcional, sem ser lido automaticamente na criação manual.
 - Sem URL ou sessão do serviço ainda; próximo passo é Erick criar o Web Service, inserir os secrets no painel e compartilhar somente a URL HTTPS para smoke e novo APK.
+
+## Render publicado e APK com URL — 2026-10-04
+
+- Erick informou `https://mobile-marvel-8qex.onrender.com`. Smoke público: `/health=ok`, `/ready=ok` com Comic Vine/Groq presentes, catálogos 21 personagens/duas campanhas e 21/21 rotas de retrato com ID/fonte/host corretos. Nenhuma chave foi impressa.
+- `scripts/build-release.ps1` com `ORG_GRADLE_PROJECT_riApiBaseUrl` gerou APK v2 assinado 5.107.614 bytes, SHA-256 `195005E67AC093A57C11457718BE6391D5FBF65F5C4D5B3BBAC743EFA77C09FD`; URL encontrada no DEX. O APK e a keystore permanecem fora do Git.
+- A instrumentação original de Coleção falhou com URL live porque só aceitava fallback ou retrato concluído aos 500 ms. Teste corrigido para reconhecer loading e aguardar retrato real quando há host. Comparação também aguarda dois retratos reais. Após última edição de teste, build/lint Android e instrumentação online **22/22** passaram. Capturas `collection-portraits-live.png` e `compare-variant-live.png` foram inspecionadas: Homem de Ferro, Wolverine e Professor Xavier aparecem com crédito/link.
+- Permanecem teste físico, abertura do link externo/fallback manual, paridade visual completa da grade da Coleção/Forja e smoke real Groq. Próximo passo é atualizar o repositório com a evidência e testar o APK candidato no telefone.
