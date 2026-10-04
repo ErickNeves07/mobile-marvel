@@ -4,6 +4,8 @@ APK assinado: `artifacts/Marvel-Ruptura-Infinita-release.apk` · 5.119.606 bytes
 
 O Run comum do Android Studio agora também compila essa URL por padrão. Antes dessa correção, o debug sem `-PriApiBaseUrl` ficava offline, explicando retratos/Deadpool ausentes mesmo com o backend disponível. Para testar offline de propósito, use `-PriApiBaseUrl=`.
 
+APK debug para atualizar a instalação de desenvolvimento no celular: `artifacts/Marvel-Ruptura-Infinita-debug-0.3.0.apk` · 6.202.280 bytes · SHA-256 `BB7A14F48B5407AEE3B81E4F586D809C424DE34EA6B1EE264D0FCDC978D4E639`. Gerado sem `testOnly`, instalado com `adb install -r` no aparelho de Erick; Android confirmou `versionCode=3`, `versionName=0.3.0` e preservou `firstInstallTime`. Dois APKs gerados 0.1.0 nas pastas antigas `android-app/app/build` e `.validation-output` foram removidos para evitar seleção errada. Os APKs em `artifacts` são ignorados pelo Git.
+
 - Novos jogadores possuem Homem-Aranha, Wolverine e Tocha Humana desde o início. Personagens anteriores já possuídos permanecem após a migração do banco v5→v6.
 - Coleção raiz apresenta 21 personagens gerais; detalhe permite inspecionar/equipar variantes, ver atributos de jogo e fatos editoriais Comic Vine. Carregamento de retratos ganhou centralização, retry, pré-carregamento e limite suficiente para a imagem de 8,29 MB do Homem-Aranha.
 - As seis missões de recompensa aprovadas são batalhas individuais. Equipe de três personagens possuídos pode cruzar facções; a variante equipada altera o poder. Cada batalha tem decisões, efeitos, retratos, derrota e nova tentativa; somente a primeira vitória paga o pacote da missão.

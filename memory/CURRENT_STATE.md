@@ -4,6 +4,8 @@
 
 ## Spec 032 — recuperação de gameplay e design (em andamento, 2026-10-04)
 
+- Erick tentou instalar e recebeu 0.1.0 porque havia dois APKs antigos nas saídas de build dentro do projeto; ambos foram identificados por `aapt` e removidos individualmente. Telefone `C6OFVWYD4DZTBA5H` foi atualizado para debug 0.3.0 com `adb install -r`, sem limpar dados (`firstInstallTime` preservado). A nova navegação abriu e a frase antiga não apareceu. APK debug normal sem `testOnly` está em `artifacts/Marvel-Ruptura-Infinita-debug-0.3.0.apk`, 6.202.280 bytes, SHA-256 `BB7A14F48B5407AEE3B81E4F586D809C424DE34EA6B1EE264D0FCDC978D4E639`. Próximo teste físico: imagens, batalha, merge e variantes; não rodar instrumentação mutável no aparelho.
+
 - O Android agora inicia um novo banco v6 com **Homem-Aranha, Wolverine e Tocha Humana** possuídos na Origem. Migração preserva variantes já possuídas; a regra para adquirir os outros 18 depende de Q-045. Coleção raiz mostra 21 personagens gerais; detalhe mostra cinco variantes, atributos de jogo e fatos editoriais Comic Vine.
 - As seis missões com recompensas já aprovadas aparecem como seis capítulos individuais. Cada capítulo abre escolha visual de três personagens possuídos de qualquer facção; o poder da variante equipada altera o combate. Há quatro rounds, decisões, efeitos, derrota/nova tentativa e recompensa só na primeira vitória. A possível substituição pelos nove capítulos do Lovable depende de Q-046; não foram inventados três pacotes extras.
 - Forja mostra receitas 2:1 disponíveis sem expandir detalhes; botão debug que criava itens foi removido. Personagem inicial pode ativar Manopla completa a partir do detalhe e subir para o próximo patamar; teste instrumentado confirmou Wolverine Ascensão sem consumir a Joia.

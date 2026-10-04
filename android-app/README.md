@@ -22,6 +22,8 @@ Se a sincronização já estava aberta antes desta correção, use **File > Sync
 
 Se houver uma versão debug instalada, o APK release usa outra assinatura e não pode substituí-la preservando os dados. Para atualizar pelo terminal sem trocar a assinatura, gere o debug e instale com `adb install -r <caminho-do-app-debug.apk>`.
 
+Nesta máquina, para instalação manual da avaliação 0.3.0, use `../artifacts/Marvel-Ruptura-Infinita-debug-0.3.0.apk` (assinatura debug, compatível com o debug já instalado). APKs são ignorados pelo Git; em outro checkout, gere o seu. Não escolha um `app-debug.apk` de uma pasta `build` antiga: a saída Gradle atual fica em `%LOCALAPPDATA%\RupturaInfinita\gradle-builds\...` e esses arquivos antigos podem ter outra versão. Confirme `0.3.0` nas informações do aplicativo após instalar.
+
 ## Verificação no Windows
 
 Use o JBR e SDK já instalados sem alterar o ambiente global:

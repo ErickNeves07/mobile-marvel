@@ -8,4 +8,4 @@
 - [ ] T06 — Make six approved missions interactive, illustrated battles; nine-chapter expansion waits for Q-046.
 - [ ] T07 — Restore Deadpool actions/status and improve Nexus portraits/Manopla and Daily Challenge; Groq live awaits Q-047 and deploy.
 - [x] T08 — Adjust action spacing, inspect main/subscreens beside Lovable and remove debug reward control.
-- [ ] T09 — JVM/backend/instrumented/lint/debug/signed release passed; phone smoke and hosted boss portraits still pending.
+- [ ] T09 — JVM/backend/instrumented/lint/debug/signed release passed; debug 0.3.0 installed and new navigation confirmed on phone, but full phone gameplay smoke and hosted boss portraits still pending.

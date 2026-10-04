@@ -1,5 +1,11 @@
 # Log de sessões
 
+## 2026-10-04 — correção da instalação antiga no celular
+
+- O aparelho reconectou com `versionCode=1`/`versionName=0.1.0`; `aapt` identificou dois APKs 0.1.0 esquecidos em `android-app/app/build` e `.validation-output`. O APK release em `artifacts` estava correto em 0.3.0.
+- Gerei debug normal 0.3.0 sem `testOnly`, SHA-256 `BB7A14F48B5407AEE3B81E4F586D809C424DE34EA6B1EE264D0FCDC978D4E639`, e copiei para `artifacts/Marvel-Ruptura-Infinita-debug-0.3.0.apk`. `adb install -r` funcionou; `dumpsys package` confirmou 0.3.0 e `firstInstallTime` preservado. A nova navegação apareceu, a tela “Fundação Android” não. Removi somente os dois APKs gerados obsoletos.
+- Próximo passo: smoke manual no telefone para retratos, batalha, Forja/Manopla e Deadpool após deploy atualizado do Render; as dúvidas Q-045/Q-046 permanecem abertas.
+
 ## 2026-10-04 — recuperação de gameplay, imagens e build Android online
 
 - Spec 032 implementada nas partes aprovadas: trio inicial Homem-Aranha/Wolverine/Tocha Humana, posse persistida, seleção de qualquer trio possuído, seis missões como batalhas interativas separadas, efeitos/retry, Coleção geral com variantes/atributos/editorial, merge 2:1 visível, ativação da Manopla e avanço de variante, retratos Comic Vine, Nexus/Desafio/Deadpool revisados. Q-045 e Q-046 ainda pedem regra de aquisição e estrutura final de capítulos.
