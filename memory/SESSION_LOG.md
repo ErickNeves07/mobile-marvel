@@ -507,3 +507,8 @@ Commit 49c535e publicado em origin/main. O trabalho no repositório está comple
 - Specs 043-045 implementadas. Android: 44 testes JVM, lint e assemble passaram; backend `pip check` limpo e pytest 58/58 passaram.
 - Testes instrumentados foram compilados; o AVD rejeitou a instalacao por assinatura diferente (`INSTALL_FAILED_UPDATE_INCOMPATIBLE`). Dados do AVD foram preservados.
 - Commits locais: `05170f7`, `6ce5c4e`, `ac9c363`; documentacao de release em preparacao para commit. Push foi autorizado por Erick. Render nao foi acessivel; nao houve deploy, chamada paga ou instalacao no celular.
+
+## 2026-10-05 - push 0.12.0 concluido
+
+- `main` foi enviado para `origin/main`; remoto avancou de `049fdd9` para `c5c9fa4`. Commits: `05170f7`, `6ce5c4e`, `ac9c363`, `c5c9fa4`.
+- Erick pode iniciar o deploy. Nao foi realizado deploy Render nem instalacao no celular; aguardar pedido apos o deploy.

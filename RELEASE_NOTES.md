@@ -1,4 +1,4 @@
-# Candidato local 0.12.0 - 2026-10-05 (push solicitado; deploy Render pendente)
+# Candidato local 0.12.0 - 2026-10-05 (publicado em origin/main; deploy Render pendente)
 
 - Deadpool tem retry compativel com o schema legado do Render, contexto compacto com equipe/batalha/missao/recursos e respostas locais com humor quando o backend falha. O status do Render e a presenca de `GEMINI_API_KEY` ainda precisam ser confirmados apos deploy.
 - Chefes ganharam +6% de HP e +8% de dano final recebido pela equipe, mantendo padroes de contra-ataque, recompensas e regras de derrota.
