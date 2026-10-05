@@ -484,3 +484,9 @@ Commit 49c535e publicado em origin/main. O trabalho no repositório está comple
 - Live GET /ready returned all integrations configured. GET /openapi.json proved Render still exposes the legacy Deadpool request schema without game_context; Android now retries HTTP 422 without that field. Full game context resumes when Render updates.
 - Gradle unit/lint/build passed. Final full instrumentation: 33/33. No phone install, push, deploy, or paid POST.
 - APK: artifacts/Marvel-Ruptura-Infinita-debug-0.8.0.apk.
+## 2026-10-05 - GitHub push da spec 042
+
+- Commit `0e7387c` (`feat(gameplay): add active-hero battles and Deadpool context`) enviado com sucesso para `origin/main`; branch remoto confirmado atualizado.
+- O staging incluiu Android, backend, specs, release notes e memória; `.env`, APKs e caches temporários ficaram fora do commit. `git diff --cached --check` passou.
+- Validações disponíveis: smoke Java direcionado para troca/HP/super/KO/vitória e compilação sintática Python passaram. Gradle completo e pytest não foram executados por bloqueios locais de SDK, rede/dependências e venv.
+- Próximo passo: Erick pode fazer o deploy do Render. Nenhum deploy nem instalação no celular foi feito nesta sessão.

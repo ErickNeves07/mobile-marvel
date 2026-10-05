@@ -5,7 +5,7 @@
 - Vitoria/recompensa e derrota mostram resumo dos acontecimentos sem alterar economia ou premios.
 - Deadpool recebe roster completo, desbloqueios, variantes, atributos authored, equipe/luta atual, campanha, recursos, Forja e desafio diario. O backend local aceita contexto ate 6.000 caracteres.
 - Build e testes pendentes: Gradle Wrapper nao conseguiu baixar por bloqueio de rede; SDK Android e Python base da venv nao estavam acessiveis pelas permissoes do ambiente. Render ainda precisa do deploy do backend atualizado para aceitar `game_context`.
-- Nenhum APK foi produzido/instalado; nenhum push, deploy ou commit foi feito.
+- Commit `0e7387c` foi enviado para `origin/main`; deploy do Render e instalação no celular ainda não foram feitos. Nenhum APK foi produzido nesta sessão.
 
 # Candidato local 0.10.0 — 2026-10-05 (ainda sem APK)
 

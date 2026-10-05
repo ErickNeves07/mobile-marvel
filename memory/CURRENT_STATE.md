@@ -1,5 +1,10 @@
 # Current state - 2026-10-05
 
+## GitHub handoff
+
+- The active-hero battle and expanded Deadpool context changes are committed and pushed to `origin/main` as `0e7387c` (`feat(gameplay): add active-hero battles and Deadpool context`). `main` matches the remote. Erick can deploy the backend from this revision; no Render deployment was started.
+- Android/Backend full builds remain unverified in this environment because Gradle dependencies, Android SDK access, and the configured Python venv were unavailable. Targeted Java domain smoke and Python syntax checks passed. Local Gradle download residue is untracked in `android-app/.gradle-tmp/` and `android-app/gradle-home/`; it is not part of the remote commit.
+
 ## Spec 042 - implementation in validation
 
 - Erick resolved Q-059: free switch, boss damages active hero only, reserve HP persists, HP uses Vida/9, bosses target trio strength, shared super and no action cap. DEC-093 records the rule.
