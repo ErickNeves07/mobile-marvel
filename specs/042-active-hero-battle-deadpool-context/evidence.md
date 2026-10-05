@@ -1,6 +1,6 @@
 # 042 - Evidence
 
-Status: implementation complete; full Android/backend suites blocked by this environment.
+Status: implementation complete; Android build and physical installation verified. Backend pytest and Render deployment remain pending.
 
 ## Implemented
 
@@ -14,6 +14,7 @@ Status: implementation complete; full Android/backend suites blocked by this env
 
 - Java domain classes compiled with `javac` using a temporary Android `R` stub; a domain smoke run passed free switching, HP persistence, active-only damage, switching before spending shared super, KO/replacement/defeat, counter-based victory and an 8-action fight.
 - Python syntax compilation passed for edited backend and route-test files.
-- Full Gradle suite could not start: wrapper distribution download was blocked by network policy; the local validation script could not access the Android SDK.
-- Backend pytest could not start: the local validation script could not access the venv base Python; system Python has no pytest module.
-- No full Android build, screenshots, device install, Render call or remote action was completed.
+- First Android build exposed a reference to undefined `R.dimen.space_5`; defining it as 20dp fixed compilation.
+- `powershell -ExecutionPolicy Bypass -File scripts/validate-local.ps1 -Target android` passed `testDebugUnitTest`, `lintDebug`, and `assembleDebug`.
+- APK package metadata reports `versionCode=11`, `versionName=0.11.0`. `adb -s C6OFVWYD4DZTBA5H install -r ...app-debug.apk` succeeded, the app launched to `MainActivity`, and recent logcat showed no app crash.
+- Backend pytest was not run because its configured Python venv/base interpreter is inaccessible. No Render request/deploy was performed.

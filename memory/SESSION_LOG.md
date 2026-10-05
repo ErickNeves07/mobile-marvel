@@ -490,3 +490,8 @@ Commit 49c535e publicado em origin/main. O trabalho no repositório está comple
 - O staging incluiu Android, backend, specs, release notes e memória; `.env`, APKs e caches temporários ficaram fora do commit. `git diff --cached --check` passou.
 - Validações disponíveis: smoke Java direcionado para troca/HP/super/KO/vitória e compilação sintática Python passaram. Gradle completo e pytest não foram executados por bloqueios locais de SDK, rede/dependências e venv.
 - Próximo passo: Erick pode fazer o deploy do Render. Nenhum deploy nem instalação no celular foi feito nesta sessão.
+## 2026-10-05 - Instalação Android 0.11.0
+
+- O celular físico `C6OFVWYD4DZTBA5H` estava conectado junto com um emulador; a instalação foi direcionada explicitamente ao telefone. O APK debug `versionCode=11`, `versionName=0.11.0` instalou com `adb install -r` e abriu em `MainActivity`, sem crash recente no logcat.
+- A primeira compilação falhou por referência inexistente a `R.dimen.space_5` em `MainActivity`; foi definido `space_5=20dp`. Em seguida `testDebugUnitTest`, `lintDebug` e `assembleDebug` passaram via `scripts/validate-local.ps1 -Target android`.
+- A correção Android foi registrada em `25db6bf` e incluída no handoff ao branch principal. Nenhum deploy Render foi feito; pytest backend continua pendente porque a venv configurada não está acessível.

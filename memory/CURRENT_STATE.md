@@ -2,8 +2,8 @@
 
 ## GitHub handoff
 
-- The active-hero battle and expanded Deadpool context changes are committed and pushed to `origin/main` as `0e7387c` (`feat(gameplay): add active-hero battles and Deadpool context`). `main` matches the remote. Erick can deploy the backend from this revision; no Render deployment was started.
-- Android/Backend full builds remain unverified in this environment because Gradle dependencies, Android SDK access, and the configured Python venv were unavailable. Targeted Java domain smoke and Python syntax checks passed. Local Gradle download residue is untracked in `android-app/.gradle-tmp/` and `android-app/gradle-home/`; it is not part of the remote commit.
+- The active-hero battle and expanded Deadpool context changes are in `0e7387c` (`feat(gameplay): add active-hero battles and Deadpool context`). Android compile fix `25db6bf` defines missing `space_5=20dp`. No Render deployment was started.
+- Android 0.11.0 was built successfully after defining the missing 20dp `space_5` dimension. `testDebugUnitTest`, `lintDebug`, and `assembleDebug` passed; it was installed and launched on phone `C6OFVWYD4DZTBA5H` (package versionCode 11, versionName 0.11.0). Backend pytest remains unverified because the configured Python venv was unavailable. Local Gradle download residue is untracked in `android-app/.gradle-tmp/` and `android-app/gradle-home/`; it is not part of the remote commit.
 
 ## Spec 042 - implementation in validation
 

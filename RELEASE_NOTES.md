@@ -1,11 +1,11 @@
-# Candidato local 0.11.0 - 2026-10-05 (APK pendente)
+# Candidato local 0.11.0 - 2026-10-05 (Android instalado; Render pendente)
 
 - Combate usa tres herois com HP individual, troca gratuita, dano do chefe apenas no ativo, super compartilhado e batalhas sem limite de acoes.
 - Se um heroi cair, o jogador escolhe um reserva vivo. Cards mostram HP e especial por personagem; ataque, defesa e desestabilizacao recebem animacoes proprias.
 - Vitoria/recompensa e derrota mostram resumo dos acontecimentos sem alterar economia ou premios.
 - Deadpool recebe roster completo, desbloqueios, variantes, atributos authored, equipe/luta atual, campanha, recursos, Forja e desafio diario. O backend local aceita contexto ate 6.000 caracteres.
-- Build e testes pendentes: Gradle Wrapper nao conseguiu baixar por bloqueio de rede; SDK Android e Python base da venv nao estavam acessiveis pelas permissoes do ambiente. Render ainda precisa do deploy do backend atualizado para aceitar `game_context`.
-- Commit `0e7387c` foi enviado para `origin/main`; deploy do Render e instalação no celular ainda não foram feitos. Nenhum APK foi produzido nesta sessão.
+- `testDebugUnitTest`, `lintDebug` e `assembleDebug` passaram. APK debug versionCode 11 / 0.11.0 instalado e aberto no telefone `C6OFVWYD4DZTBA5H`; `space_5=20dp` corrigiu a falha de compilação.
+- Código em `0e7387c`; correção Android `25db6bf` define o recurso faltante. Render ainda precisa receber o backend que aceita `game_context`; pytest backend não foi executado por indisponibilidade da venv. Nenhum deploy foi iniciado.
 
 # Candidato local 0.10.0 — 2026-10-05 (ainda sem APK)
 
