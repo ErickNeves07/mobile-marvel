@@ -464,7 +464,7 @@ public final class MainActivity extends AppCompatActivity {
     }
 
     private void addThemeToggle(LinearLayout parent) {
-        boolean dark = getPreferences(MODE_PRIVATE).getBoolean("dark_mode", true);
+        boolean dark = isDarkMode();
         TextView toggle = text(dark ? "☼  MODO CLARO" : "☾  MODO ESCURO",
                 R.style.TextAppearance_Ruptura_Label, R.color.accent_gold, true);
         toggle.setGravity(Gravity.CENTER);
@@ -618,9 +618,9 @@ public final class MainActivity extends AppCompatActivity {
             String buyLabel = !unlocked ? "DESBLOQUEIA COM XP"
                     : inventory.count(stone, ForgeStage.FRAGMENT) >= ForgePolicy.MAX_COUNT
                     ? "INVENTÁRIO CHEIO" : "COMPRAR 1 FRAGMENTO";
-            TextView buy = action(buyLabel, () -> purchaseShopFragment(stone, state));
-            buy.setEnabled(canBuy);
-            buy.setAlpha(canBuy ? 1f : .55f);
+            TextView buy = shopButton(buyLabel, canBuy,
+                    () -> purchaseShopFragment(stone, state));
+            buy.setTag("fragment-shop-buy-button");
             LinearLayout.LayoutParams buyParams = new LinearLayout.LayoutParams(-1, -2);
             buyParams.topMargin = dimension(R.dimen.space_2);
             item.addView(buy, buyParams);
@@ -657,6 +657,36 @@ public final class MainActivity extends AppCompatActivity {
                 });
             }
         });
+    }
+
+    private boolean isDarkMode() {
+        return getPreferences(MODE_PRIVATE).getBoolean("dark_mode", true);
+    }
+
+    private TextView shopButton(String label, boolean enabled, Runnable task) {
+        if (!isDarkMode()) {
+            TextView lightButton = action(label, task);
+            lightButton.setEnabled(enabled);
+            lightButton.setAlpha(enabled ? 1f : .55f);
+            return lightButton;
+        }
+        TextView button = text(label, R.style.TextAppearance_Ruptura_Label,
+                enabled ? R.color.accent_gold : R.color.text_secondary, true);
+        button.setGravity(Gravity.CENTER);
+        button.setAllCaps(true);
+        button.setLetterSpacing(0.06f);
+        button.setMinHeight(dimension(R.dimen.target_min));
+        button.setPadding(dimension(R.dimen.space_3), dimension(R.dimen.space_2),
+                dimension(R.dimen.space_3), dimension(R.dimen.space_2));
+        button.setFocusable(true);
+        button.setClickable(true);
+        button.setEnabled(enabled);
+        button.setAlpha(enabled ? 1f : .72f);
+        button.setBackground(new AngularPanelDrawable(getColor(R.color.surface_elevated),
+                getColor(R.color.surface_primary), getColor(enabled
+                ? R.color.accent_gold : R.color.border_subtle), dimension(R.dimen.angular_cut), false));
+        button.setOnClickListener(view -> { playUiSound(); task.run(); });
+        return button;
     }
 
     private void startBattleMusic() {
@@ -791,7 +821,41 @@ public final class MainActivity extends AppCompatActivity {
         status.setPadding(dimension(R.dimen.space_2), dimension(R.dimen.space_2),
                 dimension(R.dimen.space_2), dimension(R.dimen.space_2));
         hero.addView(status);
+        LinearLayout people = new LinearLayout(this);
+        people.setGravity(Gravity.CENTER);
+        addNexusCompanion(people, "senhor-fantastico", "Reed Richards", R.string.nexus_reed);
+        addNexusCompanion(people, "doutor-estranho", "Doutor Estranho", R.string.nexus_strange);
+        LinearLayout.LayoutParams peopleParams = new LinearLayout.LayoutParams(-1, -2);
+        peopleParams.topMargin = dimension(R.dimen.space_2);
+        hero.addView(people, peopleParams);
         page.addView(hero, new LinearLayout.LayoutParams(-1, dimension(R.dimen.nexus_hero_height)));
+    }
+
+    private void addNexusCompanion(LinearLayout people, String gameId, String name, int labelRes) {
+        LinearLayout companion = new LinearLayout(this);
+        companion.setOrientation(LinearLayout.VERTICAL);
+        companion.setGravity(Gravity.CENTER_HORIZONTAL);
+        LinearLayout.LayoutParams companionParams = new LinearLayout.LayoutParams(0, -2, 1f);
+        companionParams.leftMargin = dimension(R.dimen.space_1);
+        companionParams.rightMargin = dimension(R.dimen.space_1);
+        people.addView(companion, companionParams);
+        ImageView portrait = new ImageView(this);
+        portrait.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        portrait.setContentDescription("Imagem Comic Vine de " + name);
+        portrait.setBackground(background(R.color.surface_primary, R.color.border_subtle,
+                dimension(R.dimen.radius_card)));
+        companion.addView(portrait, new LinearLayout.LayoutParams(-1,
+                dimension(R.dimen.space_8) * 3));
+        TextView label = text(labelRes, R.style.TextAppearance_Ruptura_Caption,
+                R.color.text_primary, true);
+        label.setGravity(Gravity.CENTER);
+        companion.addView(label, new LinearLayout.LayoutParams(-1, -2));
+        TextView credit = text(R.string.editorial_portrait_loading,
+                R.style.TextAppearance_Ruptura_Caption, R.color.text_secondary, false);
+        credit.setGravity(Gravity.CENTER);
+        credit.setMinHeight(dimension(R.dimen.target_min));
+        companion.addView(credit, new LinearLayout.LayoutParams(-1, -2));
+        portraitLoader.load(gameId, name, portrait, credit);
     }
 
     private void renderNexusResources(LinearLayout page) {
@@ -1433,9 +1497,9 @@ public final class MainActivity extends AppCompatActivity {
                                        List<GameCatalogCharacter> roster,
                                        GameVariantTier focusTier) {
         if (forgeRepository.isGauntletActivated()
-                && !getPreferences(MODE_PRIVATE).getBoolean("chamber_briefing_seen", false)) {
+                && !getPreferences(MODE_PRIVATE).getBoolean("chamber_briefing_seen_v2", false)) {
             showStorySequence(CampaignStory.chamberOpening(), null, () -> {
-                getPreferences(MODE_PRIVATE).edit().putBoolean("chamber_briefing_seen", true).apply();
+                getPreferences(MODE_PRIVATE).edit().putBoolean("chamber_briefing_seen_v2", true).apply();
                 showCharacterVariants(character, roster, focusTier);
             });
             return;
@@ -1455,14 +1519,6 @@ public final class MainActivity extends AppCompatActivity {
         LinearLayout.LayoutParams titleParams = new LinearLayout.LayoutParams(-1, -2);
         titleParams.topMargin = dimension(R.dimen.space_4);
         page.addView(title, titleParams);
-        if (forgeRepository.isGauntletActivated()) {
-            TextView briefing = action("POR QUE EXISTE A CÂMARA?  ·  REVER EXPLICAÇÃO", () ->
-                    showStorySequence(CampaignStory.chamberOpening(), null,
-                            () -> showCharacterVariants(character, roster, focusTier)));
-            LinearLayout.LayoutParams briefingParams = new LinearLayout.LayoutParams(-1, -2);
-            briefingParams.topMargin = dimension(R.dimen.space_2);
-            page.addView(briefing, briefingParams);
-        }
         ImageView cover = editorialImage(page, dimension(R.dimen.space_8) * 6);
         TextView source = text(R.string.editorial_portrait_loading,
                 R.style.TextAppearance_Ruptura_Caption, R.color.text_secondary, false);
@@ -1962,7 +2018,8 @@ public final class MainActivity extends AppCompatActivity {
             } catch (Exception error) {
                 String localLine = DeadpoolOfflineReply.respond(prompt, gameContext, offlineTurn);
                 runOnUiThread(() -> {
-                    answer.setText(localLine + "\n\n" + getString(R.string.deadpool_offline));
+                    answer.setText(localLine + "\n\n"
+                            + getString(R.string.deadpool_network_offline));
                     deadpoolPortraitTurn++;
                     GameVariantTier[] tiers = GameVariantTier.values();
                     portraitLoader.loadVariant("deadpool", tiers[deadpoolPortraitTurn % tiers.length],
@@ -2522,7 +2579,9 @@ public final class MainActivity extends AppCompatActivity {
     }
 
     private TextView action(String label, Runnable task) {
-        TextView button = text(label, R.style.TextAppearance_Ruptura_Label, R.color.canvas, true);
+        boolean dark = isDarkMode();
+        TextView button = text(label, R.style.TextAppearance_Ruptura_Label,
+                dark ? R.color.accent_gold : R.color.canvas, true);
         button.setFocusable(true);
         button.setClickable(true);
         button.setMinimumHeight(dimension(R.dimen.space_8) * 2);
@@ -2530,11 +2589,15 @@ public final class MainActivity extends AppCompatActivity {
                 dimension(R.dimen.space_4), dimension(R.dimen.space_3));
         button.setGravity(Gravity.CENTER);
         button.setAllCaps(true);
-        button.setLetterSpacing(0.16f);
+        button.setLetterSpacing(dark ? 0.08f : 0.16f);
         button.setOnClickListener(view -> { playUiSound(); task.run(); });
-        button.setBackground(new AngularPanelDrawable(getColor(R.color.accent_cyan),
-                getColor(R.color.accent_quartet), getColor(R.color.accent_cyan),
-                dimension(R.dimen.angular_cut), false));
+        button.setBackground(dark
+                ? new AngularPanelDrawable(getColor(R.color.surface_elevated),
+                        getColor(R.color.surface_primary), getColor(R.color.accent_gold),
+                        dimension(R.dimen.angular_cut), false)
+                : new AngularPanelDrawable(getColor(R.color.accent_cyan),
+                        getColor(R.color.accent_quartet), getColor(R.color.accent_cyan),
+                        dimension(R.dimen.angular_cut), false));
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, -2);
         params.topMargin = dimension(R.dimen.space_3);
         params.bottomMargin = dimension(R.dimen.space_2);
@@ -3127,7 +3190,7 @@ public final class MainActivity extends AppCompatActivity {
                 R.color.text_primary, false));
     }
 
-    private void showCampaignRewardScreen(String campaignId, int mission) {
+    private void showCampaignRewardScreen(String campaignId, int mission, boolean awardedNow) {
         CampaignReward reward = CampaignReward.forMission(campaignId, mission);
         java.util.Map<InfinityStone, Integer> fragments = forgeRepository.loadRewardFragments(
                 "campaign:" + campaignId + ":" + mission);
@@ -3153,6 +3216,12 @@ public final class MainActivity extends AppCompatActivity {
                 R.color.text_primary, true);
         title.setGravity(Gravity.CENTER);
         page.addView(title);
+        if (!awardedNow) {
+            TextView receipt = text("RECOMPENSA JÁ REGISTRADA · SEM NOVOS CRÉDITOS OU XP",
+                    R.style.TextAppearance_Ruptura_Label, R.color.accent_cyan, true);
+            receipt.setGravity(Gravity.CENTER);
+            page.addView(receipt);
+        }
         if (currentBattle != null) {
             LinearLayout recap = card();
             LinearLayout.LayoutParams recapParams = new LinearLayout.LayoutParams(-1, -2);
@@ -3170,6 +3239,7 @@ public final class MainActivity extends AppCompatActivity {
         fragmentsCard.addView(text("FRAGMENTOS PARA COMPLETAR A MANOPLA",
                 R.style.TextAppearance_Ruptura_Label, R.color.accent_gold, true));
         addFragmentReceipt(fragmentsCard, fragments);
+        if (awardedNow) {
         LinearLayout.LayoutParams nextRow = new LinearLayout.LayoutParams(-1, -2);
         nextRow.topMargin = dimension(R.dimen.space_3);
         page.addView(rewardRow("◇", "Créditos", "+" + formatAmount(reward.credits),
@@ -3179,6 +3249,7 @@ public final class MainActivity extends AppCompatActivity {
         page.addView(rewardRow("◇", "Experiência", "+" + formatAmount(reward.xp) + " XP",
                 R.color.accent_cyan), xpRow);
 
+        }
         LinearLayout.LayoutParams buttonParams = new LinearLayout.LayoutParams(-1, -2);
         buttonParams.topMargin = dimension(R.dimen.space_8);
         page.addView(rewardAction("IR PARA A FORJA", true, () -> {
@@ -3535,18 +3606,37 @@ public final class MainActivity extends AppCompatActivity {
                     dimension(R.dimen.space_1), dimension(R.dimen.space_1));
             member.setBackground(new AngularPanelDrawable(getColor(R.color.surface_primary),
                     getColor(R.color.surface_elevated), getColor(fighter.alive()
-                    ? active ? R.color.accent_cyan : R.color.border_subtle : R.color.accent_deadpool),
+                    ? active ? R.color.accent_gold : R.color.border_subtle : R.color.accent_deadpool),
                     dimension(R.dimen.angular_cut), false));
+            if (active) {
+                member.setElevation(dimension(R.dimen.space_3));
+                member.setBackground(new AngularPanelDrawable(getColor(R.color.surface_elevated),
+                        getColor(R.color.surface_primary), getColor(R.color.accent_cyan),
+                        dimension(R.dimen.angular_cut), false));
+            }
             frame.addView(member, new FrameLayout.LayoutParams(-1, -2));
             ImageView portrait = editorialImage(member, dimension(R.dimen.space_8) * 2);
             portraitLoader.loadVariant(spec.id, tierById(forgeRepository.loadEquippedTier(spec.id)),
                     spec.name, portrait, null);
-            TextView state = text(!fighter.alive() ? "CAIU" : active ? "ATIVO" : "TOQUE PARA ATIVAR",
+            TextView state = text(!fighter.alive() ? "CAIU"
+                            : active ? "● ATIVO" : "TOQUE PARA ATIVAR",
                     R.style.TextAppearance_Ruptura_Caption,
-                    !fighter.alive() ? R.color.accent_deadpool : active ? R.color.accent_cyan : R.color.text_secondary,
+                    !fighter.alive() ? R.color.accent_deadpool : active ? R.color.accent_gold : R.color.text_secondary,
                     true);
             state.setGravity(Gravity.CENTER);
+            if (active) {
+                state.setPadding(dimension(R.dimen.space_1), dimension(R.dimen.space_1),
+                        dimension(R.dimen.space_1), dimension(R.dimen.space_1));
+                state.setBackground(background(R.color.surface_primary, R.color.accent_gold,
+                        dimension(R.dimen.space_2)));
+            }
             member.addView(state);
+            if (active) {
+                TextView activeHint = text("SUA VEZ", R.style.TextAppearance_Ruptura_Caption,
+                        R.color.accent_cyan, true);
+                activeHint.setGravity(Gravity.CENTER);
+                member.addView(activeHint);
+            }
             TextView nameLabel = text(spec.name, R.style.TextAppearance_Ruptura_Caption,
                     R.color.text_primary, true);
             nameLabel.setGravity(Gravity.CENTER);
@@ -3569,7 +3659,9 @@ public final class MainActivity extends AppCompatActivity {
                     dimension(R.dimen.space_1), 0);
             team.addView(frame, memberParams);
             battleFighterViews.put(spec.id, frame);
-            frame.setContentDescription(spec.name + ", " + spec.tierName + ", HP "
+            frame.setTag(active ? "battle-active-fighter" : "battle-fighter");
+            frame.setContentDescription(spec.name + (active ? ", PERSONAGEM ATIVO, SUA VEZ" : "")
+                    + ", " + spec.tierName + ", HP "
                     + fighter.health + " de " + fighter.maxHealth + ", especial " + spec.specialName
                     + (active ? ", personagem ativo" : fighter.alive()
                     ? ", toque para ativar sem gastar ação" : ", fora de combate"));
@@ -3651,8 +3743,32 @@ public final class MainActivity extends AppCompatActivity {
                         R.style.TextAppearance_Ruptura_Caption, R.color.text_secondary, false));
             }
             if (battle.canSpecial()) {
-                TextView special = action("SUPER GLOBAL · " + battle.activeFighter().spec.specialName
-                        .toUpperCase(java.util.Locale.ROOT), () -> {
+                LinearLayout special = new LinearLayout(this);
+                special.setOrientation(LinearLayout.VERTICAL);
+                special.setGravity(Gravity.CENTER_VERTICAL);
+                special.setPadding(dimension(R.dimen.space_3), dimension(R.dimen.space_2),
+                        dimension(R.dimen.space_3), dimension(R.dimen.space_2));
+                GradientDrawable superBackground = new GradientDrawable(
+                        GradientDrawable.Orientation.TL_BR,
+                        new int[]{getColor(R.color.surface_elevated), getColor(R.color.surface_primary)});
+                superBackground.setCornerRadius(dimension(R.dimen.angular_cut));
+                superBackground.setStroke(dimension(R.dimen.space_1) / 4,
+                        getColor(R.color.accent_gold));
+                special.setBackground(superBackground);
+                special.setElevation(dimension(R.dimen.space_2));
+                special.setMinimumHeight(dimension(R.dimen.target_min));
+                special.setFocusable(true);
+                special.setClickable(true);
+                special.addView(text("∞  SUPER GLOBAL · " + battle.activeFighter().spec.specialName
+                                .toUpperCase(java.util.Locale.ROOT),
+                        R.style.TextAppearance_Ruptura_Label, R.color.accent_gold, true));
+                special.addView(text("CARGA COMPARTILHADA  ·  LIBERAR AGORA",
+                        R.style.TextAppearance_Ruptura_Caption, R.color.text_primary, true));
+                special.setContentDescription("Super global pronto. Golpe de "
+                        + battle.activeFighter().spec.name + ": "
+                        + battle.activeFighter().spec.specialName + ". Toque para liberar.");
+                special.setTag("battle-super-button");
+                special.setOnClickListener(view -> {
                     if (battleAnimating || !battle.canSpecial()) return;
                     battleAnimating = true;
                     battle.special();
@@ -3683,17 +3799,13 @@ public final class MainActivity extends AppCompatActivity {
                                 battle.mission.number);
                         runOnUiThread(() -> {
                             Runnable continueAfterStory = () -> {
-                                if (granted) showCampaignRewardScreen(campaign.campaignId,
-                                        battle.mission.number);
-                                else {
-                                    renderShell();
-                                    android.widget.Toast.makeText(this,
-                                            "Missão já concluída; recompensa não duplicada",
-                                            android.widget.Toast.LENGTH_LONG).show();
-                                }
+                                battleClaiming = false;
+                                showCampaignRewardScreen(campaign.campaignId,
+                                        battle.mission.number, granted);
                             };
-                            showStorySequence(CampaignStory.afterMission(battle.mission.number),
-                                    campaign.teamIds, continueAfterStory);
+                            if (granted) showStorySequence(CampaignStory.afterMission(
+                                    battle.mission.number), campaign.teamIds, continueAfterStory);
+                            else continueAfterStory.run();
                         });
                     } catch (RuntimeException error) {
                         runOnUiThread(() -> { battleClaiming = false;

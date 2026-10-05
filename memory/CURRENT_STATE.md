@@ -1,5 +1,14 @@
 # Current state - 2026-10-05
 
+## Spec 046 - implemented locally, awaiting deployment
+
+- Restored Reed Richards and Doctor Strange portraits/roles in the Nexus Chamber panel. The one-time Chamber briefing now uses `chamber_briefing_seen_v2`; its replay button is removed.
+- New battle claims play the lore scene then show rewards. Duplicate claims open the recorded fragment receipt directly, without replaying the scene or showing new credits/XP.
+- Deadpool keeps generated backend text when `fallback=false`, differentiates provider fallback from network failure, and backend logs sanitized Gemini/Groq codes only.
+- Battle active hero and shared Super are more prominent. Shared primary buttons and the fragment shop use dark/gold styling in dark mode; light mode retains its prior primary palette.
+- Final Android validation passed (`testDebugUnitTest`, `lintDebug`, `assembleDebug`, instrumentation-test compile). Instrumentation runtime was not executed. Backend `pip check` and pytest passed (59 tests). One approved minimal live request earlier returned `fallback=false`.
+- Erick authorized push for this change set. No Render deployment or phone installation was performed. Next: deploy backend diagnostics, then build/install Android and verify the Chamber, duplicate receipt, battle, shop, and both themes on-device.
+
 ## Specs 043-045 - implementadas e enviadas, aguardando deploy
 
 - Ajustes autorizados e documentados nas specs 043-045. Deadpool: retry legado/contexto curto e fallback local; lore: back conclui a cena e briefing reapresentavel da Camara. Chefes: +6% HP/+8% dano. Loja: Fragmentos por creditos, XP desbloqueia ofertas, DB v8.

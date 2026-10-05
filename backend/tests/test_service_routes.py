@@ -129,3 +129,20 @@ def test_deadpool_tries_groq_after_gemini_error(monkeypatch):
     monkeypatch.setattr(main.groq, "generate", lambda _request: "Groq respondeu")
     response = client.post("/v1/ai/deadpool-line", json={"context_id": "forge"})
     assert response.json() == {"text": "Groq respondeu", "fallback": False}
+
+
+def test_deadpool_provider_failure_logs_only_safe_codes(monkeypatch, caplog):
+    monkeypatch.setenv("GEMINI_API_KEY", "never-log-this-key")
+    monkeypatch.setattr(main.gemini, "generate", lambda _request: (_ for _ in ()).throw(
+        GeminiNarrativeError("private prompt never-log-this-prompt", "http_429")))
+    monkeypatch.setattr(main.groq, "generate", lambda _request: (_ for _ in ()).throw(
+        GroqNarrativeError("private response never-log-this-response", "http_401")))
+    response = client.post("/v1/ai/deadpool-line", json={"context_id": "app",
+                           "prompt": "never-log-this-prompt"})
+    assert response.status_code == 200
+    assert response.json()["fallback"] is True
+    logs = caplog.text
+    assert "provider=gemini code=http_429" in logs
+    assert "provider=groq code=http_401" in logs
+    for private_value in ("never-log-this-key", "never-log-this-prompt", "never-log-this-response"):
+        assert private_value not in logs

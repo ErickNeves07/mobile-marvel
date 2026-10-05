@@ -512,3 +512,10 @@ Commit 49c535e publicado em origin/main. O trabalho no repositório está comple
 
 - `main` foi enviado para `origin/main`; remoto avancou de `049fdd9` para `c5c9fa4`. Commits: `05170f7`, `6ce5c4e`, `ac9c363`, `c5c9fa4`.
 - Erick pode iniciar o deploy. Nao foi realizado deploy Render nem instalacao no celular; aguardar pedido apos o deploy.
+# 2026-10-05 - Spec 046 runtime regressions and dark-mode buttons
+
+- Restored Nexus portraits, the once-only Chamber briefing, and the correct direct receipt for already-claimed campaign victories.
+- Added safe Gemini/Groq failure codes in backend logs and differentiated local Deadpool replies from provider fallback versus backend connection failure.
+- Highlighted the active fighter, redesigned the charged Super, and restyled global actions/shop buttons for dark mode while retaining the light-mode action palette.
+- Android validator passed JVM tests, lint, debug build and instrumentation APK compilation; instrumentation was not run on device. Backend validation passed `pip check` and 59 pytest tests. One explicitly approved minimal live generation earlier in this task returned `fallback=false`.
+- Erick authorized pushing this change set. No Render deployment or phone installation was requested; next check is deploy, then manual verification on the phone.

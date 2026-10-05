@@ -118,3 +118,7 @@ Formato: `DEC-NNN | data | decisão | motivo | consequências`.
 **DEC-096 | 2026-10-05 | Loja local vende somente Fragmentos com progressão de XP.** Um Fragmento de uma Joia por compra; preço 800/900/1000/1100/1200/1300 por Espaço/Mente/Realidade/Poder/Tempo/Alma. Desbloqueios em 0/840/1760/2860/3720/4720 XP acumulado. XP não é gasto; fusões 2:1 continuam manuais. Valores e configuração foram delegados por Erick.
 
 **DEC-097 | 2026-10-05 | Compatibilidade Deadpool segue segura sem rede/contrato novo.** Repetir HTTP 422 uma única vez com corpo legado limitado a 300 caracteres e `context_id` compatível; falha final usa fala local contextual sem alterar gameplay. Nunca logar prompt/estado nem chamar provider em teste.
+
+**DEC-098 | 2026-10-05 | Theme-aware primary actions.** Keep the existing cyan/quartet action palette in light mode. In dark mode, shared actions and shop purchases use dark surfaces with gold text/borders; gameplay and disabled-state rules do not change.
+
+**DEC-099 | 2026-10-05 | Super follows the active hero.** The control names the current hero's move and says the charge is shared, while preserving the current global meter and combat rules.

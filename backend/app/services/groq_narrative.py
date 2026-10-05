@@ -21,6 +21,10 @@ TIMEOUT_SECONDS = 20
 class GroqNarrativeError(RuntimeError):
     """Sanitized provider/configuration error with no request or response details."""
 
+    def __init__(self, message: str, code: str = "provider_error") -> None:
+        super().__init__(message)
+        self.code = code
+
 
 @dataclass(frozen=True)
 class NarrativeRequest:
@@ -81,8 +85,14 @@ class GroqNarrativeAdapter:
                 if len(raw_body) > 1_000_000:
                     raise GroqNarrativeError("Groq provider response exceeded the size limit")
                 payload = json.loads(raw_body)
-        except (HTTPError, URLError, TimeoutError, OSError, ValueError, TypeError) as exc:
-            raise GroqNarrativeError("Groq provider request failed") from None
+        except HTTPError as error:
+            raise GroqNarrativeError("Groq provider request failed",
+                                    f"http_{error.code}") from None
+        except (URLError, TimeoutError, OSError, ValueError, TypeError) as error:
+            code = "timeout" if isinstance(error, TimeoutError) else "transport_error"
+            if isinstance(error, ValueError):
+                code = "invalid_response"
+            raise GroqNarrativeError("Groq provider request failed", code) from None
         try:
             content = payload["choices"][0]["message"]["content"]
         except (KeyError, IndexError, TypeError):

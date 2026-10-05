@@ -154,7 +154,8 @@
     <string name="deadpool_action">Chamar Deadpool</string>
     <string name="deadpool_ready">Pode falar de qualquer assunto. Para o jogo, ele acompanha sua equipe e seu progresso.</string>
     <string name="deadpool_loading">Deadpool está procurando o roteiro…</string>
-    <string name="deadpool_offline">Fala local — a conexão com a IA está indisponível no momento.</string>
+    <string name="deadpool_offline">O backend respondeu sem conseguir gerar uma fala com IA. Esta resposta é local.</string>
+    <string name="deadpool_network_offline">Não consegui acessar o backend de IA. Esta resposta é local.</string>
     <string name="deadpool_error">N&#227;o consegui chegar ao backend agora. Confira a conex&#227;o e toque em Chamar Deadpool para tentar outra vez.</string>
     <string name="gauntlet_heading">Manopla de Contenção</string>
     <string name="nexus_gauntlet_count">%1$d/6 Joias completas</string>

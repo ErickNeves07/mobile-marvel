@@ -34,6 +34,25 @@ import org.junit.runner.RunWith;
 
 @RunWith(AndroidJUnit4.class)
 public final class LovableScreensTest {
+    @Test public void sharedActionButtonsRespectDarkAndLightPalettes() throws Exception {
+        Instrumentation instrumentation = InstrumentationRegistry.getInstrumentation();
+        MainActivity activity = (MainActivity) instrumentation.startActivitySync(
+                new Intent(instrumentation.getTargetContext(), MainActivity.class)
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+        Method action = MainActivity.class.getDeclaredMethod("action", String.class, Runnable.class);
+        action.setAccessible(true);
+        android.content.SharedPreferences prefs = activity.getPreferences(android.content.Context.MODE_PRIVATE);
+        prefs.edit().putBoolean("dark_mode", true).commit();
+        TextView darkButton = (TextView) action.invoke(activity, "TESTE", (Runnable) () -> { });
+        assertEquals(activity.getColor(R.color.accent_gold), darkButton.getCurrentTextColor());
+        assertTrue(darkButton.getBackground() instanceof AngularPanelDrawable);
+        prefs.edit().putBoolean("dark_mode", false).commit();
+        TextView lightButton = (TextView) action.invoke(activity, "TESTE", (Runnable) () -> { });
+        assertEquals(activity.getColor(R.color.canvas), lightButton.getCurrentTextColor());
+        prefs.edit().putBoolean("dark_mode", true).commit();
+        instrumentation.runOnMainSync(activity::finish);
+    }
+
     @Test public void deadpoolContextTracksSelectedMissionAndSavedTeam() throws Exception {
         Instrumentation instrumentation = InstrumentationRegistry.getInstrumentation();
         MainActivity activity = (MainActivity) instrumentation.startActivitySync(
@@ -126,8 +145,8 @@ public final class LovableScreensTest {
         instrumentation.waitForIdleSync();
         View root = activity.getWindow().getDecorView();
         assertTrue(hasText(root, "CÂMARA DE VARIANTES"));
-        assertFalse(hasText(root, "Reed Richards"));
-        assertFalse(hasText(root, "Dr. Estranho"));
+        assertTrue(hasText(root, "Reed Richards"));
+        assertTrue(hasText(root, "Doutor Estranho"));
         assertTrue(findConstellation(root) != null);
         instrumentation.runOnMainSync(() -> capture(activity, root, "nexus-032.png"));
         Method daily = MainActivity.class.getDeclaredMethod("showDailyChallengeScreen");
@@ -319,6 +338,10 @@ public final class LovableScreensTest {
         instrumentation.runOnMainSync(() -> invoke(battle, activity, battleState, campaign));
         instrumentation.waitForIdleSync();
         assertTrue(hasText(root, "INVESTIDA DIRETA"));
+        View activeFighter = findTag(root, "battle-active-fighter");
+        assertTrue("The active fighter needs a visible selected state", activeFighter != null);
+        assertTrue(activeFighter.getContentDescription().toString().contains("SUA VEZ"));
+        assertTrue(hasText(root, "SUA VEZ"));
         instrumentation.runOnMainSync(() -> capture(activity, root, "battle-initial.png"));
         for (String choice : new String[]{"PROTEGER", "DESESTABILIZAR", "INVESTIR", "DESESTABILIZAR"}) {
             instrumentation.runOnMainSync(() -> {
@@ -330,6 +353,10 @@ public final class LovableScreensTest {
             instrumentation.waitForIdleSync();
         }
         assertTrue(hasText(root, "SUPER GLOBAL · RAJADA DE TEIAS"));
+        View superButton = findTag(root, "battle-super-button");
+        assertTrue("The charged super needs its own visual control", superButton != null);
+        assertTrue(superButton.getContentDescription().toString().contains("Toque para liberar"));
+        assertTrue(hasText(root, "CARGA COMPARTILHADA  ·  LIBERAR AGORA"));
         instrumentation.runOnMainSync(() -> findText(root, "SUPER GLOBAL · RAJADA DE TEIAS").performClick());
         Thread.sleep(2600);
         instrumentation.waitForIdleSync();
@@ -354,6 +381,13 @@ public final class LovableScreensTest {
         assertTrue(hasText(root, "+840 XP"));
         assertTrue(!hasText(root, "Homem-Aranha +1"));
         instrumentation.runOnMainSync(() -> capture(activity, root, "campaign-reward.png"));
+        Method receipt = MainActivity.class.getDeclaredMethod("showCampaignRewardScreen",
+                String.class, int.class, boolean.class);
+        receipt.setAccessible(true);
+        instrumentation.runOnMainSync(() -> invoke(receipt, activity, "rupture", 1, false));
+        assertTrue(hasText(root, "RECOMPENSA JÁ REGISTRADA"));
+        assertFalse(hasText(root, "+3.000"));
+        assertFalse(hasText(root, "+840 XP"));
         instrumentation.runOnMainSync(() -> findText(root, "VOLTAR AO NEXUS").performClick());
         Thread.sleep(500);
         instrumentation.waitForIdleSync();
@@ -420,6 +454,8 @@ public final class LovableScreensTest {
         assertTrue(hasText(root, "4.720 XP"));
         TextView buy = findText(root, "COMPRAR 1 FRAGMENTO");
         assertTrue(buy != null && !buy.isEnabled());
+        assertTrue(findTag(root, "fragment-shop-buy-button") != null);
+        assertTrue(buy.getBackground() instanceof AngularPanelDrawable);
         instrumentation.runOnMainSync(activity::finish);
     }
 
@@ -440,7 +476,7 @@ public final class LovableScreensTest {
         }
         assertTrue(repository.activateGauntlet());
         activity.getPreferences(android.content.Context.MODE_PRIVATE).edit()
-                .remove("chamber_briefing_seen").commit();
+                .remove("chamber_briefing_seen_v2").commit();
 
         java.lang.reflect.Method loadRoster = MainActivity.class.getDeclaredMethod("loadRoster");
         loadRoster.setAccessible(true);
@@ -463,13 +499,12 @@ public final class LovableScreensTest {
         instrumentation.runOnMainSync(() -> findText(root, "CONTINUAR").performClick());
         assertTrue(hasText(root, "Reed cuida dos números"));
         instrumentation.runOnMainSync(() -> findText(root, "ENCERRAR CENA").performClick());
-        assertTrue(hasText(root, "POR QUE EXISTE A CÂMARA?"));
+        assertTrue(hasText(root, "Wolverine"));
         assertEquals(View.VISIBLE, activity.findViewById(R.id.navigation_bar).getVisibility());
-
-        instrumentation.runOnMainSync(() -> findText(root, "POR QUE EXISTE A CÂMARA?").performClick());
-        assertTrue(hasText(root, "POR TRÁS DA CÂMARA"));
-        instrumentation.runOnMainSync(() -> activity.getOnBackPressedDispatcher().onBackPressed());
-        assertTrue(hasText(root, "POR QUE EXISTE A CÂMARA?"));
+        assertFalse(hasText(root, "POR QUE EXISTE A CÂMARA?"));
+        instrumentation.runOnMainSync(() -> invoke(variants, activity, selected, roster,
+                GameVariantTier.ORIGIN));
+        assertFalse(hasText(root, "POR TRÁS DA CÂMARA"));
         instrumentation.runOnMainSync(activity::finish);
     }
 
@@ -525,6 +560,18 @@ public final class LovableScreensTest {
     }
 
     private static boolean hasText(View view, String target) { return findText(view, target) != null; }
+
+    private static View findTag(View view, String target) {
+        if (target.equals(view.getTag())) return view;
+        if (view instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) view;
+            for (int index = 0; index < group.getChildCount(); index++) {
+                View found = findTag(group.getChildAt(index), target);
+                if (found != null) return found;
+            }
+        }
+        return null;
+    }
 
     private static int countText(View view, String target) {
         int count = view instanceof TextView

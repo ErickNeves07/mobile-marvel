@@ -1,3 +1,4 @@
+import logging
 import os
 
 from fastapi import FastAPI, HTTPException, Query
@@ -37,6 +38,7 @@ class ReadinessResponse(BaseModel):
 
 
 app = FastAPI(title="Ruptura Infinita Backend", version="0.1.0")
+logger = logging.getLogger("app.deadpool")
 comic_vine = ComicVineGateway()
 groq = GroqNarrativeAdapter()
 gemini = GeminiNarrativeAdapter()
@@ -234,13 +236,24 @@ def deadpool_line(request: DeadpoolLineRequest) -> DeadpoolLineResponse:
         if os.environ.get("GEMINI_API_KEY", "").strip():
             try:
                 generated = gemini.generate(narrative_request)
-            except GeminiNarrativeError:
-                generated = groq.generate(narrative_request)
+            except GeminiNarrativeError as error:
+                logger.warning("Deadpool provider failure provider=gemini code=%s", error.code)
+                try:
+                    generated = groq.generate(narrative_request)
+                except GroqNarrativeError as groq_error:
+                    logger.warning("Deadpool provider failure provider=groq code=%s",
+                                   groq_error.code)
+                    return DeadpoolLineResponse(text=fallback, fallback=True)
         else:
-            generated = groq.generate(narrative_request)
+            try:
+                generated = groq.generate(narrative_request)
+            except GroqNarrativeError as error:
+                logger.warning("Deadpool provider failure provider=groq code=%s", error.code)
+                return DeadpoolLineResponse(text=fallback, fallback=True)
         sanitized = " ".join("".join(char for char in generated if char.isprintable()).split())[:500]
         if not sanitized:
             raise GroqNarrativeError("Groq returned empty narrative")
         return DeadpoolLineResponse(text=sanitized, fallback=False)
     except (GroqNarrativeError, GeminiNarrativeError, OSError, ValueError):
+        logger.warning("Deadpool provider failure provider=unknown code=invalid_output")
         return DeadpoolLineResponse(text=fallback, fallback=True)

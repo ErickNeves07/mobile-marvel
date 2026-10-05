@@ -19,6 +19,10 @@ MAX_OUTPUT_CHARS = 4_000
 class GeminiNarrativeError(RuntimeError):
     """Sanitized configuration, transport or response failure."""
 
+    def __init__(self, message: str, code: str = "provider_error") -> None:
+        super().__init__(message)
+        self.code = code
+
 
 class GeminiNarrativeAdapter:
     def __init__(self, transport: Callable = urlopen) -> None:
@@ -61,8 +65,14 @@ class GeminiNarrativeAdapter:
             result = json.loads(raw)
         except GeminiNarrativeError:
             raise
-        except (HTTPError, URLError, TimeoutError, OSError, ValueError, TypeError):
-            raise GeminiNarrativeError("Gemini provider request failed") from None
+        except HTTPError as error:
+            raise GeminiNarrativeError("Gemini provider request failed",
+                                      f"http_{error.code}") from None
+        except (URLError, TimeoutError, OSError, ValueError, TypeError) as error:
+            code = "timeout" if isinstance(error, TimeoutError) else "transport_error"
+            if isinstance(error, ValueError):
+                code = "invalid_response"
+            raise GeminiNarrativeError("Gemini provider request failed", code) from None
         try:
             parts = result["candidates"][0]["content"]["parts"]
             text = " ".join(part["text"] for part in parts if isinstance(part, dict) and isinstance(part.get("text"), str))
