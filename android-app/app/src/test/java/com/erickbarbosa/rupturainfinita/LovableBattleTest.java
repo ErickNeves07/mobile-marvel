@@ -128,6 +128,30 @@ public final class LovableBattleTest {
         }
     }
 
+    @Test public void bossTuningAddsOnlySixPercentHealthAndEightPercentDamageAcrossCampaign() {
+        int priorHp = 0;
+        for (BattleMission mission : BattleMission.ALL) {
+            LovableBattle battle = newBattle(mission.number);
+            int totalAttack = 0;
+            for (LovableBattle.Fighter fighter : battle.fighters()) totalAttack += fighter.spec.attack();
+            int averageAttack = Math.round(totalAttack / 3f);
+            int baseHp = 150 + 26 * mission.difficulty + Math.round(averageAttack * .55f);
+            assertEquals((int) Math.ceil(baseHp * 1.06d), battle.maxBoss);
+            assertTrue(battle.maxBoss > priorHp);
+            priorHp = battle.maxBoss;
+
+            LovableBattle.Fighter active = battle.activeFighter();
+            int rawThreat = Math.max(3, 8 + Math.round(mission.difficulty * 1.55f)
+                    - active.spec.defense() / 52);
+            LovableBattle.Choice counter = counterFor(battle);
+            battle.choose(counter);
+            float mitigation = counter == LovableBattle.Choice.DEFEND ? .38f : .82f;
+            int baseCounterDamage = Math.round(rawThreat * mitigation);
+            assertEquals(Math.max(2, (int) Math.ceil(baseCounterDamage * 1.08d)), battle.lastTeamDamage);
+            assertTrue(battle.lastTeamDamage <= rawThreat);
+        }
+    }
+
     @Test public void finishedBattleRejectsFurtherSpecials() {
         LovableBattle battle = newBattle(1);
         for (LovableBattle.Fighter fighter : battle.fighters()) fighter.health = 1;

@@ -233,7 +233,8 @@ final class LovableBattle {
         this.mission = mission;
         teamPower = Math.max(1, Math.round(summedPower / 200f));
         int averageAttack = Math.round(totalAttack / 3f);
-        maxBoss = 150 + 26 * mission.difficulty + Math.round(averageAttack * .55f);
+        maxBoss = BossBalance.hitPoints(150 + 26 * mission.difficulty
+                + Math.round(averageAttack * .55f));
         boss = maxBoss;
         activeFighterId = fighters.get(0).spec.id;
         feedback = mission.opponentName + " prepara o confronto. Leia o movimento e escolha a resposta.";
@@ -318,7 +319,7 @@ final class LovableBattle {
                     ? (counter ? .38f : .58f)
                     : counter ? .82f : 1.18f;
             if (choice == null) mitigation = .92f;
-            lastTeamDamage = Math.max(2, Math.round(rawThreat * mitigation));
+            lastTeamDamage = BossBalance.damage(rawThreat, mitigation);
             active.health = Math.max(0, active.health - lastTeamDamage);
             totalDamageReceived += lastTeamDamage;
         } else {
