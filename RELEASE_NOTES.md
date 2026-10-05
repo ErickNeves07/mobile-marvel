@@ -1,4 +1,31 @@
+# Candidato local 0.8.0 - 2026-10-04
+
+- Audio de interface no app e trilha original discreta somente durante batalhas; ambos podem ser desligados pelo controle de audio.
+- Avisos e impactos de rounds mais contrastados e duradouros; animacoes de fusao mais claras e com som proprio por resultado.
+- Forja simplificada: sem cadeia explicativa nem linhas vazias ate 999. Pedras aparecem em cartoes; toque no cartao para fundir quando ha pares.
+- Mensagens de batalha um pouco mais claras. Nenhum calculo, receita, recompensa ou custo foi alterado.
+- Deadpool: compatibilidade com Render legado; apos HTTP 422 ao enviar game_context, repete no formato antigo. OpenAPI atual ainda nao anuncia game_context; contexto dinamico completo requer publicar backend novo.
+- Gradle unit/lint/build passaram; suite instrumentada completa passou 33/33 no emulador.
+- APK debug: artifacts/Marvel-Ruptura-Infinita-debug-0.8.0.apk; 6,893,711 bytes; SHA-256 FFDDEFACF4CBE6A01CD152A0D93652F9A27FC7E0B37778F53974C4FD8FBA0B47.
+- Nenhum POST de IA, instalacao no telefone, push ou deploy nesta tarefa.
+
+# Candidato local 0.7.0 — 2026-10-04
+
+- Splash AndroidX compatível com API 26+: fenda vetorial animada, seis gemas e núcleo pulsante com transição curta. A introdução e o fluxo de jogo foram mantidos.
+- APK debug: `artifacts/Marvel-Ruptura-Infinita-debug-0.7.0.apk` · 6.249.992 bytes · SHA-256 `ACA37C4BB278ED6EB64ABBA886BC3B6BDBE8E623DB56D526302ABA81FD90C9AA` · versionCode 7/versionName 0.7.0.
+- Build/lint/unit passaram; **33/33** testes instrumentados passaram no AVD. Captura: `reports/lovable-research/app-splash-0.7.0.png`.
+- Instalado no telefone `C6OFVWYD4DZTBA5H` após limpeza local autorizada; Android confirmou 0.7.0 e processo ativo sem erro fatal.
+- Não foi feito novo push ou deploy nesta tarefa.
+
 # Release 0.3.0 — candidato de avaliação (2026-10-04)
+
+# Candidato local 0.6.0 — 2026-10-04
+
+- APK debug: `artifacts/Marvel-Ruptura-Infinita-debug-0.6.0.apk` · 6.334.722 bytes · SHA-256 `E37023573C9C7D00A13EB0251CE2F4F4EE7FF255F43DD49D88A3D1283D8221E9` · versionCode 6/versionName 0.6.0.
+- Build/lint, testes JVM e **32/32** instrumentados no AVD passaram após a última edição; backend pytest **57/57**.
+- A captura de QA da Forja está em `reports/lovable-research/forge-merge-0.6.0.png`: mostra a gema azul brilhante centralizada entrando nas luvas, com o inventário visível ao fundo.
+- Para Deadpool receber estado atual do jogo e para as curiosidades Comic Vine exibirem contagem/data de primeira edição, publicar também a revisão do backend deste workspace no Render antes de distribuir o APK.
+- Este APK não foi instalado no aparelho físico.
 
 APK assinado: `artifacts/Marvel-Ruptura-Infinita-release.apk` · 5.119.606 bytes · SHA-256 `C948C701A437BB85EDC32C2529AD4C06AED72C1B126B6C5F966785514F512CA5` · `versionCode 3`/`versionName 0.3.0`. URL compilada: `https://mobile-marvel-8qex.onrender.com`. `zipalign` e assinatura APK v2 verificados.
 
@@ -51,3 +78,11 @@ The build includes daily challenge, local campaigns/battles/rewards, Forge persi
 - No Render deployment or public HTTPS URL exists in this environment. `COMIC_VINE_API_KEY` and Render access are absent; Groq live smoke returned a sanitized error, so provider connectivity/key acceptance remains unknown.
 - No physical handset test was performed. The AVD passed repository instrumentation and the app rendered Forge/Collection screenshots.
 - Preserve the signing keystore at `%LOCALAPPDATA%\RupturaInfinita\release-signing`; its DPAPI-protected password is tied to this Windows user profile. A portable backup is not yet validated.
+# Candidato 0.9.0 — 2026-10-04
+
+- Deadpool usa a missão selecionada/próxima e a equipe salva real; inclui posse, variantes equipadas, progresso e os nove adversários, inclusive Thanos. O backend novo aceita esse contexto. O Render publicado precisa receber a revisão.
+- Avisos dos seis padrões de combate foram escritos para cada uma das nove campanhas; Ultron não exibe pistas de Magneto.
+- Backend: 58/58 testes. Android JVM, lint, debug e release passaram; emulador 34/34 testes instrumentados. Release 0.9.0 instalou e abriu no emulador sem exceção fatal.
+- APK debug: `artifacts/Marvel-Ruptura-Infinita-debug-0.9.0.apk` — 6.778.296 bytes — SHA-256 `51960BB0ABD0BE551377B710C8B5AB2FE3CBF667E66F5C1B4B60A428AA410BFA`.
+- APK assinado: `artifacts/Marvel-Ruptura-Infinita-release.apk` — 5.692.132 bytes — SHA-256 `8AA74277970068755C066C3E2078844E3E16BE9CAC3BEE1018FE1B8E08488B7A` — assinatura v2 e zipalign verificados.
+- O telefone não estava conectado nesta validação. Uma chamada real POST do Deadpool foi barrada pela revisão automática por possível consumo de cota paga sem autorização específica; não houve contorno.

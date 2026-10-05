@@ -55,17 +55,34 @@ public final class VariantFlowTest {
             View root = activity.getWindow().getDecorView();
             assertTrue(findText(root, "ATIVAR MANOPLA") != null);
             instrumentation.runOnMainSync(() -> findText(root, "ATIVAR MANOPLA").performClick());
-            waitFor(instrumentation, root, "EVOLUIR COM MANOPLA COMPLETA");
+            waitForActivation(instrumentation, repository);
             assertTrue(repository.isGauntletActivated());
-            instrumentation.runOnMainSync(() -> findText(root,
-                    "EVOLUIR COM MANOPLA COMPLETA").performClick());
+            Method openGauntlet = MainActivity.class.getDeclaredMethod("showGauntletScreen");
+            openGauntlet.setAccessible(true);
+            instrumentation.runOnMainSync(() -> {
+                try { openGauntlet.invoke(target); }
+                catch (Exception error) { throw new AssertionError(error); }
+            });
             waitFor(instrumentation, root, "ESCOLHER PERSONAGEM OU VARIANTE");
             instrumentation.runOnMainSync(() -> findText(root,
                     "ESCOLHER PERSONAGEM OU VARIANTE").performClick());
-            waitFor(instrumentation, root, "EVOLUIR WOLVERINE");
-            assertTrue(findText(root, "DESBLOQUEAR HOMEM DE FERRO") != null);
+            waitFor(instrumentation, root, "EVOLUIR VARIANTE");
+            TextView targetCardLabel = findText(root, "Wolverine · " + context.getString(
+                    GameVariantTier.ASCENSION.labelRes));
+            assertTrue(targetCardLabel != null);
+            assertTrue(((View) targetCardLabel.getParent()).isClickable());
+            assertTrue(findText(root, "NOVO PERSONAGEM") != null);
             assertTrue(repository.unlockNextVariant("wolverine", GameVariantTier.ASCENSION, roster));
             assertEquals(GameVariantTier.ASCENSION.name(), repository.loadEquippedTier("wolverine"));
+            Method celebrate = MainActivity.class.getDeclaredMethod("showUnlockCelebration",
+                    GameCatalogCharacter.class, List.class, GameVariantTier.class);
+            celebrate.setAccessible(true);
+            instrumentation.runOnMainSync(() -> {
+                try { celebrate.invoke(target, character, roster, GameVariantTier.ASCENSION); }
+                catch (Exception error) { throw new AssertionError(error); }
+            });
+            assertTrue(findText(root, "CURIOSIDADES") != null);
+            assertTrue(findText(root, "Wolverine") != null);
             for (InfinityStone stone : InfinityStone.values()) {
                 assertEquals(0, repository.load().count(stone, ForgeStage.COMPLETE));
             }
@@ -86,6 +103,16 @@ public final class VariantFlowTest {
             instrumentation.waitForIdleSync();
         }
         assertTrue(text + " did not appear", findText(root, text) != null);
+    }
+
+    private static void waitForActivation(Instrumentation instrumentation,
+            ForgeRepository repository) throws InterruptedException {
+        for (int attempt = 0; attempt < 30 && !repository.isGauntletActivated(); attempt++) {
+            Thread.sleep(100);
+            instrumentation.waitForIdleSync();
+        }
+        assertTrue("Gauntlet should activate after all six stones are complete",
+                repository.isGauntletActivated());
     }
 
     private static TextView findText(View view, String target) {

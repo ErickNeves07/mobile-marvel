@@ -4,6 +4,7 @@ import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import android.content.res.AssetManager;
 import android.app.AlertDialog;
+import android.animation.ValueAnimator;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.View;
@@ -14,8 +15,10 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.activity.OnBackPressedCallback;
 import androidx.core.graphics.Insets;
+import androidx.core.splashscreen.SplashScreen;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -28,6 +31,9 @@ import java.util.ArrayList;
 import java.time.LocalDate;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import android.media.AudioManager;
+import android.media.ToneGenerator;
+import android.media.MediaPlayer;
 public final class MainActivity extends AppCompatActivity {
     private AppDestination selectedDestination = AppDestination.initial();
     private boolean introVisible = true;
@@ -41,9 +47,30 @@ public final class MainActivity extends AppCompatActivity {
     private OnBackPressedCallback transientBack;
     private boolean battleAnimating;
     private boolean battleClaiming;
+    private ToneGenerator battleTones;
+    private MediaPlayer battleMusic;
+    private boolean battleOpen;
+    private int deadpoolPortraitTurn;
+    private String currentBattleContext = "Nenhuma batalha está em andamento.";
+    private String currentTeamContext = "Equipe ainda não escolhida para uma batalha.";
+    private BattleMission selectedBattleMission;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        boolean dark = getPreferences(MODE_PRIVATE).getBoolean("dark_mode", true);
+        AppCompatDelegate.setDefaultNightMode(dark ? AppCompatDelegate.MODE_NIGHT_YES
+                : AppCompatDelegate.MODE_NIGHT_NO);
+        SplashScreen splashScreen = SplashScreen.installSplashScreen(this);
+        splashScreen.setOnExitAnimationListener(splash -> {
+            if (!ValueAnimator.areAnimatorsEnabled()) {
+                splash.remove();
+                return;
+            }
+            splash.getIconView().animate().alpha(0f).scaleX(1.14f).scaleY(1.14f)
+                    .setDuration(220L)
+                    .withEndAction(splash::remove)
+                    .start();
+        });
         super.onCreate(savedInstanceState);
         WindowCompat.enableEdgeToEdge(getWindow());
         setContentView(R.layout.activity_main);
@@ -70,6 +97,7 @@ public final class MainActivity extends AppCompatActivity {
         navigationBar = findViewById(R.id.navigation_bar);
         contentContainer = findViewById(R.id.content_container);
         forgeRepository = new ForgeRepository(this);
+        battleTones = new ToneGenerator(AudioManager.STREAM_MUSIC, 24);
         portraitLoader = new EditorialPortraitLoader(backendClient());
         for (String id : new String[]{"homem-aranha", "wolverine", "tocha-humana",
                 "doutor-estranho", "senhor-fantastico"}) portraitLoader.prefetch(id);
@@ -88,6 +116,9 @@ public final class MainActivity extends AppCompatActivity {
     }
 
     private void renderShell() {
+        battleOpen = false;
+        stopBattleMusic();
+        currentBattleContext = "Nenhuma batalha está em andamento.";
         transientScreen = false;
         if (transientBack != null) transientBack.setEnabled(false);
         navigationBar.setVisibility(View.VISIBLE);
@@ -237,6 +268,11 @@ public final class MainActivity extends AppCompatActivity {
                 ? R.color.deadpool_paper : R.color.canvas));
         LinearLayout page = new LinearLayout(this);
         page.setOrientation(LinearLayout.VERTICAL);
+        LinearLayout themeRow = new LinearLayout(this);
+        themeRow.setGravity(Gravity.END);
+        page.addView(themeRow, new LinearLayout.LayoutParams(-1, -2));
+        addThemeToggle(themeRow);
+        addSoundToggle(themeRow);
         if (destination == AppDestination.NEXUS) {
             page.setPadding(0, 0, 0, dimension(R.dimen.space_6));
             renderNexusHero(page);
@@ -270,7 +306,6 @@ public final class MainActivity extends AppCompatActivity {
         }
         if (destination == AppDestination.COLLECTION) {
             renderGameCatalog(page);
-            renderEditorialSearch(page);
         }
         if (destination == AppDestination.DEADPOOL) {
             renderDeadpool(page);
@@ -278,6 +313,86 @@ public final class MainActivity extends AppCompatActivity {
 
         scroll.addView(page);
         contentContainer.addView(scroll, new FrameLayout.LayoutParams(-1, -1));
+    }
+
+    private void addThemeToggle(LinearLayout parent) {
+        boolean dark = getPreferences(MODE_PRIVATE).getBoolean("dark_mode", true);
+        TextView toggle = text(dark ? "☼  MODO CLARO" : "☾  MODO ESCURO",
+                R.style.TextAppearance_Ruptura_Label, R.color.accent_gold, true);
+        toggle.setGravity(Gravity.CENTER);
+        toggle.setMinimumHeight(dimension(R.dimen.target_min));
+        toggle.setPadding(dimension(R.dimen.space_3), 0, dimension(R.dimen.space_3), 0);
+        toggle.setBackground(background(R.color.surface_primary, R.color.border_subtle,
+                dimension(R.dimen.radius_pill)));
+        toggle.setFocusable(true);
+        toggle.setClickable(true);
+        toggle.setContentDescription(dark ? "Ativar modo claro" : "Ativar modo escuro");
+        toggle.setOnClickListener(view -> {
+            getPreferences(MODE_PRIVATE).edit().putBoolean("dark_mode", !dark).apply();
+            AppCompatDelegate.setDefaultNightMode(!dark ? AppCompatDelegate.MODE_NIGHT_YES
+                    : AppCompatDelegate.MODE_NIGHT_NO);
+            recreate();
+        });
+        parent.addView(toggle, new LinearLayout.LayoutParams(-2, -2));
+    }
+
+    private void addSoundToggle(LinearLayout parent) {
+        boolean enabled = getPreferences(MODE_PRIVATE).getBoolean("battle_sounds", true);
+        TextView toggle = text(enabled ? "♫  ÁUDIO ON" : "♫  ÁUDIO OFF",
+                R.style.TextAppearance_Ruptura_Label,
+                enabled ? R.color.accent_cyan : R.color.text_secondary, true);
+        toggle.setGravity(Gravity.CENTER);
+        toggle.setMinimumHeight(dimension(R.dimen.target_min));
+        toggle.setPadding(dimension(R.dimen.space_3), 0, dimension(R.dimen.space_3), 0);
+        toggle.setBackground(background(R.color.surface_primary, R.color.border_subtle,
+                dimension(R.dimen.radius_pill)));
+        toggle.setContentDescription(enabled ? "Desativar sons e música" : "Ativar sons e música");
+        toggle.setFocusable(true); toggle.setClickable(true);
+        LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(-2, -2);
+        p.leftMargin = dimension(R.dimen.space_2);
+        parent.addView(toggle, p);
+        toggle.setOnClickListener(view -> {
+            getPreferences(MODE_PRIVATE).edit().putBoolean("battle_sounds", !enabled).apply();
+            if (enabled) stopBattleMusic();
+            renderShell();
+        });
+    }
+
+    private void playBattleSound(int sound) {
+        if (!getPreferences(MODE_PRIVATE).getBoolean("battle_sounds", true) || battleTones == null) return;
+        battleTones.startTone(sound, 115);
+    }
+
+    private void playUiSound() {
+        if (!getPreferences(MODE_PRIVATE).getBoolean("battle_sounds", true) || battleTones == null) return;
+        battleTones.startTone(ToneGenerator.TONE_PROP_BEEP, 55);
+    }
+
+    private void startBattleMusic() {
+        if (!battleOpen || !getPreferences(MODE_PRIVATE).getBoolean("battle_sounds", true)
+                || battleMusic != null) return;
+        battleMusic = MediaPlayer.create(this, R.raw.battle_ambience);
+        if (battleMusic == null) return;
+        battleMusic.setLooping(true);
+        battleMusic.setVolume(.12f, .12f);
+        battleMusic.start();
+    }
+
+    private void stopBattleMusic() {
+        if (battleMusic == null) return;
+        if (battleMusic.isPlaying()) battleMusic.stop();
+        battleMusic.release();
+        battleMusic = null;
+    }
+
+    @Override protected void onPause() {
+        stopBattleMusic();
+        super.onPause();
+    }
+
+    @Override protected void onResume() {
+        super.onResume();
+        startBattleMusic();
     }
 
     private void renderPageHeader(LinearLayout page, AppDestination destination) {
@@ -527,68 +642,7 @@ public final class MainActivity extends AppCompatActivity {
         LinearLayout.LayoutParams emptyParams = new LinearLayout.LayoutParams(-1, -2);
         emptyParams.topMargin = dimension(R.dimen.space_3);
         inventoryPanel.addView(empty, emptyParams);
-        LinearLayout mergePanel = new LinearLayout(this);
-        mergePanel.setOrientation(LinearLayout.VERTICAL);
-        LinearLayout.LayoutParams mergeParams = new LinearLayout.LayoutParams(-1, -2);
-        mergeParams.topMargin = dimension(R.dimen.space_4);
-        inventoryPanel.addView(mergePanel, mergeParams);
-        TextView toggle = text(R.string.forge_open_details,
-                R.style.TextAppearance_Ruptura_Label, R.color.accent_cyan, true);
-        toggle.setMinimumHeight(dimension(R.dimen.target_min));
-        toggle.setGravity(Gravity.CENTER_VERTICAL);
-        toggle.setClickable(true);
-        toggle.setFocusable(true);
-        inventoryPanel.addView(toggle);
-        LinearLayout details = new LinearLayout(this);
-        details.setOrientation(LinearLayout.VERTICAL);
-        details.setVisibility(View.GONE);
-        page.addView(details, new LinearLayout.LayoutParams(-1, -2));
-        toggle.setOnClickListener(view -> {
-            boolean expand = details.getVisibility() != View.VISIBLE;
-            details.setVisibility(expand ? View.VISIBLE : View.GONE);
-            toggle.setText(expand ? R.string.forge_close_details : R.string.forge_open_details);
-        });
-
-        TextView heading = text(R.string.forge_stones_heading,
-                R.style.TextAppearance_Ruptura_Title, R.color.text_primary, true);
-        LinearLayout.LayoutParams headingParams = new LinearLayout.LayoutParams(-1, -2);
-        headingParams.topMargin = dimension(R.dimen.space_8);
-        details.addView(heading, headingParams);
-
-        LinearLayout stages = new LinearLayout(this);
-        stages.setOrientation(LinearLayout.VERTICAL);
-        stages.setPadding(dimension(R.dimen.space_4), dimension(R.dimen.space_4),
-                dimension(R.dimen.space_4), dimension(R.dimen.space_4));
-        stages.setBackground(background(R.color.surface_elevated, R.color.border_subtle,
-                dimension(R.dimen.radius_card)));
-        LinearLayout.LayoutParams stagesParams = new LinearLayout.LayoutParams(-1, -2);
-        stagesParams.topMargin = dimension(R.dimen.space_4);
-        details.addView(stages, stagesParams);
-        stages.addView(text(R.string.forge_stage_label,
-                R.style.TextAppearance_Ruptura_Label, R.color.accent_gold, true));
-        TextView sequence = text(R.string.forge_stage_sequence,
-                R.style.TextAppearance_Ruptura_Body, R.color.text_primary, false);
-        LinearLayout.LayoutParams sequenceParams = new LinearLayout.LayoutParams(-1, -2);
-        sequenceParams.topMargin = dimension(R.dimen.space_2);
-        stages.addView(sequence, sequenceParams);
-
-        for (InfinityStone stone : InfinityStone.values()) {
-            LinearLayout card = new LinearLayout(this);
-            card.setOrientation(LinearLayout.VERTICAL);
-            card.setPadding(dimension(R.dimen.space_4), dimension(R.dimen.space_4),
-                    dimension(R.dimen.space_4), dimension(R.dimen.space_4));
-            card.setBackground(background(R.color.surface_elevated, R.color.border_subtle,
-                    dimension(R.dimen.radius_card)));
-            LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(-1, -2);
-            cardParams.topMargin = dimension(R.dimen.space_4);
-            details.addView(card, cardParams);
-
-            card.addView(text(stone.labelRes, R.style.TextAppearance_Ruptura_Title,
-                    R.color.text_primary, true));
-            card.setTag(stone);
-            renderForgeStoneCounts(card, stone, null);
-        }
-        refreshForgeInventory(empty, details, inventoryGrid, mergePanel);
+        refreshForgeInventory(empty, inventoryGrid);
     }
 
     private void renderForgeSockets(LinearLayout page) {
@@ -650,93 +704,84 @@ public final class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void refreshForgeInventory(TextView empty, LinearLayout details,
-                                       LinearLayout inventoryGrid, LinearLayout mergePanel) {
+    private void refreshForgeInventory(TextView empty, LinearLayout inventoryGrid) {
         forgeExecutor.execute(() -> {
             try {
                 ForgeInventory inventory = forgeRepository.load();
                 runOnUiThread(() -> {
                     boolean hasItems = false;
                     inventoryGrid.removeAllViews();
-                    mergePanel.removeAllViews();
-                    mergePanel.addView(text("FUSÕES DISPONÍVEIS · 2:1",
-                            R.style.TextAppearance_Ruptura_Label, R.color.accent_gold, true));
-                    int mergeCount = 0;
                     LinearLayout gridRow = null;
                     int shown = 0;
                     int[] colors = {R.color.stone_space, R.color.stone_mind,
                             R.color.stone_reality, R.color.stone_power,
                             R.color.stone_time, R.color.stone_soul};
-                    for (int i = 0; i < details.getChildCount(); i++) {
-                        View child = details.getChildAt(i);
-                        Object tag = child.getTag();
-                        if (tag instanceof InfinityStone) {
-                            InfinityStone stone = (InfinityStone) tag;
-                            renderForgeStoneCounts((LinearLayout) child, stone, inventory);
-                            for (ForgeStage stage : ForgeStage.values()) {
-                                int count = inventory.count(stone, stage);
-                                if (stage != ForgeStage.COMPLETE
-                                        && count >= ForgePolicy.INPUT_COUNT) {
-                                    ForgeStage output = stage.next();
-                                    TextView merge = action(getString(stone.labelRes) + " · "
-                                            + ForgePolicy.INPUT_COUNT + " "
-                                            + getString(stageLabel(stage)) + " → 1 "
-                                            + getString(stageSingleLabel(output)),
-                                            () -> confirmMerge(stone, stage, output));
-                                    LinearLayout.LayoutParams mergeActionParams =
-                                            new LinearLayout.LayoutParams(-1, -2);
-                                    mergeActionParams.topMargin = dimension(R.dimen.space_3);
-                                    mergePanel.addView(merge, mergeActionParams);
-                                    mergeCount++;
-                                }
-                                if (count <= 0) continue;
-                                hasItems = true;
-                                if (shown % 4 == 0) {
-                                    gridRow = new LinearLayout(this);
-                                    LinearLayout.LayoutParams rowParams =
-                                            new LinearLayout.LayoutParams(-1, -2);
-                                    rowParams.topMargin = dimension(R.dimen.space_2);
-                                    inventoryGrid.addView(gridRow, rowParams);
-                                }
-                                LinearLayout item = new LinearLayout(this);
-                                item.setOrientation(LinearLayout.VERTICAL);
-                                item.setGravity(Gravity.CENTER);
-                                item.setMinimumHeight(dimension(R.dimen.target_min));
-                                item.setBackground(background(R.color.surface_primary,
-                                        R.color.border_subtle, 0));
-                                TextView icon = text("⬡", R.style.TextAppearance_Ruptura_Title,
-                                        colors[stone.ordinal()], true);
-                                icon.setGravity(Gravity.CENTER);
-                                item.addView(icon);
-                                TextView title = text(getString(stageSingleLabel(stage)),
+                    for (InfinityStone stone : InfinityStone.values()) {
+                        for (ForgeStage stage : ForgeStage.values()) {
+                            int count = inventory.count(stone, stage);
+                            if (count <= 0) continue;
+                            hasItems = true;
+                            if (shown % 2 == 0) {
+                                gridRow = new LinearLayout(this);
+                                LinearLayout.LayoutParams rowParams =
+                                        new LinearLayout.LayoutParams(-1, -2);
+                                rowParams.topMargin = dimension(R.dimen.space_2);
+                                inventoryGrid.addView(gridRow, rowParams);
+                            }
+                            boolean canMerge = stage != ForgeStage.COMPLETE
+                                    && count >= ForgePolicy.INPUT_COUNT;
+                            LinearLayout item = new LinearLayout(this);
+                            item.setOrientation(LinearLayout.VERTICAL);
+                            item.setGravity(Gravity.CENTER);
+                            item.setPadding(dimension(R.dimen.space_2), dimension(R.dimen.space_2),
+                                    dimension(R.dimen.space_2), dimension(R.dimen.space_2));
+                            item.setMinimumHeight(dimension(R.dimen.target_min)
+                                    + dimension(R.dimen.space_4));
+                            item.setBackground(background(canMerge ? colors[stone.ordinal()]
+                                            : R.color.surface_primary,
+                                    canMerge ? colors[stone.ordinal()] : R.color.border_subtle,
+                                    dimension(R.dimen.radius_card)));
+                            TextView icon = text("\u2726", R.style.TextAppearance_Ruptura_Title,
+                                    canMerge ? R.color.canvas : colors[stone.ordinal()], true);
+                            icon.setGravity(Gravity.CENTER);
+                            item.addView(icon);
+                            TextView title = text(getString(stageSingleLabel(stage)) + " \u00b7 "
+                                            + getString(stone.labelRes),
+                                    R.style.TextAppearance_Ruptura_Caption,
+                                    canMerge ? R.color.canvas : R.color.text_secondary, canMerge);
+                            title.setGravity(Gravity.CENTER);
+                            item.addView(title);
+                            TextView amount = text("\u00d7" + count,
+                                    R.style.TextAppearance_Ruptura_Title,
+                                    canMerge ? R.color.canvas : R.color.text_primary, true);
+                            amount.setGravity(Gravity.CENTER);
+                            item.addView(amount);
+                            if (canMerge) {
+                                TextView hint = text("TOQUE PARA FUNDIR",
                                         R.style.TextAppearance_Ruptura_Caption,
-                                        R.color.text_secondary, false);
-                                title.setGravity(Gravity.CENTER);
-                                item.addView(title);
-                                TextView amount = text("×" + count,
-                                        R.style.TextAppearance_Ruptura_Caption,
-                                        R.color.text_primary, true);
-                                amount.setGravity(Gravity.CENTER);
-                                item.addView(amount);
+                                        R.color.canvas, true);
+                                hint.setGravity(Gravity.CENTER);
+                                item.addView(hint);
+                                item.setFocusable(true);
+                                item.setClickable(true);
+                                item.setContentDescription(getString(stone.labelRes) + ", "
+                                        + getString(stageSingleLabel(stage)) + ": " + count
+                                        + ". Tocar para fundir.");
+                                item.setOnClickListener(view -> {
+                                    playUiSound();
+                                    mergeWithEffect(stone, stage);
+                                });
+                            } else {
                                 item.setContentDescription(getString(stone.labelRes) + ", "
                                         + getString(stageSingleLabel(stage)) + ": " + count);
-                                LinearLayout.LayoutParams itemParams =
-                                        new LinearLayout.LayoutParams(0, -2, 1f);
-                                itemParams.setMargins(dimension(R.dimen.space_1), 0,
-                                        dimension(R.dimen.space_1), 0);
-                                gridRow.addView(item, itemParams);
-                                shown++;
                             }
+                            LinearLayout.LayoutParams itemParams =
+                                    new LinearLayout.LayoutParams(0, -2, 1f);
+                            itemParams.setMargins(dimension(R.dimen.space_1), 0,
+                                    dimension(R.dimen.space_1), 0);
+                            gridRow.addView(item, itemParams);
+                            shown++;
                         }
-                    }
-                    if (mergeCount == 0) {
-                        TextView needPair = text("Junte 2 peças da mesma Joia e do mesmo estágio para fundir.",
-                                R.style.TextAppearance_Ruptura_Body,
-                                R.color.text_secondary, false);
-                        LinearLayout.LayoutParams needPairParams =
-                                new LinearLayout.LayoutParams(-1, -2);
-                        needPairParams.topMargin = dimension(R.dimen.space_2);
-                        mergePanel.addView(needPair, needPairParams);
                     }
                     empty.setVisibility(hasItems ? View.GONE : View.VISIBLE);
                 });
@@ -744,39 +789,6 @@ public final class MainActivity extends AppCompatActivity {
                 runOnUiThread(() -> empty.setText(R.string.forge_inventory_load_error));
             }
         });
-    }
-
-    private void renderForgeStoneCounts(LinearLayout card, InfinityStone stone, ForgeInventory inventory) {
-        while (card.getChildCount() > 1) card.removeViewAt(card.getChildCount() - 1);
-        for (ForgeStage stage : ForgeStage.values()) {
-            int count = inventory == null ? 0 : inventory.count(stone, stage);
-            TextView row = text(getString(R.string.forge_count_line, getString(stageLabel(stage)), count),
-                    R.style.TextAppearance_Ruptura_Body, R.color.text_secondary, false);
-            LinearLayout.LayoutParams rowParams = new LinearLayout.LayoutParams(-1, -2);
-            rowParams.topMargin = dimension(R.dimen.space_2);
-            card.addView(row, rowParams);
-            if (stage == ForgeStage.COMPLETE || count < ForgePolicy.INPUT_COUNT) continue;
-            ForgeStage output = stage.next();
-            TextView action = text(getString(R.string.forge_merge_action,
-                            getString(stageLabel(stage))),
-                    R.style.TextAppearance_Ruptura_Label, R.color.accent_cyan, true);
-            action.setFocusable(true);
-            action.setClickable(true);
-            action.setContentDescription(getString(R.string.forge_merge_action,
-                    getString(stageLabel(stage))));
-            action.setPadding(0, dimension(R.dimen.space_2), 0, dimension(R.dimen.space_2));
-            action.setOnClickListener(view -> confirmMerge(stone, stage, output));
-            card.addView(action, new LinearLayout.LayoutParams(-1, -2));
-        }
-    }
-
-    private int stageLabel(ForgeStage stage) {
-        switch (stage) {
-            case SHARD: return R.string.forge_stage_shard;
-            case FRAGMENT: return R.string.forge_stage_fragment;
-            case UNSTABLE_CORE: return R.string.forge_stage_core;
-            default: return R.string.forge_stage_complete;
-        }
     }
 
     private int stageSingleLabel(ForgeStage stage) {
@@ -788,31 +800,115 @@ public final class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void confirmMerge(InfinityStone stone, ForgeStage input, ForgeStage output) {
-        new AlertDialog.Builder(this)
-                .setTitle(R.string.forge_merge_confirm_title)
-                .setMessage(getString(R.string.forge_merge_confirm_message,
-                        getString(stageLabel(input)), getString(stageSingleLabel(output))))
-                .setNegativeButton(R.string.forge_action_cancel, (dialog, which) -> dialog.dismiss())
-                .setPositiveButton(R.string.forge_action_confirm, (dialog, which) -> {
-                    String operationId = java.util.UUID.randomUUID().toString();
-                    forgeExecutor.execute(() -> {
-                        try {
-                            forgeRepository.merge(operationId, stone, input);
-                            runOnUiThread(() -> {
-                                if (selectedDestination == AppDestination.FORGE) renderShell();
-                                android.widget.Toast.makeText(this, R.string.forge_merge_success,
-                                        android.widget.Toast.LENGTH_SHORT).show();
-                            });
-                        } catch (ForgeException exception) {
-                            runOnUiThread(() -> android.widget.Toast.makeText(this,
-                                    exception.reason == ForgeException.Reason.INSUFFICIENT_ITEMS
-                                            ? R.string.forge_insufficient_items
-                                            : R.string.forge_inventory_full_error,
-                                    android.widget.Toast.LENGTH_LONG).show());
-                        }
-                    });
-                }).show();
+    private void mergeWithEffect(InfinityStone stone, ForgeStage input) {
+        forgeExecutor.execute(() -> {
+            try {
+                forgeRepository.merge(java.util.UUID.randomUUID().toString(), stone, input);
+                boolean completedStone = input.next() == ForgeStage.COMPLETE;
+                runOnUiThread(() -> {
+                    playBattleSound(completedStone ? ToneGenerator.TONE_CDMA_ALERT_CALL_GUARD
+                            : ToneGenerator.TONE_PROP_ACK);
+                    showForgeMergeAnimation(completedStone, stone, input);
+                    contentContainer.postDelayed(() -> {
+                        if (selectedDestination == AppDestination.FORGE) renderShell();
+                    }, animationDelay(completedStone ? 2600 : 1450));
+                });
+            } catch (ForgeException exception) {
+                runOnUiThread(() -> android.widget.Toast.makeText(this,
+                        exception.reason == ForgeException.Reason.INSUFFICIENT_ITEMS
+                                ? R.string.forge_insufficient_items
+                                : R.string.forge_inventory_full_error,
+                        android.widget.Toast.LENGTH_LONG).show());
+            }
+        });
+    }
+
+    private void showForgeMergeAnimation(boolean completedStone, InfinityStone stone,
+                                         ForgeStage input) {
+        if (animationDelay(1) == 0) return;
+        FrameLayout effect = new FrameLayout(this);
+        effect.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+        effect.setBackgroundColor(completedStone ? 0xAA05070C : 0x4405070C);
+        contentContainer.addView(effect, new FrameLayout.LayoutParams(-1, -1));
+        if (completedStone) {
+            LinearLayout scene = new LinearLayout(this);
+            scene.setOrientation(LinearLayout.VERTICAL);
+            scene.setGravity(Gravity.CENTER);
+            scene.setPadding(dimension(R.dimen.space_4), dimension(R.dimen.space_4),
+                    dimension(R.dimen.space_4), dimension(R.dimen.space_4));
+            scene.setBackground(new AngularPanelDrawable(getColor(R.color.surface_elevated),
+                    getColor(R.color.surface_primary), getColor(stoneColor(stone)),
+                    dimension(R.dimen.angular_cut), true));
+            FrameLayout.LayoutParams panel = new FrameLayout.LayoutParams(
+                    dimension(R.dimen.space_8) * 8, -2, Gravity.CENTER);
+            effect.addView(scene, panel);
+
+            FrameLayout arrival = new FrameLayout(this);
+            scene.addView(arrival, new LinearLayout.LayoutParams(-1,
+                    dimension(R.dimen.space_8) * 5));
+            TextView glove = text("🧤", R.style.TextAppearance_Ruptura_Display,
+                    R.color.text_primary, true);
+            glove.setTextSize(58);
+            glove.setGravity(Gravity.CENTER);
+            arrival.addView(glove, new FrameLayout.LayoutParams(-1, -1, Gravity.CENTER));
+            TextView gem = text("◆", R.style.TextAppearance_Ruptura_Title,
+                    stoneColor(stone), true);
+            gem.setTextSize(38);
+            gem.setGravity(Gravity.CENTER);
+            gem.setShadowLayer(dimension(R.dimen.space_2), 0f, 0f,
+                    getColor(R.color.accent_gold));
+            gem.setElevation(dimension(R.dimen.space_2));
+            FrameLayout.LayoutParams gemPosition = new FrameLayout.LayoutParams(-1,
+                    dimension(R.dimen.space_8) * 2, Gravity.TOP | Gravity.CENTER_HORIZONTAL);
+            arrival.addView(gem, gemPosition);
+            gem.setTranslationY(-dimension(R.dimen.space_8) * 2.5f);
+            gem.setScaleX(1.5f);
+            gem.setScaleY(1.5f);
+
+            TextView caption = text("JOIA FORJADA", R.style.TextAppearance_Ruptura_Label,
+                    R.color.accent_gold, true);
+            caption.setGravity(Gravity.CENTER);
+            caption.setPadding(0, dimension(R.dimen.space_2), 0, 0);
+            scene.addView(caption, new LinearLayout.LayoutParams(-1, -2));
+            gem.animate().translationY(dimension(R.dimen.space_8) * 1.4f)
+                    .scaleX(.8f).scaleY(.8f).setStartDelay(90).setDuration(650);
+            glove.setScaleX(.9f);
+            glove.setScaleY(.9f);
+            glove.animate().scaleX(1.08f).scaleY(1.08f).setStartDelay(590)
+                    .setDuration(220).withEndAction(() -> glove.animate()
+                            .scaleX(1f).scaleY(1f).setDuration(180));
+            scene.setAlpha(0f);
+            scene.setScaleX(.86f);
+            scene.setScaleY(.86f);
+            scene.animate().alpha(1f).scaleX(1f).scaleY(1f).setDuration(240);
+            effect.postDelayed(() -> effect.animate().alpha(0f).setDuration(420)
+                    .withEndAction(() -> contentContainer.removeView(effect)), 2300);
+            return;
+        }
+
+        TextView core = text("\u2727  " + getString(stageSingleLabel(input.next()))
+                        .toUpperCase(java.util.Locale.ROOT) + " FORJADO  \u2727",
+                R.style.TextAppearance_Ruptura_Title, R.color.accent_gold, true);
+        core.setGravity(Gravity.CENTER);
+        FrameLayout.LayoutParams center = new FrameLayout.LayoutParams(-1,
+                dimension(R.dimen.space_8) * 2, Gravity.CENTER);
+        effect.addView(core, center);
+        for (int i = 0; i < 6; i++) {
+            TextView spark = text("✦", R.style.TextAppearance_Ruptura_Title,
+                    i % 2 == 0 ? R.color.accent_cyan : R.color.accent_gold, true);
+            FrameLayout.LayoutParams p = new FrameLayout.LayoutParams(dimension(R.dimen.space_8),
+                    dimension(R.dimen.space_8), Gravity.CENTER);
+            effect.addView(spark, p);
+            spark.setTranslationX((i - 2.5f) * dimension(R.dimen.space_8) * 1.6f);
+            spark.setTranslationY(i % 2 == 0 ? -dimension(R.dimen.space_8) * 2
+                    : dimension(R.dimen.space_8) * 2);
+            spark.animate().translationX(0).translationY(0).scaleX(.2f).scaleY(.2f)
+                    .alpha(0).setDuration(1100);
+        }
+        core.setScaleX(.7f);
+        core.setScaleY(.7f);
+        core.animate().scaleX(1.12f).scaleY(1.12f).alpha(0).setDuration(1250)
+                .withEndAction(() -> contentContainer.removeView(effect));
     }
 
     private void renderGameCatalog(LinearLayout page) {
@@ -1106,10 +1202,56 @@ public final class MainActivity extends AppCompatActivity {
             activateParams.topMargin = dimension(R.dimen.space_3);
             page.addView(activate, activateParams);
         }
+        LinearLayout detailTabs = new LinearLayout(this);
+        detailTabs.setOrientation(LinearLayout.HORIZONTAL);
+        LinearLayout.LayoutParams detailTabsParams = new LinearLayout.LayoutParams(-1, -2);
+        detailTabsParams.topMargin = dimension(R.dimen.space_4);
+        page.addView(detailTabs, detailTabsParams);
+        TextView variantsTab = text("VARIANTES", R.style.TextAppearance_Ruptura_Label,
+                R.color.accent_gold, true);
+        TextView factsTab = text("CURIOSIDADES", R.style.TextAppearance_Ruptura_Label,
+                R.color.text_secondary, true);
+        for (TextView tab : new TextView[]{variantsTab, factsTab}) {
+            tab.setGravity(Gravity.CENTER);
+            tab.setMinHeight(dimension(R.dimen.target_min));
+            tab.setFocusable(true); tab.setClickable(true);
+            detailTabs.addView(tab, new LinearLayout.LayoutParams(0, -2, 1f));
+        }
+        LinearLayout detailSections = new LinearLayout(this);
+        detailSections.setOrientation(LinearLayout.VERTICAL);
+        page.addView(detailSections, new LinearLayout.LayoutParams(-1, -2));
+        LinearLayout variantSection = new LinearLayout(this);
+        variantSection.setOrientation(LinearLayout.VERTICAL);
+        LinearLayout factsSection = new LinearLayout(this);
+        factsSection.setOrientation(LinearLayout.VERTICAL);
+        detailSections.addView(variantSection);
+        detailSections.addView(factsSection);
+        factsSection.setVisibility(View.GONE);
+        Runnable[] selectFacts = {null};
+        selectFacts[0] = () -> {
+            boolean showFacts = factsSection.getVisibility() != View.VISIBLE;
+            variantSection.setVisibility(showFacts ? View.GONE : View.VISIBLE);
+            factsSection.setVisibility(showFacts ? View.VISIBLE : View.GONE);
+            variantsTab.setTextColor(getColor(showFacts ? R.color.text_secondary : R.color.accent_gold));
+            factsTab.setTextColor(getColor(showFacts ? R.color.accent_gold : R.color.text_secondary));
+            variantsTab.setBackground(background(showFacts ? R.color.surface_primary : R.color.surface_selected,
+                    showFacts ? R.color.border_subtle : R.color.accent_gold, dimension(R.dimen.radius_card)));
+            factsTab.setBackground(background(showFacts ? R.color.surface_selected : R.color.surface_primary,
+                    showFacts ? R.color.accent_gold : R.color.border_subtle, dimension(R.dimen.radius_card)));
+        };
+        factsTab.setOnClickListener(view -> selectFacts[0].run());
+        variantsTab.setOnClickListener(view -> {
+            if (variantSection.getVisibility() != View.VISIBLE) selectFacts[0].run();
+        });
+        variantsTab.setTextColor(getColor(R.color.accent_gold));
+        variantsTab.setBackground(background(R.color.surface_selected, R.color.accent_gold,
+                dimension(R.dimen.radius_card)));
+        factsTab.setBackground(background(R.color.surface_primary, R.color.border_subtle,
+                dimension(R.dimen.radius_card)));
         LinearLayout stats = card();
         LinearLayout.LayoutParams statsParams = new LinearLayout.LayoutParams(-1, -2);
         statsParams.topMargin = dimension(R.dimen.space_4);
-        page.addView(stats, statsParams);
+        variantSection.addView(stats, statsParams);
         stats.addView(text("ATRIBUTOS DE JOGO · " + getString(focusTier.labelRes)
                         + (owned.contains(focusTier) ? "" : " · PRÉVIA"),
                 R.style.TextAppearance_Ruptura_Label, R.color.accent_gold, true));
@@ -1124,19 +1266,36 @@ public final class MainActivity extends AppCompatActivity {
         }
         stats.addView(text("PODER TOTAL  " + VariantStats.total(values),
                 R.style.TextAppearance_Ruptura_Title, R.color.accent_cyan, true));
-        renderEditorialFacts(page, character.id);
+        renderEditorialFacts(factsSection, character.id);
         for (GameCatalogVariant variant : character.variants) {
             boolean isOwned = owned.contains(variant.tier);
             LinearLayout variantCard = card();
             LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(-1, -2);
             cardParams.topMargin = dimension(R.dimen.space_3);
-            page.addView(variantCard, cardParams);
+            variantSection.addView(variantCard, cardParams);
+            variantCard.setBackground(background(variant.tier == focusTier ? R.color.surface_selected
+                            : R.color.surface_elevated,
+                    variant.tier == focusTier ? R.color.accent_gold : R.color.border_subtle,
+                    dimension(R.dimen.radius_card)));
             LinearLayout row = new LinearLayout(this);
             row.setGravity(Gravity.CENTER_VERTICAL);
             variantCard.addView(row);
             variantCard.setClickable(true);
             variantCard.setFocusable(true);
-            variantCard.setOnClickListener(view -> showCharacterVariants(character, roster, variant.tier));
+            variantCard.setContentDescription(getString(variant.tier.labelRes) + " · " + variant.name
+                    + (isOwned ? " · desbloqueada" : " · bloqueada")
+                    + (variant.tier == focusTier ? " · selecionada" : "")
+                    + (active && isOwned && !variant.tier.name().equals(equippedTier)
+                    ? " · toque para equipar" : ""));
+            variantCard.setOnClickListener(view -> {
+                if (active && characterOwned && isOwned
+                        && !variant.tier.name().equals(forgeRepository.loadEquippedTier(character.id))) {
+                    forgeExecutor.execute(() -> {
+                        forgeRepository.equipVariant(character.id, variant.tier, roster);
+                        runOnUiThread(() -> showCharacterVariants(character, roster, variant.tier));
+                    });
+                } else showCharacterVariants(character, roster, variant.tier);
+            });
             ImageView thumbnail = new ImageView(this);
             thumbnail.setScaleType(ImageView.ScaleType.FIT_CENTER);
             thumbnail.setBackgroundColor(getColor(R.color.surface_primary));
@@ -1153,15 +1312,12 @@ public final class MainActivity extends AppCompatActivity {
             labelParams.leftMargin = dimension(R.dimen.space_3);
             row.addView(label, labelParams);
             if (active && characterOwned && variant.tier == VariantProgression.next(owned)) {
-                variantCard.addView(action("EVOLUIR COM MANOPLA COMPLETA",
-                        this::showGauntletScreen));
+                variantCard.addView(text("EVOLUÇÃO DISPONÍVEL · ACESSE A MANOPLA",
+                        R.style.TextAppearance_Ruptura_Caption, R.color.accent_gold, true));
             }
             if (active && isOwned && !variant.tier.name().equals(equippedTier)) {
-                variantCard.addView(action(getString(R.string.variant_equip_action),
-                        () -> forgeExecutor.execute(() -> {
-                    forgeRepository.equipVariant(character.id, variant.tier, roster);
-                    runOnUiThread(() -> showCharacterVariants(character, roster, variant.tier));
-                })));
+                variantCard.addView(text("TOQUE NO CARD PARA EQUIPAR",
+                        R.style.TextAppearance_Ruptura_Caption, R.color.accent_cyan, true));
             }
         }
         scroll.addView(page);
@@ -1173,7 +1329,7 @@ public final class MainActivity extends AppCompatActivity {
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, -2);
         params.topMargin = dimension(R.dimen.space_4);
         page.addView(facts, params);
-        facts.addView(text("ARQUIVO EDITORIAL · COMIC VINE",
+        facts.addView(text("CURIOSIDADES · COMIC VINE",
                 R.style.TextAppearance_Ruptura_Label, R.color.accent_cyan, true));
         loadEditorialFacts(facts, gameId);
     }
@@ -1195,12 +1351,16 @@ public final class MainActivity extends AppCompatActivity {
                 if (summary.length() > 500) summary = summary.substring(0, 500) + "…";
                 String powers = editorialList(details.optJSONArray("powers"), 5);
                 String teams = editorialList(details.optJSONArray("teams"), 4);
+                int issueCount = details.optInt("issue_count", -1);
+                String firstAppearance = details.optString("first_appearance", "").trim();
                 String siteUrl = metadata.getString("site_url");
                 String finalSummary = summary;
                 runOnUiThread(() -> {
                     if (isFinishing() || isDestroyed()) return;
                     while (facts.getChildCount() > 1) facts.removeViewAt(facts.getChildCount() - 1);
                     if (!realName.isEmpty()) addEditorialLine(facts, "IDENTIDADE", realName);
+                    if (issueCount >= 0) addEditorialLine(facts, "APARIÇÕES EM REVISTAS", String.valueOf(issueCount));
+                    if (!firstAppearance.isEmpty()) addEditorialLine(facts, "PRIMEIRA EDIÇÃO", firstAppearance);
                     if (!finalSummary.isEmpty()) addEditorialLine(facts, "PERFIL", finalSummary);
                     addEditorialLine(facts, "PODERES", powers);
                     addEditorialLine(facts, "EQUIPES", teams);
@@ -1356,18 +1516,28 @@ public final class MainActivity extends AppCompatActivity {
     }
 
     private void renderDeadpool(LinearLayout page) {
-        String[] contextId = {"nexus"};
+        String[] contextId = {"app"};
         String[] cardPrompt = {""};
         Runnable[] sendRequest = {null};
+        ImageView deadpoolAvatar = new ImageView(this);
+        deadpoolAvatar.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        portraitLoader.loadVariant("deadpool", GameVariantTier.ORIGIN, "Deadpool", deadpoolAvatar, null);
         TextView bubble = text(R.string.deadpool_bubble, R.style.TextAppearance_Ruptura_Body,
                 R.color.deadpool_ink, false);
         bubble.setPadding(dimension(R.dimen.space_3), dimension(R.dimen.space_3),
                 dimension(R.dimen.space_3), dimension(R.dimen.space_3));
         bubble.setBackground(background(R.color.deadpool_white, R.color.deadpool_ink, 0));
         bubble.setElevation(dimension(R.dimen.space_1));
-        LinearLayout.LayoutParams bubbleParams = new LinearLayout.LayoutParams(-1, -2);
-        bubbleParams.bottomMargin = dimension(R.dimen.space_4);
-        page.addView(bubble, bubbleParams);
+        LinearLayout speech = new LinearLayout(this);
+        speech.setGravity(Gravity.CENTER_VERTICAL);
+        LinearLayout.LayoutParams speechParams = new LinearLayout.LayoutParams(-1, -2);
+        speechParams.bottomMargin = dimension(R.dimen.space_4);
+        page.addView(speech, speechParams);
+        speech.addView(deadpoolAvatar, new LinearLayout.LayoutParams(dimension(R.dimen.space_8) * 3,
+                dimension(R.dimen.space_8) * 4));
+        LinearLayout.LayoutParams bubbleParams = new LinearLayout.LayoutParams(0, -2, 1f);
+        bubbleParams.leftMargin = dimension(R.dimen.space_2);
+        speech.addView(bubble, bubbleParams);
 
         LinearLayout firstRow = new LinearLayout(this);
         firstRow.setOrientation(LinearLayout.HORIZONTAL);
@@ -1375,25 +1545,18 @@ public final class MainActivity extends AppCompatActivity {
         secondRow.setOrientation(LinearLayout.HORIZONTAL);
         addComicCard(firstRow, R.string.deadpool_briefing_label, R.string.deadpool_briefing_detail,
                 true, () -> {
-                    contextId[0] = "xmen";
-                    cardPrompt[0] = "Faça um briefing curto para enfrentar Magneto.";
+                    contextId[0] = "app";
+                    cardPrompt[0] = "Faça um briefing curto para " + deadpoolMission().title
+                            + ", contra " + deadpoolMission().opponentName + ".";
                     if (sendRequest[0] != null) sendRequest[0].run();
                 });
         addComicCard(firstRow, R.string.deadpool_team_label, R.string.deadpool_team_detail,
                 true, () -> {
-                    contextId[0] = "xmen";
-                    CampaignState saved = forgeRepository.loadCampaign("xmen", java.util.Arrays.asList(
+                    contextId[0] = "app";
+                    CampaignState saved = forgeRepository.loadCampaign("rupture", java.util.Arrays.asList(
                             "homem-aranha", "wolverine", "tocha-humana"));
-                    List<GameCatalogCharacter> roster = loadRoster();
-                    StringBuilder names = new StringBuilder();
-                    for (String id : saved.teamIds) {
-                        GameCatalogCharacter character = findCharacter(roster, id);
-                        if (character != null) {
-                            if (names.length() > 0) names.append(", ");
-                            names.append(character.name);
-                        }
-                    }
-                    cardPrompt[0] = "Comente meu trio salvo para Magneto: " + names + ".";
+                    cardPrompt[0] = "Comente minha equipe " + describeTeam(saved.teamIds)
+                            + " para enfrentar " + deadpoolMission().opponentName + ".";
                     if (sendRequest[0] != null) sendRequest[0].run();
                 });
         addComicCard(secondRow, R.string.deadpool_daily_label, R.string.deadpool_daily_detail,
@@ -1444,7 +1607,7 @@ public final class MainActivity extends AppCompatActivity {
         sendRequest[0] = () -> {
             String message = cardPrompt[0].isEmpty() ? prompt.getText().toString() : cardPrompt[0];
             cardPrompt[0] = "";
-            requestDeadpoolLine(contextId[0], message, answer, ask);
+            requestDeadpoolLine(contextId[0], message, answer, ask, deadpoolAvatar);
         };
         ask.setOnClickListener(view -> sendRequest[0].run());
         LinearLayout.LayoutParams askParams = new LinearLayout.LayoutParams(-1, -2);
@@ -1453,7 +1616,7 @@ public final class MainActivity extends AppCompatActivity {
     }
 
     private void requestDeadpoolLine(String contextId, String prompt, TextView answer,
-                                     TextView ask) {
+                                     TextView ask, ImageView avatar) {
         if (!ask.isEnabled()) return;
         ask.setEnabled(false);
         answer.setText(R.string.deadpool_loading);
@@ -1462,12 +1625,27 @@ public final class MainActivity extends AppCompatActivity {
                 org.json.JSONObject request = new org.json.JSONObject();
                 request.put("context_id", contextId);
                 request.put("prompt", prompt);
-                org.json.JSONObject response = backendClient().post("/v1/ai/deadpool-line", request);
+                request.put("game_context", deadpoolGameContext());
+                BackendClient client = backendClient();
+                org.json.JSONObject response;
+                try {
+                    response = client.post("/v1/ai/deadpool-line", request);
+                } catch (BackendClient.HttpStatusException error) {
+                    if (!BackendClient.shouldRetryDeadpoolWithoutContext(error.statusCode, request))
+                        throw error;
+                    request.remove("game_context");
+                    request.put("prompt", DeadpoolPrompt.legacy(prompt, deadpoolGameContext()));
+                    response = client.post("/v1/ai/deadpool-line", request);
+                }
                 String line = response.getString("text");
                 boolean fallback = response.optBoolean("fallback", true);
                 runOnUiThread(() -> {
                     answer.setText(fallback ? line + "\n\n" + getString(R.string.deadpool_offline)
                             : line);
+                    deadpoolPortraitTurn++;
+                    GameVariantTier[] tiers = GameVariantTier.values();
+                    portraitLoader.loadVariant("deadpool", tiers[deadpoolPortraitTurn % tiers.length],
+                            "Deadpool", avatar, null);
                     ask.setEnabled(true);
                 });
             } catch (Exception error) {
@@ -1477,6 +1655,56 @@ public final class MainActivity extends AppCompatActivity {
                 });
             }
         });
+    }
+
+    private String deadpoolGameContext() {
+        List<GameCatalogCharacter> roster = loadRoster();
+        CampaignState saved = forgeRepository.loadCampaign("rupture", java.util.Arrays.asList(
+                "homem-aranha", "wolverine", "tocha-humana"));
+        BattleMission focusedMission = deadpoolMission();
+        StringBuilder summary = new StringBuilder("Tela atual: ").append(selectedDestination.name())
+                .append(". Batalha: ").append(currentBattleContext)
+                .append(". Missão selecionada/próxima: ").append(focusedMission.title)
+                .append(" contra ").append(focusedMission.opponentName)
+                .append(" em ").append(focusedMission.location)
+                .append(". Equipe salva: ").append(describeTeam(saved.teamIds))
+                .append(". Adversários das nove campanhas: Rei do Crime, Ultron, Ameaça Tecnológica, ")
+                .append("Dormammu, Ronan, Magneto, Annihilus, Doutor Destino, Thanos (Titã em Colapso).")
+                .append(". Desbloqueados e variantes: ");
+        int count = 0;
+        for (GameCatalogCharacter character : roster) {
+            if (!forgeRepository.ownsCharacter(character.id)) continue;
+            if (count++ > 0) summary.append("; ");
+            summary.append(character.name).append(" [");
+            java.util.Set<GameVariantTier> tiers = forgeRepository.loadOwnedTiers(character.id);
+            int tierCount = 0;
+            for (GameVariantTier tier : tiers) {
+                if (tierCount++ > 0) summary.append('/');
+                summary.append(getString(tier.labelRes));
+            }
+            summary.append(", equipada ")
+                    .append(getString(tierById(forgeRepository.loadEquippedTier(character.id)).labelRes))
+                    .append(']');
+            if (summary.length() >= 780) break;
+        }
+        if (count == 0) summary.append("nenhum");
+        summary.append(". Batalhas concluídas: ");
+        int wins = 0;
+        for (BattleMission mission : BattleMission.ALL) {
+            if (!forgeRepository.hasCompletedMission(mission.campaignId, mission.number)) continue;
+            if (wins++ > 0) summary.append(", ");
+            summary.append(mission.title);
+        }
+        summary.append(" ( ").append(wins).append(" de ").append(BattleMission.ALL.size()).append(" )");
+        return summary.substring(0, Math.min(summary.length(), 1_200));
+    }
+
+    private BattleMission deadpoolMission() {
+        if (selectedBattleMission != null) return selectedBattleMission;
+        CampaignState campaign = forgeRepository.loadCampaign("rupture", java.util.Arrays.asList(
+                "homem-aranha", "wolverine", "tocha-humana"));
+        return BattleMission.forMission("rupture", Math.min(campaign.unlockedMission,
+                BattleMission.ALL.size()));
     }
 
     private void addComicCard(LinearLayout row, int titleRes, int descriptionRes,
@@ -1754,11 +1982,15 @@ public final class MainActivity extends AppCompatActivity {
             page.addView(candidate, params);
             ImageView portrait = editorialImage(candidate, dimension(R.dimen.space_8) * 2);
             portraitLoader.load(character.id, character.name, portrait, null);
+            candidate.setClickable(true); candidate.setFocusable(true);
+            candidate.setContentDescription("Desbloquear " + character.name + " com a Manopla completa");
+            candidate.setOnClickListener(view -> confirmGauntletChoice(character.name, character,
+                    GameVariantTier.ORIGIN, roster,
+                    () -> forgeRepository.unlockCharacter(character.id, roster)));
+            candidate.addView(text("🔒  NOVO PERSONAGEM",
+                    R.style.TextAppearance_Ruptura_Label, R.color.accent_cyan, true));
             candidate.addView(text(character.name + " · ORIGEM",
                     R.style.TextAppearance_Ruptura_Label, R.color.text_primary, true));
-            candidate.addView(action("DESBLOQUEAR " + character.name.toUpperCase(java.util.Locale.ROOT),
-                    () -> confirmGauntletChoice(character.name,
-                            () -> forgeRepository.unlockCharacter(character.id, roster))));
         }
         page.addView(text("EVOLUIR VARIANTE", R.style.TextAppearance_Ruptura_Title,
                 R.color.accent_gold, true));
@@ -1773,15 +2005,21 @@ public final class MainActivity extends AppCompatActivity {
             page.addView(candidate, params);
             ImageView portrait = editorialImage(candidate, dimension(R.dimen.space_8) * 2);
             portraitLoader.load(character.id, character.name, portrait, null);
+            candidate.setClickable(true); candidate.setFocusable(true);
+            candidate.setContentDescription("Evoluir " + character.name + " para " + getString(next.labelRes));
+            candidate.setOnClickListener(view -> confirmGauntletChoice(character.name + " · "
+                    + getString(next.labelRes), character, next, roster,
+                    () -> forgeRepository.unlockNextVariant(character.id, next, roster)));
+            candidate.addView(text("⚡  EVOLUÇÃO DE VARIANTE",
+                    R.style.TextAppearance_Ruptura_Label, R.color.accent_gold, true));
             candidate.addView(text(character.name + " · " + getString(next.labelRes),
                     R.style.TextAppearance_Ruptura_Label, R.color.text_primary, true));
-            candidate.addView(action("EVOLUIR " + character.name.toUpperCase(java.util.Locale.ROOT),
-                    () -> confirmGauntletChoice(character.name + " · " + getString(next.labelRes),
-                            () -> forgeRepository.unlockNextVariant(character.id, next, roster))));
         }
     }
 
-    private void confirmGauntletChoice(String target, java.util.concurrent.Callable<Boolean> unlock) {
+    private void confirmGauntletChoice(String target, GameCatalogCharacter character,
+            GameVariantTier tier, List<GameCatalogCharacter> roster,
+            java.util.concurrent.Callable<Boolean> unlock) {
         new android.app.AlertDialog.Builder(this)
                 .setTitle("Confirmar despertar")
                 .setMessage(target + " será desbloqueado ao consumir uma Joia Completa de cada tipo.")
@@ -1790,7 +2028,8 @@ public final class MainActivity extends AppCompatActivity {
                     try {
                         boolean granted = unlock.call();
                         runOnUiThread(() -> {
-                            showGauntletScreen();
+                            if (granted) showUnlockCelebration(character, roster, tier);
+                            else showGauntletScreen();
                             android.widget.Toast.makeText(this, granted ? "Desbloqueio concluído"
                                     : "Alvo já desbloqueado", android.widget.Toast.LENGTH_LONG).show();
                         });
@@ -1814,9 +2053,32 @@ public final class MainActivity extends AppCompatActivity {
 
     private void selectDestination(AppDestination destination) {
         if (selectedDestination != destination) {
+            playUiSound();
             selectedDestination = destination;
             renderShell();
         }
+    }
+
+    private void showUnlockCelebration(GameCatalogCharacter character,
+            List<GameCatalogCharacter> roster, GameVariantTier tier) {
+        selectedDestination = AppDestination.COLLECTION;
+        showCharacterVariants(character, roster, tier);
+        if (animationDelay(1) == 0) return;
+        FrameLayout overlay = new FrameLayout(this);
+        overlay.setBackgroundColor(0x6605070C);
+        overlay.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+        contentContainer.addView(overlay, new FrameLayout.LayoutParams(-1, -1));
+        TextView flare = text(tier == GameVariantTier.ORIGIN ? "🔓  PERSONAGEM DESPERTADO"
+                        : "⚡  NOVA VARIANTE",
+                R.style.TextAppearance_Ruptura_Title, R.color.accent_gold, true);
+        flare.setGravity(Gravity.CENTER);
+        FrameLayout.LayoutParams p = new FrameLayout.LayoutParams(-1,
+                dimension(R.dimen.space_8) * 2, Gravity.CENTER);
+        overlay.addView(flare, p);
+        flare.setAlpha(0f);
+        flare.animate().alpha(1f).scaleX(1.12f).scaleY(1.12f).setDuration(380)
+                .withEndAction(() -> flare.animate().alpha(0f).setStartDelay(450).setDuration(350)
+                        .withEndAction(() -> contentContainer.removeView(overlay)));
     }
 
     private List<GameCatalogCharacter> loadRoster() {
@@ -1859,7 +2121,7 @@ public final class MainActivity extends AppCompatActivity {
         button.setGravity(Gravity.CENTER);
         button.setAllCaps(true);
         button.setLetterSpacing(0.16f);
-        button.setOnClickListener(view -> task.run());
+        button.setOnClickListener(view -> { playUiSound(); task.run(); });
         button.setBackground(new AngularPanelDrawable(getColor(R.color.accent_cyan),
                 getColor(R.color.accent_quartet), getColor(R.color.accent_cyan),
                 dimension(R.dimen.angular_cut), false));
@@ -2578,6 +2840,7 @@ public final class MainActivity extends AppCompatActivity {
     }
 
     private void showTeamChooser(List<GameCatalogCharacter> roster, CampaignState campaign, int mission) {
+        selectedBattleMission = BattleMission.forMission(campaign.campaignId, mission);
         transientScreen = true;
         transientBack.setEnabled(true);
         navigationBar.setVisibility(View.GONE);
@@ -2666,14 +2929,36 @@ public final class MainActivity extends AppCompatActivity {
     }
 
     private void showMagnetoBattle(LovableBattle battle, CampaignState campaign) {
+        selectedBattleMission = battle.mission;
+        currentBattleContext = battle.mission.title + " — " + battle.mission.opponentName
+                + ", rodada " + Math.min(battle.round + 1, LovableBattle.MAX_ROUNDS)
+                + (battle.victory ? ", concluída" : battle.defeat ? ", derrota" : ", em andamento");
+        currentTeamContext = describeTeam(campaign.teamIds);
         transientScreen = true;
+        battleOpen = !battle.victory && !battle.defeat;
+        if (battleOpen) startBattleMusic(); else stopBattleMusic();
         transientBack.setEnabled(true);
         battleAnimating = false;
         battleClaiming = false;
         renderMagnetoBattle(battle, campaign);
     }
 
+    private String describeTeam(List<String> ids) {
+        List<GameCatalogCharacter> roster = loadRoster();
+        StringBuilder result = new StringBuilder();
+        for (String id : ids) {
+            GameCatalogCharacter character = findCharacter(roster, id);
+            if (result.length() > 0) result.append(", ");
+            if (character == null) { result.append(id); continue; }
+            GameVariantTier equipped = tierById(forgeRepository.loadEquippedTier(character.id));
+            result.append(character.name).append(" (").append(getString(equipped.labelRes)).append(')');
+        }
+        return result.length() == 0 ? "nenhum personagem salvo" : result.toString();
+    }
+
     private void renderMagnetoBattle(LovableBattle battle, CampaignState campaign) {
+        battleOpen = !battle.victory && !battle.defeat;
+        if (battleOpen) startBattleMusic(); else stopBattleMusic();
         navigationBar.setVisibility(View.GONE);
         contentContainer.removeAllViews();
         LinearLayout screen = new LinearLayout(this);
@@ -2784,9 +3069,17 @@ public final class MainActivity extends AppCompatActivity {
                     R.style.TextAppearance_Ruptura_Caption, R.color.text_secondary, false));
         }
         TextView feedback = text(battle.feedback, R.style.TextAppearance_Ruptura_Body,
-                R.color.text_secondary, false);
+                R.color.text_primary, true);
         feedback.setGravity(Gravity.CENTER);
-        feedback.setMinHeight(dimension(R.dimen.space_8) * 2);
+        feedback.setPadding(dimension(R.dimen.space_4), dimension(R.dimen.space_3),
+                dimension(R.dimen.space_4), dimension(R.dimen.space_3));
+        feedback.setBackground(new AngularPanelDrawable(getColor(R.color.surface_elevated),
+                getColor(R.color.surface_primary), getColor(battle.lastTrap
+                        ? R.color.accent_deadpool : battle.lastCounter
+                        ? R.color.accent_cyan : R.color.accent_gold),
+                dimension(R.dimen.angular_cut), false));
+        feedback.setElevation(dimension(R.dimen.space_2));
+        feedback.setMinHeight(dimension(R.dimen.space_8) * 3);
         feedback.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
         scene.addView(feedback, new LinearLayout.LayoutParams(-1, -2));
 
@@ -2810,10 +3103,11 @@ public final class MainActivity extends AppCompatActivity {
                     if (battleAnimating || !battle.canSpecial()) return;
                     battleAnimating = true;
                     battle.special();
+                    playBattleSound(ToneGenerator.TONE_CDMA_ALERT_CALL_GUARD);
                     renderMagnetoBattle(battle, campaign);
                     showBattleImpact("KRAKOOM", battle.lastBossDamage, battle.lastTeamDamage, true);
                     contentContainer.postDelayed(() -> { battleAnimating = false;
-                        renderMagnetoBattle(battle, campaign); }, animationDelay(1200));
+                        renderMagnetoBattle(battle, campaign); }, animationDelay(2500));
                 });
                 special.setEnabled(!battleAnimating);
                 screen.addView(special, new LinearLayout.LayoutParams(-1, -2));
@@ -2873,11 +3167,17 @@ public final class MainActivity extends AppCompatActivity {
             if (battleAnimating || !battle.canChoose()) return;
             battleAnimating = true;
             battle.choose(choice);
+            playBattleSound(choice == LovableBattle.Choice.ATTACK ? ToneGenerator.TONE_PROP_BEEP2
+                    : choice == LovableBattle.Choice.DEFEND ? ToneGenerator.TONE_PROP_ACK
+                    : ToneGenerator.TONE_DTMF_5);
             renderMagnetoBattle(battle, campaign);
-            showBattleImpact(battle.lastCounter ? "CONTRA-ATAQUE" : "IMPACTO",
+            String actionLabel = battle.lastTrap ? "ARMADILHA"
+                    : choice == LovableBattle.Choice.ATTACK ? "GOLPE"
+                    : choice == LovableBattle.Choice.DEFEND ? "GUARDA" : "RESSONÂNCIA";
+            showBattleImpact(actionLabel + (battle.lastCounter ? " · BRECHA" : ""),
                     battle.lastBossDamage, battle.lastTeamDamage, false);
             contentContainer.postDelayed(() -> { battleAnimating = false;
-                renderMagnetoBattle(battle, campaign); }, animationDelay(850));
+                renderMagnetoBattle(battle, campaign); }, animationDelay(1800));
         });
     }
 
@@ -2889,7 +3189,8 @@ public final class MainActivity extends AppCompatActivity {
     private void showBattleImpact(String label, int bossDamage, int teamDamage, boolean special) {
         if (animationDelay(1) == 0) return;
         FrameLayout flash = new FrameLayout(this);
-        flash.setBackgroundColor(special ? 0x5548E0FF : 0x33FFFFFF);
+        flash.setBackgroundColor(special ? 0x7748E0FF
+                : label.startsWith("ARMADILHA") ? 0x44E53945 : 0x2EFFFFFF);
         flash.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
         contentContainer.addView(flash, new FrameLayout.LayoutParams(-1, -1));
         if (special) {
@@ -2912,12 +3213,18 @@ public final class MainActivity extends AppCompatActivity {
                 special ? R.color.accent_gold : R.color.accent_deadpool, true);
         impact.setGravity(Gravity.CENTER);
         impact.setElevation(dimension(R.dimen.space_4));
+        impact.setPadding(dimension(R.dimen.space_3), dimension(R.dimen.space_2),
+                dimension(R.dimen.space_3), dimension(R.dimen.space_2));
+        impact.setBackground(background(R.color.surface_elevated,
+                special ? R.color.accent_gold : R.color.border_subtle,
+                dimension(R.dimen.radius_card)));
         impact.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
         FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(-1,
                 dimension(R.dimen.space_8) * 2, Gravity.CENTER);
         flash.addView(impact, params);
         impact.animate().alpha(0f).translationY(-dimension(R.dimen.space_8))
-                .setDuration(special ? 1200 : 850).withEndAction(() -> contentContainer.removeView(flash));
+                .setDuration(special ? 2200 : 1700)
+                .withEndAction(() -> contentContainer.removeView(flash));
     }
 
     private void battleMeter(LinearLayout parent, String label, int value, int color) {
@@ -2996,6 +3303,9 @@ public final class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
+        battleOpen = false;
+        stopBattleMusic();
+        if (battleTones != null) { battleTones.release(); battleTones = null; }
         super.onDestroy();
         if (forgeRepository != null) forgeRepository.close();
         if (portraitLoader != null) portraitLoader.close();

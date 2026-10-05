@@ -1,6 +1,39 @@
+# Estado atual - 2026-10-04
+
+- Spec 040 concluída localmente: Deadpool deixa de usar atalhos fixos Magneto/X-Men, recebe missão/equipe/variantes/progresso reais; avisos das nove batalhas agora correspondem a cada adversário. Contrato backend local `game_context` e fatos authored incluem Thanos.
+- Android 0.9.0 passou JVM/lint/debug/release, 34/34 testes instrumentados no AVD; backend 58/58. Release assinada v2 instalou e abriu no AVD. APKs e hashes em RELEASE_NOTES.
+- GET do Render ainda mostrava `DeadpoolLineRequest` apenas com `context_id,prompt`; revisão do backend precisa chegar ao serviço. POST pago foi rejeitado pela revisão automática por falta de autorização específica. O celular físico não estava conectado, portanto 0.9.0 não foi instalado nele.
+- Próximo passo: enviar a revisão autorizada ao GitHub e verificar atualização do Render. Depois, com autorização específica para uma chamada de IA, testar Thanos/equipe no serviço; conectar o celular para instalar 0.9.0 e testar manualmente a resposta.
+
+
+- Spec 039 concluida localmente: efeitos sonoros de interface, musica original discreta em batalhas, feedback mais visivel, Forja simplificada e mensagens de batalha mais claras sem mexer nas regras.
+- Deadpool estava enviando game_context para um Render cujo OpenAPI ainda rejeita campos adicionais (contrato legado). Android 0.8.0 tenta de novo sem o campo em HTTP 422; contexto dinamico depende de atualizar o backend publicado.
+- Gradle unit/lint/build passaram. Instrumentacao completa passou 33/33 no APK final.
+- APK local: artifacts/Marvel-Ruptura-Infinita-debug-0.8.0.apk. Nao houve instalacao no telefone, push ou deploy.
+- Smoke POST pago segue pendente de autorizacao; /ready e /openapi foram consultados somente por GET.
+- Proximo passo: Erick pode instalar/testar o APK 0.8.0; depois publicar o backend para contexto completo do Deadpool. Somente fazer POST de smoke depois da autorizacao.
+
 # Estado atual
 
 Última atualização: 2026-10-04
+
+## Spec 038 - splash de abertura - 2026-10-04
+
+- Splash nativa AndroidX 1.2.0 com tema Starting API 26+, vetor animado da ruptura, seis gemas e pulso ciano/ouro; saída de 220 ms e remoção direta com animações do sistema desligadas. A tela de introdução existente e os contratos do app foram mantidos.
+- `testDebugUnitTest`, `lintDebug`, `assembleDebug`, `assembleDebugAndroidTest` passaram; instrumentação AVD **33/33**. Captura AVD em `reports/lovable-research/app-splash-0.7.0.png`.
+- APK debug 0.7.0: `artifacts/Marvel-Ruptura-Infinita-debug-0.7.0.apk`, 6.249.992 bytes, SHA-256 `ACA37C4BB278ED6EB64ABBA886BC3B6BDBE8E623DB56D526302ABA81FD90C9AA`.
+- Erick pediu instalação limpa no telefone conectado. Após o HyperOS rejeitar a primeira tentativa de instalação isolada, `adb install -r` concluiu; dados locais foram apagados pela desinstalação anterior. Telefone `C6OFVWYD4DZTBA5H`: versionCode 7/versionName 0.7.0, processo ativo, sem fatal exception no log consultado.
+- Erick informou que publicou o backend. Nenhum push/deploy novo foi feito nesta tarefa, que só altera o cliente Android.
+
+## Spec 037 - acabamento visual, Deadpool e curiosidades - 2026-10-04
+
+- Último ajuste da Forja: a animação de Joia completa ganhou painel central, luvas, gema colorida com brilho e convergência animada; captura visual conferida em `reports/lovable-research/forge-merge-0.6.0.png`. APK debug 0.6.0 recompilado: 6.334.722 bytes, SHA-256 `E37023573C9C7D00A13EB0251CE2F4F4EE7FF255F43DD49D88A3D1283D8221E9`.
+- Após essa edição, `testDebugUnitTest`, `lintDebug`, `assembleDebug`, `assembleDebugAndroidTest` e instrumentação AVD **32/32** passaram. Backend tinha passado **57/57** na validação da spec; backend não sofreu alteração posterior.
+- Implementados cards clicaveis de desbloqueio/evolucao com feedback visual e abertura do detalhe do personagem na Colecao. Detalhes de variante agora tem abas Variantes/Curiosidades; cards owned equipam no toque. Forja mostra receitas sem o expansor antigo; fusoes sao imediatas e animadas; regra transacional 2:1 mantida.
+- Adicionado modo claro/escuro persistido (escuro inicial), controles de tema e som no topo; efeitos sinteticos de batalha podem ser desligados. Eventos visuais por acao ficam abaixo do especial. Dicas de combate sao indiretas e ha evento narrativo/visual de armadilha sem alterar dano, escolhas ou dificuldade.
+- Deadpool recebe ate 1.200 caracteres de estado local limitado: personagens/tiers possuidos, equipe e variantes equipadas na batalha atual, capitulo/round e batalhas concluidas. Retrato alterna capas por variante. Comic Vine agora fornece numero de aparicoes e data da primeira edicao como campos opcionais.
+- Removidos botao de detalhes da Forja e bloco de configuracao editorial no Catalogo. Backend 57/57; Android unit/lint/build passaram; AVD instrumentado 32/32. APK debug 0.6.0 em artifacts/Marvel-Ruptura-Infinita-debug-0.6.0.apk, SHA-256 D261B0BDCC995D1088144843B18E80491D812A9CEB593059BD86634A66B5D0AB.
+- Backend alterado localmente; publicar esta revisao no Render antes de usar o contexto do Deadpool e as curiosidades novas. APK está atualizado em artifacts. Nenhum push/deploy ou instalação física ocorreu nesta etapa.
 
 ## Instalação física 0.4.0 após deploy Gemini — 2026-10-04
 
@@ -169,7 +202,7 @@ Specs 022-026 implementadas e verificadas localmente; spec 027 em implementaçã
 - Erick confirmou Fragmentos faltantes como prêmios e fusões manuais; três Fragmentos iniciais por Joia somente em instalações novas; capas Comic Vine para variantes; seis pares de créditos/XP originais e três novos pares progressivos. Confirmou que não havia usuários anteriores, portanto não há migração de progresso de campanhas.
 - Android: nove campanhas em ordem Lovable, poder recomendado exato por capítulo, cards compactos de mapa e ficha separada. Manopla exige seis Joias completas e desbloquear/evoluir consome uma de cada, atomicamente. Banco novo recebe 3 Fragmentos por Joia; bancos existentes não recebem.
 - Backend: rota editorial de capa específica por variante. Testes locais validam Comic Vine. Ela só estará disponível no app após o deploy do backend Render.
-- Verificações: backend 56/56; JVM/lint/build Android passaram; instrumentação AVD 31/31. Captura reports/lovable-research/campaign-nine-android.png. APK debug 0.5.0 instalado diretamente, tamanho 6,213,152, SHA-256 6F38679B635C71D1F5E2CCC60AD9FB8D2EDABE1132BD14F68EC24996876E1CDF.
+- Verificações: backend 56/56; JVM/lint/build Android passaram; instrumentação AVD 32/32. Captura reports/lovable-research/campaign-nine-android.png. APK debug 0.5.0 instalado diretamente, tamanho 6,213,152, SHA-256 6F38679B635C71D1F5E2CCC60AD9FB8D2EDABE1132BD14F68EC24996876E1CDF.
 - Próximo: conferir diff, commit/push autorizado; Erick faz deploy Render; após confirmação, verificar a rota pública e instalar APK 0.5.0 no mesmo celular.
 ## Publicação GitHub — 2026-10-04
 

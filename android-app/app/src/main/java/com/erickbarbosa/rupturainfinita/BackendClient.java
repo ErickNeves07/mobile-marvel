@@ -20,6 +20,18 @@ final class BackendClient {
     private final Context context;
     private final String baseUrl;
 
+    static final class HttpStatusException extends Exception {
+        final int statusCode;
+        HttpStatusException(int statusCode) {
+            super("Backend returned HTTP " + statusCode);
+            this.statusCode = statusCode;
+        }
+    }
+
+    static boolean shouldRetryDeadpoolWithoutContext(int statusCode, JSONObject request) {
+        return statusCode == 422 && request != null && request.has("game_context");
+    }
+
     BackendClient(Context context, String baseUrl) {
         this.context = context.getApplicationContext();
         this.baseUrl = baseUrl == null ? "" : baseUrl.trim().replaceAll("/+$", "");
@@ -104,7 +116,7 @@ final class BackendClient {
                     if (output.size() + read > 100_000) throw new IllegalStateException("Backend response is too large");
                     output.write(buffer, 0, read);
                 }
-                if (code < 200 || code >= 300) throw new IllegalStateException("Backend request failed: " + code);
+                if (code < 200 || code >= 300) throw new HttpStatusException(code);
                 return new JSONObject(new String(output.toByteArray(), StandardCharsets.UTF_8));
             }
         } finally { if (connection != null) connection.disconnect(); }

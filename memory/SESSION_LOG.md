@@ -1,5 +1,26 @@
 # Log de sessões
 
+## 2026-10-04 — spec 040, revisão de narrativa e entrega 0.9.0
+
+- Corrigidos atalhos fixos de Magneto no Deadpool, montado contexto da campanha/equipe real e adicionados fatos authored sobre as nove campanhas no backend. Fallback legado continua limitado; Render precisa do backend novo.
+- Corrigidas as pistas de todos os 54 turnos possíveis (nove missões × seis padrões) sem alterar resultados de combate. Teste de matriz impede referências cruzadas.
+- Backend 58/58, Android JVM/lint/debug/release e AVD 34/34 passaram. Release assinada instalou e abriu no AVD. APKs 0.9.0 e hashes em RELEASE_NOTES.
+- Render GET ainda mostra contrato antigo. POST pago foi rejeitado pela revisão automática por falta de autorização específica. Telefone físico desconectado.
+
+
+## 2026-10-04 — splash de abertura e instalação limpa 0.7.0
+
+- Criei a splash AndroidX 1.2.0 compatível com API 26+, com vetor animado da ruptura, seis gemas, núcleo pulsante e saída de 220 ms. A introdução existente continua depois; não há espera artificial nem acesso à rede. Spec 038 criada e concluída.
+- `testDebugUnitTest`, `lintDebug`, `assembleDebug`, `assembleDebugAndroidTest` passaram; instrumentação AVD **33/33**. Captura: `reports/lovable-research/app-splash-0.7.0.png`.
+- APK `artifacts/Marvel-Ruptura-Infinita-debug-0.7.0.apk`: 6.249.992 bytes, SHA-256 `ACA37C4BB278ED6EB64ABBA886BC3B6BDBE8E623DB56D526302ABA81FD90C9AA`.
+- Erick informou deploy pronto e pediu instalação no celular. No `C6OFVWYD4DZTBA5H`, o `pm clear` foi barrado pelo HyperOS; ele autorizou não preservar dados, então desinstalei o app e reinstalei o 0.7.0. A primeira instalação limpa foi rejeitada por restrição do sistema; retry `adb install -r` funcionou. `dumpsys` confirmou versionCode 7/versionName 0.7.0 e processo aberto, sem fatal exception no log consultado. Não foi feito push/deploy do backend.
+
+## 2026-10-04 — acabamento visual spec 037
+
+- Refinei a animação de forja da Joia completa: cena central escurecida, luva, gema na cor da Joia com brilho e movimento de queda. Capturei o estado em movimento no AVD e corrigi o alinhamento horizontal após inspeção visual: `reports/lovable-research/forge-merge-0.6.0.png`.
+- Atualizei o APK debug 0.6.0 em `artifacts/Marvel-Ruptura-Infinita-debug-0.6.0.apk`: 6.334.722 bytes, SHA-256 `E37023573C9C7D00A13EB0251CE2F4F4EE7FF255F43DD49D88A3D1283D8221E9`. Testes JVM/lint/build passaram e instrumentação passou **32/32** após a última alteração; backend mantém resultado previamente validado de **57/57**.
+- Próximo passo executável: publicar no Render a revisão local do backend para ativar o novo contexto do Deadpool e fatos de Comic Vine no APK. Não houve push, deploy ou instalação física.
+
 ## 2026-10-04 — deploy Gemini e instalação no telefone
 
 - Erick confirmou deploy e pediu a execução no mesmo aparelho. `/ready` mostrou Gemini ativo; POST Deadpool hospedado gerou `fallback=false`. Android 0.4.0 passou JVM/lint/build; APK debug verificado e instalado no telefone `C6OFVWYD4DZTBA5H` com `adb install -r` e aberto via `am start`. `dumpsys` confirmou 0.4.0 e processo ativo sem erro fatal.
@@ -418,3 +439,19 @@ Implementada spec 036 com nove confrontos em ordem, capas distintas de Comic Vin
 ### Handoff após validação — 2026-10-04
 
 Commit 49c535e publicado em origin/main. O trabalho no repositório está completo e aguardando deploy do Erick no Render. Após confirmação dele, verificar o endpoint de retratos e então instalar o APK 0.5.0 no celular C6OFVWYD4DZTBA5H. A instalação física deve preservar os dados atuais; os três Fragmentos iniciais só são inseridos na criação de um banco novo.
+
+## 2026-10-04 - spec 037, polimento de interface e contexto
+
+- Concluida spec local 037: cards de desbloqueio/evolucao; feedback de despertar e retorno a Colecao; selecao de variantes por card; abas Variantes/Curiosidades; fusao imediata com animacoes; modo claro/escuro; som opcional em batalha; dicas sutis/evento de armadilha sem alterar regras; retrato e contexto dinamico do Deadpool; remocao dos textos/CTA solicitados.
+- Comic Vine agora mapeia `count_of_issue_appearances` e `first_appeared_in_issue.cover_date`; ambos sao opcionais. Deadpool aceita `game_context` limitado a 1.200 caracteres e recebeu restricoes para usar fatos fornecidos, nao regras, e variar humor.
+- Backend pytest 57/57. Gradle testDebugUnitTest, lintDebug, assembleDebug e assembleDebugAndroidTest passaram; instrumentacao AVD 32/32. Verificacoes remotas de Comic Vine ficaram opcionais no runner (argumento `liveEditorial`), pois o AVD nao carregou imagens nesta execucao; os endpoints tinham sido verificados live no ciclo 0.5.0.
+- APK debug 0.6.0 copiado para artifacts e identificado por aapt. Nenhuma instalacao no aparelho fisico, push, commit ou deploy ocorreu. Render precisa receber backend atualizado para aceitar `game_context` e expor os novos campos. Proximo passo: Erick autoriza push ao GitHub ou faz deploy; instalar no aparelho depois de pedir.
+
+## 2026-10-04 - Spec 039: audio, Forge, battle feedback and Deadpool compatibility
+
+- Added original quiet battle ambience and UI sounds under the existing audio toggle. Battle music stops when leaving or pausing combat.
+- Increased round/merge feedback contrast and duration. Forge now shows only sockets and tactile inventory cards; tapping a mergeable card performs the unchanged 2:1 transaction.
+- Clarified battle narration without modifying combat calculations or rewards.
+- Live GET /ready returned all integrations configured. GET /openapi.json proved Render still exposes the legacy Deadpool request schema without game_context; Android now retries HTTP 422 without that field. Full game context resumes when Render updates.
+- Gradle unit/lint/build passed. Final full instrumentation: 33/33. No phone install, push, deploy, or paid POST.
+- APK: artifacts/Marvel-Ruptura-Infinita-debug-0.8.0.apk.

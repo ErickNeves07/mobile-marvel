@@ -1,9 +1,13 @@
 package com.erickbarbosa.rupturainfinita;
 
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 
 import android.app.Instrumentation;
+import android.content.ComponentName;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
+import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.view.View;
@@ -15,6 +19,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Field;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.util.ArrayList;
@@ -26,6 +31,84 @@ import org.junit.runner.RunWith;
 
 @RunWith(AndroidJUnit4.class)
 public final class LovableScreensTest {
+    @Test public void deadpoolContextTracksSelectedMissionAndSavedTeam() throws Exception {
+        Instrumentation instrumentation = InstrumentationRegistry.getInstrumentation();
+        MainActivity activity = (MainActivity) instrumentation.startActivitySync(
+                new Intent(instrumentation.getTargetContext(), MainActivity.class)
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+        Field mission = MainActivity.class.getDeclaredField("selectedBattleMission");
+        mission.setAccessible(true);
+        Method context = MainActivity.class.getDeclaredMethod("deadpoolGameContext");
+        context.setAccessible(true);
+        String[] result = {""};
+        instrumentation.runOnMainSync(() -> {
+            try {
+                mission.set(activity, BattleMission.forMission("rupture", 9));
+                result[0] = (String) context.invoke(activity);
+            } catch (Exception error) { throw new AssertionError(error); }
+        });
+        assertTrue(result[0].contains("Titã em Colapso contra Thanos"));
+        assertTrue(result[0].contains("Homem-Aranha"));
+        assertTrue(result[0].contains("Wolverine"));
+        assertTrue(result[0].contains("Tocha Humana"));
+        assertTrue(result[0].length() <= 1_200);
+        instrumentation.runOnMainSync(activity::finish);
+    }
+
+    @Test public void coldLaunchUsesBrandedSplashAndReturnsToIntro() throws Exception {
+        Instrumentation instrumentation = InstrumentationRegistry.getInstrumentation();
+        android.content.Context context = instrumentation.getTargetContext();
+        ActivityInfo main = context.getPackageManager().getActivityInfo(
+                new ComponentName(context, MainActivity.class), 0);
+        assertTrue(main.theme == R.style.Theme_RupturaInfinita_Starting);
+        android.content.res.Resources.Theme startingTheme = context.getResources().newTheme();
+        startingTheme.applyStyle(main.theme, true);
+        try (TypedArray attrs = startingTheme.obtainStyledAttributes(new int[]{
+                androidx.core.splashscreen.R.attr.windowSplashScreenAnimatedIcon})) {
+            assertTrue(attrs.getResourceId(0, 0) == R.drawable.splash_rift_animated);
+        }
+        assertTrue(androidx.appcompat.content.res.AppCompatResources.getDrawable(context,
+                R.drawable.splash_rift_animated) != null);
+
+        MainActivity activity = (MainActivity) instrumentation.startActivitySync(
+                new Intent(context, MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+        assertTrue(hasText(activity.getWindow().getDecorView(), "Entrar no Nexus"));
+        instrumentation.runOnMainSync(activity::finish);
+    }
+
+    @Test public void forgeShowsTopModeControlsAndCompletedStoneAnimation() throws Exception {
+        Instrumentation instrumentation = InstrumentationRegistry.getInstrumentation();
+        MainActivity activity = (MainActivity) instrumentation.startActivitySync(
+                new Intent(instrumentation.getTargetContext(), MainActivity.class)
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+        Method shell = MainActivity.class.getDeclaredMethod("renderShell");
+        shell.setAccessible(true);
+        instrumentation.runOnMainSync(() -> invoke(shell, activity));
+        View root = activity.getWindow().getDecorView();
+        assertTrue(hasText(root, "MODO CLARO"));
+        assertTrue(hasText(root, "ÁUDIO ON"));
+        Method forge = MainActivity.class.getDeclaredMethod("selectDestination", AppDestination.class);
+        forge.setAccessible(true);
+        instrumentation.runOnMainSync(() -> invoke(forge, activity, AppDestination.FORGE));
+        instrumentation.waitForIdleSync();
+        assertTrue(hasText(root, "Seu inventário"));
+        assertFalse(hasText(root, "Cadeia de estágios"));
+        assertFalse(hasText(root, "Estilhaço → Fragmento → Núcleo Instável → Joia Completa"));
+        assertFalse(hasText(root, "0 de 999"));
+        Method animation = MainActivity.class.getDeclaredMethod("showForgeMergeAnimation",
+                boolean.class, InfinityStone.class, ForgeStage.class);
+        animation.setAccessible(true);
+        instrumentation.runOnMainSync(() -> {
+            try { animation.invoke(activity, true, InfinityStone.SPACE, ForgeStage.UNSTABLE_CORE); }
+            catch (Exception error) { throw new AssertionError(error); }
+        });
+        assertTrue(hasText(root, "🧤"));
+        assertTrue(hasText(root, "JOIA FORJADA"));
+        Thread.sleep(450);
+        instrumentation.runOnMainSync(() -> capture(activity, root, "forge-merge-visual.png"));
+        instrumentation.runOnMainSync(activity::finish);
+    }
+
     @Test public void nexusAndDailyChallengeRenderDedicatedVisualSections() throws Exception {
         Instrumentation instrumentation = InstrumentationRegistry.getInstrumentation();
         MainActivity activity = (MainActivity) instrumentation.startActivitySync(
@@ -44,8 +127,11 @@ public final class LovableScreensTest {
         Method daily = MainActivity.class.getDeclaredMethod("showDailyChallengeScreen");
         daily.setAccessible(true);
         instrumentation.runOnMainSync(() -> invoke(daily, activity));
-        Thread.sleep(600);
-        instrumentation.waitForIdleSync();
+        for (int attempt = 0; attempt < 20
+                && !hasText(root, "Seis tentativas. Eu sei a resposta"); attempt++) {
+            Thread.sleep(150);
+            instrumentation.waitForIdleSync();
+        }
         assertTrue(hasText(root, "DESAFIO DIÁRIO"));
         assertTrue(hasText(root, "Seis tentativas. Eu sei a resposta"));
         TextView submit = findText(root, "Enviar palpite");
@@ -130,7 +216,7 @@ public final class LovableScreensTest {
         TextView firstName = findText(root, "Homem de Ferro");
         assertTrue(firstName != null);
         View firstCard = (View) firstName.getParent();
-        if (!BuildConfig.API_BASE_URL.isEmpty()) {
+        if (shouldAssertLiveEditorial()) {
             for (int attempt = 0; attempt < 25
                     && !hasText(firstCard, "Retrato editorial · Comic Vine"); attempt++) {
                 Thread.sleep(1000);
@@ -204,7 +290,7 @@ public final class LovableScreensTest {
         instrumentation.runOnMainSync(() -> spinners.get(1).setSelection(4));
         instrumentation.waitForIdleSync();
         assertTrue(hasText(root, "Fera da Alma"));
-        if (!BuildConfig.API_BASE_URL.isEmpty()) {
+        if (shouldAssertLiveEditorial()) {
             for (int attempt = 0; attempt < 25
                     && countText(root, "Retrato editorial · Comic Vine") < 2; attempt++) {
                 Thread.sleep(1000);
@@ -233,12 +319,12 @@ public final class LovableScreensTest {
                 if (button == null) throw new AssertionError("Missing battle choice " + choice);
                 button.performClick();
             });
-            Thread.sleep(950);
+            Thread.sleep(1900);
             instrumentation.waitForIdleSync();
         }
         assertTrue(hasText(root, "ESPECIAL · TEIAS, GARRAS E CHAMAS"));
         instrumentation.runOnMainSync(() -> findText(root, "ESPECIAL · TEIAS, GARRAS E CHAMAS").performClick());
-        Thread.sleep(1300);
+        Thread.sleep(2600);
         instrumentation.waitForIdleSync();
         assertTrue(hasText(root, "VITÓRIA"));
         assertTrue(hasText(root, "COLETAR RECOMPENSA"));
@@ -262,6 +348,10 @@ public final class LovableScreensTest {
         instrumentation.runOnMainSync(activity::finish);
     }
 
+    private static boolean shouldAssertLiveEditorial() {
+        return InstrumentationRegistry.getArguments().getBoolean("liveEditorial", false);
+    }
+
     @Test public void chosenTeamCanLoseAndRetryWithoutReward() throws Exception {
         Instrumentation instrumentation = InstrumentationRegistry.getInstrumentation();
         MainActivity activity = (MainActivity) instrumentation.startActivitySync(
@@ -281,7 +371,7 @@ public final class LovableScreensTest {
         for (String choice : new String[]{"PROTEGER", "PROTEGER", "PROTEGER",
                 "PROTEGER", "PROTEGER", "PROTEGER"}) {
             instrumentation.runOnMainSync(() -> findText(root, choice).performClick());
-            Thread.sleep(950);
+            Thread.sleep(1900);
             instrumentation.waitForIdleSync();
         }
         assertTrue(hasText(root, "DERROTA"));

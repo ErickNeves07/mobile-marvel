@@ -48,6 +48,8 @@ def character(character_id=123, publisher_id=31, publisher_name="Marvel"):
         "publisher": {"id": publisher_id, "name": publisher_name},
         "powers": [{"name": "Powered Armor"}],
         "teams": [{"name": "Avengers"}],
+        "count_of_issue_appearances": 1234,
+        "first_appeared_in_issue": {"cover_date": "1963-03-01"},
     }
 
 
@@ -89,6 +91,9 @@ def test_search_uses_documented_contract_and_filters_via_publisher_detail():
     assert all(call[2] and call[3] == 15 for call in calls)
     assert result["items"][0]["publisher_id"] == 31
     assert result["items"][0]["teams"] == ("Avengers",)
+    assert result["items"][0]["issue_count"] == 1234
+    assert result["items"][0]["first_appearance"] == "1963-03-01"
+    assert "count_of_issue_appearances" in calls[1][1]["field_list"][0]
     assert clock.value >= 1001
 
 

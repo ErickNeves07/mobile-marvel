@@ -19,7 +19,7 @@ from urllib.request import Request, urlopen
 BASE_URL = "https://comicvine.gamespot.com/api/"
 USER_AGENT = "Marvel-Ruptura-Infinita/0.2 (non-commercial; editorial attribution: Comic Vine)"
 SEARCH_FIELDS = "id,name,image,site_detail_url"
-DETAIL_FIELDS = "id,name,deck,description,image,site_detail_url,real_name,publisher,powers,teams"
+DETAIL_FIELDS = "id,name,deck,description,image,site_detail_url,real_name,publisher,powers,teams,count_of_issue_appearances,first_appeared_in_issue"
 ISSUE_COVER_FIELDS = "id,name,image,volume,issue_number,site_detail_url"
 TIMEOUT_SECONDS = 15
 MAX_SEARCH_LIMIT = 10
@@ -269,6 +269,13 @@ class ComicVineGateway:
         image = raw.get("image") if isinstance(raw.get("image"), dict) else {}
         powers = cls._names(raw.get("powers"))
         teams = cls._names(raw.get("teams"))
+        issue_count = raw.get("count_of_issue_appearances")
+        if not isinstance(issue_count, int) or issue_count < 0:
+            issue_count = None
+        first_issue = raw.get("first_appeared_in_issue")
+        first_appearance = None
+        if isinstance(first_issue, dict):
+            first_appearance = cls._optional_text(first_issue.get("cover_date"), 40)
         site_url = raw.get("site_detail_url")
         parsed_site = urlsplit(site_url) if isinstance(site_url, str) else None
         if parsed_site is None or parsed_site.scheme != "https" or parsed_site.hostname != "comicvine.gamespot.com":
@@ -290,6 +297,8 @@ class ComicVineGateway:
             "publisher_name": publisher_name,
             "powers": powers,
             "teams": teams,
+            "issue_count": issue_count,
+            "first_appearance": first_appearance,
         }
 
     @staticmethod

@@ -1,0 +1,48 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="192dp"
+    android:height="192dp"
+    android:viewportWidth="192"
+    android:viewportHeight="192">
+    <group
+        android:name="orbit"
+        android:scaleX="0.66"
+        android:scaleY="0.66"
+        android:pivotX="96"
+        android:pivotY="96">
+        <path
+            android:fillColor="#00000000"
+            android:pathData="M96,18 C135,18 168,47 174,85 M174,107 C168,145 135,174 96,174"
+            android:strokeColor="@color/accent_cyan"
+            android:strokeLineCap="round"
+            android:strokeWidth="5" />
+        <path
+            android:fillColor="#00000000"
+            android:pathData="M96,174 C57,174 24,145 18,107 M18,85 C24,47 57,18 96,18"
+            android:strokeColor="@color/accent_gold"
+            android:strokeLineCap="round"
+            android:strokeWidth="5" />
+        <path android:fillColor="@color/stone_space" android:pathData="M96,12 L103,22 L96,32 L89,22 Z" />
+        <path android:fillColor="@color/stone_mind" android:pathData="M151,39 L160,44 L156,54 L147,49 Z" />
+        <path android:fillColor="@color/stone_reality" android:pathData="M151,153 L160,148 L156,138 L147,143 Z" />
+        <path android:fillColor="@color/stone_power" android:pathData="M96,160 L103,170 L96,180 L89,170 Z" />
+        <path android:fillColor="@color/stone_time" android:pathData="M41,153 L32,148 L36,138 L45,143 Z" />
+        <path android:fillColor="@color/stone_soul" android:pathData="M41,39 L32,44 L36,54 L45,49 Z" />
+    </group>
+    <group
+        android:name="core"
+        android:pivotX="96"
+        android:pivotY="96">
+        <path
+            android:fillColor="@color/splash_icon_background"
+            android:pathData="M96,57 L132,96 L96,135 L60,96 Z" />
+        <path
+            android:fillColor="@color/accent_gold"
+            android:pathData="M96,69 L119,96 L96,123 L73,96 Z" />
+        <path
+            android:fillColor="@color/accent_cyan"
+            android:pathData="M96,83 L107,96 L96,109 L85,96 Z" />
+        <path
+            android:fillColor="#F2F5FB"
+            android:pathData="M96,90 L101,96 L96,102 L91,96 Z" />
+    </group>
+</vector>

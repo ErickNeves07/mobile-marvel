@@ -1,5 +1,9 @@
 # Dúvidas abertas
 
+- **Q-057 — Publicação e smoke final do Deadpool:** GET `/openapi.json` do Render em 2026-10-04 ainda expunha só `context_id,prompt`, embora o backend local suporte `game_context` e tenha passado 58 testes. Publicar a revisão e verificar o contrato. A revisão automática rejeitou o POST real por possível consumo de cota paga sem autorização específica; pedir essa autorização antes de testar o provedor.
+- **Q-058 — Instalação física 0.9.0:** o telefone `C6OFVWYD4DZTBA5H` não apareceu em `adb devices` nesta sessão. Release 0.9.0 instalou e abriu no AVD; conectar o telefone e instalar o debug de mesma assinatura para validar nele.
+
+
 ## Atualização do deploy e aparelho — 2026-10-04
 
 - **Q-047 — Resolvida para o backend:** Erick fez deploy e `/ready` passou a mostrar Gemini ativo. POST hospedado do Deadpool retornou `fallback=false`. A interação na tela do telefone ainda requer toque manual porque o Android bloqueou `adb shell input tap` com `INJECT_EVENTS`.
@@ -99,3 +103,7 @@ Não implemente áreas afetadas até resposta quando marcadas como **CRÍTICA**.
 - Q-048 a Q-051 foram respondidas por Erick: Fragmentos faltantes, fusões manuais, três itens iniciais por Joia somente em instalações novas, aprovação de capas Comic Vine por variante e valores crescentes de créditos/XP para os capítulos finais.
 - Q-055: resolvida pelo bundle Lovable publicado — Thanos no capítulo 9; Ameaça Tecnológica é a entidade nomeada em Wakanda.
 - Q-056: resolvida por Erick — não havia usuários anteriores; sem plano de migração de campanha.
+
+## Spec 037 - dependencias de publicacao
+
+- **Q-057 - Smoke do Deadpool no Render:** GET /ready retornou ok com Comic Vine, Groq e Gemini configurados. GET /openapi.json ainda anuncia o contrato legado sem game_context e com campos adicionais fechados. Android 0.8.0 tenta novamente sem game_context somente em HTTP 422; o contexto completo depende de publicar o backend local atual. POST real aguarda resposta a pergunta de autorizacao por possivel consumo de cota.

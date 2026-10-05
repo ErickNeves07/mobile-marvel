@@ -1,8 +1,8 @@
 # Android app
 
-Aplicativo Android nativo em Java. O APK assinado listado em `../artifacts/Marvel-Ruptura-Infinita-release.apk` é o candidato de avaliação 0.3.0. Recompile e assine com `..\scripts\build-release.ps1` após novas mudanças.
+Aplicativo Android nativo em Java. O APK debug atual é 0.9.0 em `../artifacts/Marvel-Ruptura-Infinita-debug-0.9.0.apk`; o APK assinado está em `../artifacts/Marvel-Ruptura-Infinita-release.apk`.
 
-O código-fonte inclui desafio diário e recompensas locais, seis batalhas interativas, seleção de equipe possuída, busca Comic Vine e narrativa Deadpool. O gameplay funciona offline, mas o build comum do Android Studio usa por padrão `https://mobile-marvel-8qex.onrender.com` para imagens/editorial/IA. `-PriApiBaseUrl=https://host-backend` substitui o host e `-PriApiBaseUrl=` desliga o backend. Provider keys ficam exclusivamente no servidor; HTTP cleartext não é permitido no APK.
+O código-fonte inclui splash vetorial animada, desafio diário e recompensas locais, batalhas interativas, seleção de equipe possuída, busca Comic Vine e narrativa Deadpool. O gameplay funciona offline, mas o build comum do Android Studio usa por padrão `https://mobile-marvel-8qex.onrender.com` para imagens/editorial/IA. `-PriApiBaseUrl=https://host-backend` substitui o host e `-PriApiBaseUrl=` desliga o backend. Provider keys ficam exclusivamente no servidor; HTTP cleartext não é permitido no APK.
 
 ## Toolchain
 
@@ -16,13 +16,13 @@ O código-fonte inclui desafio diário e recompensas locais, seis batalhas inter
 
 Abra `android-app` como projeto no Android Studio, sincronize o Gradle e execute a configuração `app` no telefone. O build direto agora grava os arquivos gerados em `%LOCALAPPDATA%\RupturaInfinita\gradle-builds\<id-do-checkout>`, fora do OneDrive. O APK debug fica na subpasta `app\outputs\apk\debug\app-debug.apk`. Não é necessário limpar a antiga pasta `android-app\app\build` para usar a nova saída.
 
-**Build Project** apenas compila; use **Run 'app'** para atualizar o aplicativo instalado. Confira a versão nas informações do app no telefone: esta implementação é `0.4.0` (`versionCode` 4). A tela com “Fundação Android pronta para a próxima ruptura” é da versão `0.1.0` antiga.
+**Build Project** apenas compila; use **Run 'app'** para atualizar o aplicativo instalado. Confira a versão nas informações do app no telefone: esta implementação é `0.9.0` (`versionCode` 9). A splash vetorial aparece no cold start antes da introdução existente.
 
-Se a sincronização já estava aberta antes desta correção, use **File > Sync Project with Gradle Files** e execute Run `app` para instalar o debug 0.3.0 no telefone com a mesma assinatura debug. O host Render já está configurado no build comum.
+Se a sincronização já estava aberta antes desta correção, use **File > Sync Project with Gradle Files** e execute Run `app` para instalar o debug 0.9.0 no telefone com a mesma assinatura debug. O host Render já está configurado no build comum.
 
 Se houver uma versão debug instalada, o APK release usa outra assinatura e não pode substituí-la preservando os dados. Para atualizar pelo terminal sem trocar a assinatura, gere o debug e instale com `adb install -r <caminho-do-app-debug.apk>`.
 
-Nesta máquina, para instalação manual da avaliação 0.3.0, use `../artifacts/Marvel-Ruptura-Infinita-debug-0.3.0.apk` (assinatura debug, compatível com o debug já instalado). APKs são ignorados pelo Git; em outro checkout, gere o seu. Não escolha um `app-debug.apk` de uma pasta `build` antiga: a saída Gradle atual fica em `%LOCALAPPDATA%\RupturaInfinita\gradle-builds\...` e esses arquivos antigos podem ter outra versão. Confirme `0.3.0` nas informações do aplicativo após instalar.
+Nesta máquina, para instalação manual do debug 0.9.0, use `../artifacts/Marvel-Ruptura-Infinita-debug-0.9.0.apk`. APKs são ignorados pelo Git; em outro checkout, gere o seu. Não escolha um `app-debug.apk` de uma pasta `build` antiga: a saída Gradle atual fica em `%LOCALAPPDATA%\RupturaInfinita\gradle-builds\...` e esses arquivos antigos podem ter outra versão. Confirme `0.9.0` nas informações do aplicativo após instalar.
 
 ## Verificação no Windows
 

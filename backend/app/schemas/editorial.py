@@ -17,6 +17,8 @@ class EditorialCharacter(BaseModel):
     publisher_name: str = Field(min_length=1, max_length=200)
     powers: tuple[str, ...] = ()
     teams: tuple[str, ...] = ()
+    issue_count: int | None = Field(default=None, ge=0)
+    first_appearance: str | None = Field(default=None, max_length=40)
 
     @field_validator("image_url")
     @classmethod
@@ -70,6 +72,7 @@ class DeadpoolLineRequest(BaseModel):
 
     context_id: str = Field(min_length=1, max_length=40, pattern=r"^[a-z_]+$")
     prompt: str = Field(default="", max_length=300)
+    game_context: str = Field(default="", max_length=1_200)
 
 
 

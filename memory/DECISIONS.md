@@ -1,5 +1,9 @@
 # Registro de decisões
 
+- **DEC-084 | 2026-10-04 | Narrativa de batalha usa pistas authored por missão.** A matriz de nove adversários e seis padrões mantém os mesmos contra-ataques e fórmulas, mas elimina nomes/poderes de chefes de outras batalhas.
+- **DEC-085 | 2026-10-04 | Deadpool recebe estado persistido da campanha `rupture`.** Atalhos usam missão selecionada/próxima e trio salvo; backend permite opiniões humorísticas sobre adversários do mapa, inclusive Thanos, sem inventar cânone ou regras.
+
+
 - **DEC-082 | 2026-10-04 | Gemini é o provedor principal da narrativa Deadpool quando configurado no backend.** A chave local Gemini respondeu; a Groq local retornou HTTP 403. O backend tenta Gemini, depois Groq e depois texto local, sem permitir que IA determine regras/recompensas e sem distribuir segredos no APK. O Render só confirma a operação depois de receber `GEMINI_API_KEY` no ambiente privado e publicar a revisão.
 - **DEC-083 | 2026-10-04 | Combate local usa escolhas anunciadas e dificuldade crescente.** O especial recebe nome authored da equipe, defesa não causa dano ao chefe e o poder das variantes equipadas afeta o resultado. O mapa final de capítulos, a nova recompensa de Manopla e o consumo exato continuam sujeitos a Q-048–Q-050.
 
@@ -95,3 +99,8 @@ Formato: `DEC-NNN | data | decisão | motivo | consequências`.
 - **DEC-082 | 2026-10-04 | Economia da Manopla da spec 036.** Cada vitória concede somente os Fragmentos faltantes em todas as seis Joias; as fusões permanecem manuais 2:1. Novas instalações recebem três Fragmentos por Joia. Novo personagem ou próxima variante gasta uma Joia Completa de cada tipo.
 - **DEC-083 | 2026-10-04 | Campanha Lovable com nove capítulos.** Ordem: Nova York, Ultron, Wakanda, Dimensão Espelhada, Knowhere, Xavier, Zona Negativa, Latveria e Titã. Poderes recomendados vêm do bundle publicado. Não há migração de progresso anterior porque Erick confirmou ausência de usuários.
 - DEC-084 | 2026-10-04 | Sem migração nem bônus retroativo em banco existente. Erick confirmou que não havia usuários anteriores. A instalação final no aparelho atual será atualização que preserva os dados; os três Fragmentos iniciais só entram em banco novo.
+
+- **DEC-085 | 2026-10-04 | Tema e efeitos sonoros sao preferencias locais.** Escuro permanece padrao; claro pode ser ativado no topo. Sons sinteticos de baixa intensidade iniciam ligados e podem ser desligados.
+- **DEC-086 | 2026-10-04 | Armadilhas e feedback sao apresentacionais.** Dicas nao prescrevem a escolha; eventos de cerco nao alteram dano, contadores, dificuldade, premios ou vitoria.
+- **DEC-087 | 2026-10-04 | Deadpool recebe resumo allowlisted do jogo local.** Limite de 1.200 caracteres para posse/tier, equipe/variantes, batalha/round e vitorias; sem PII. IA nao decide fatos ou regras.
+- **DEC-088 | 2026-10-04 | Curiosidades continuam editoriais e opcionais.** Comic Vine fornece aparicoes, primeira edicao/data e equipes; UI omite campos ausentes e mantem atributos de jogo separados.

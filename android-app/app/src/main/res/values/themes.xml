@@ -1,11 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <style name="Theme.RupturaInfinita.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/splash_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_rift_animated</item>
+        <item name="windowSplashScreenAnimationDuration">1400</item>
+        <item name="windowSplashScreenIconBackgroundColor">@color/splash_icon_background</item>
+        <item name="postSplashScreenTheme">@style/Theme.RupturaInfinita</item>
+    </style>
     <style name="Theme.RupturaInfinita" parent="Theme.AppCompat.DayNight.NoActionBar">
         <item name="android:fontFamily">@font/sora_variable</item>
         <item name="android:windowBackground">@color/canvas</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
-        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightStatusBar">true</item>
         <item name="colorAccent">@color/infinity_gold</item>
     </style>
 </resources>

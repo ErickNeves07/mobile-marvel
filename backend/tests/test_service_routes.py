@@ -54,6 +54,40 @@ def test_deadpool_route_uses_allowlisted_context_and_fallback(monkeypatch):
     assert "Say something" == captured["messages"][1]["content"]
 
 
+def test_deadpool_uses_bounded_client_game_state_as_allowlisted_context(monkeypatch):
+    captured = {}
+    def capture(request):
+        captured["system"] = request.messages[0]["content"]
+        return "Linha contextualizada"
+    monkeypatch.setattr(main.groq, "generate", capture)
+    response = client.post("/v1/ai/deadpool-line", json={
+        "context_id": "app", "game_context": "Wolverine desbloqueado; campanha Ultron em andamento"
+    })
+    assert response.status_code == 200
+    assert "Wolverine desbloqueado" in captured["system"]
+    assert "Varie as piadas" in captured["system"]
+
+
+def test_deadpool_can_comment_on_thanos_and_current_team_without_inventing_game_rules(monkeypatch):
+    captured = {}
+    def capture(request):
+        captured["system"] = request.messages[0]["content"]
+        captured["user"] = request.messages[1]["content"]
+        return "Titã parece um passeio tranquilo... se você ignorar Thanos."
+    monkeypatch.setattr(main.groq, "generate", capture)
+    response = client.post("/v1/ai/deadpool-line", json={
+        "context_id": "app", "prompt": "O que acha do Thanos e do meu time?",
+        "game_context": "Equipe salva: Homem-Aranha (Origem), Wolverine (Origem), Tocha Humana (Origem). "
+                        "Missão selecionada: Titã em Colapso contra Thanos"
+    })
+    assert response.status_code == 200
+    assert response.json()["fallback"] is False
+    assert "Thanos em Titã" in captured["system"]
+    assert "Homem-Aranha" in captured["system"]
+    assert "não sugira/decida regras" in captured["system"]
+    assert captured["user"] == "O que acha do Thanos e do meu time?"
+
+
 def test_deadpool_route_rejects_unknown_context_and_extra_fields():
     unknown = client.post("/v1/ai/deadpool-line", json={"context_id": "invent-canon"})
     extra = client.post("/v1/ai/deadpool-line", json={"context_id": "nexus", "fact": "Thanos is free"})
@@ -64,6 +98,8 @@ def test_deadpool_route_rejects_unknown_context_and_extra_fields():
 def test_deadpool_prompt_size_is_bounded():
     response = client.post("/v1/ai/deadpool-line", json={"context_id": "nexus", "prompt": "x" * 301})
     assert response.status_code == 422
+    context = client.post("/v1/ai/deadpool-line", json={"context_id": "app", "game_context": "x" * 1_201})
+    assert context.status_code == 422
 
 
 def test_deadpool_route_sanitizes_provider_text(monkeypatch):
