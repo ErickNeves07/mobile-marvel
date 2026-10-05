@@ -6,6 +6,7 @@
 - Corrigidas as pistas de todos os 54 turnos possíveis (nove missões × seis padrões) sem alterar resultados de combate. Teste de matriz impede referências cruzadas.
 - Backend 58/58, Android JVM/lint/debug/release e AVD 34/34 passaram. Release assinada instalou e abriu no AVD. APKs 0.9.0 e hashes em RELEASE_NOTES.
 - Render GET ainda mostra contrato antigo. POST pago foi rejeitado pela revisão automática por falta de autorização específica. Telefone físico desconectado.
+- Commit `0829bd6` enviado ao GitHub `origin/main`. GET seguinte do Render ainda expôs contrato antigo; `cua.getState()` não mostrou navegador/sessão disponível para publicar pelo painel.
 
 
 ## 2026-10-04 — splash de abertura e instalação limpa 0.7.0

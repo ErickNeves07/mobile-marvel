@@ -7,3 +7,4 @@
 - Testes novos: `DeadpoolPromptTest`, `LovableScreensTest.deadpoolContextTracksSelectedMissionAndSavedTeam`, `LovableBattleTest.everyCampaignHasSixOpponentSpecificWarnings`, `test_deadpool_can_comment_on_thanos_and_current_team_without_inventing_game_rules`.
 - Render GET `/ready`: ok e integrações configuradas; GET `/openapi.json`: contrato legado sem `game_context`. POST real rejeitado por revisão automática por possível cota paga; não foi executado. Telefone físico desconectado.
 - APKs, tamanhos e SHA-256 em `RELEASE_NOTES.md`.
+- Commit `0829bd6` enviado para `origin/main`; Render permaneceu no contrato legado na verificação subsequente. Falta publicação manual do backend pelo painel.

@@ -3,7 +3,7 @@
 - Spec 040 concluída localmente: Deadpool deixa de usar atalhos fixos Magneto/X-Men, recebe missão/equipe/variantes/progresso reais; avisos das nove batalhas agora correspondem a cada adversário. Contrato backend local `game_context` e fatos authored incluem Thanos.
 - Android 0.9.0 passou JVM/lint/debug/release, 34/34 testes instrumentados no AVD; backend 58/58. Release assinada v2 instalou e abriu no AVD. APKs e hashes em RELEASE_NOTES.
 - GET do Render ainda mostrava `DeadpoolLineRequest` apenas com `context_id,prompt`; revisão do backend precisa chegar ao serviço. POST pago foi rejeitado pela revisão automática por falta de autorização específica. O celular físico não estava conectado, portanto 0.9.0 não foi instalado nele.
-- Próximo passo: enviar a revisão autorizada ao GitHub e verificar atualização do Render. Depois, com autorização específica para uma chamada de IA, testar Thanos/equipe no serviço; conectar o celular para instalar 0.9.0 e testar manualmente a resposta.
+- Commit `0829bd6` enviado a `origin/main`. GET após o push ainda mostrava contrato antigo no Render; não havia sessão de navegador disponível para acionar o deploy manual. Próximo passo: publicar esse commit no Render, verificar `game_context` no OpenAPI e, com autorização específica para uma chamada de IA, testar Thanos/equipe. Conectar o celular para instalar 0.9.0 e testar manualmente a resposta.
 
 
 - Spec 039 concluida localmente: efeitos sonoros de interface, musica original discreta em batalhas, feedback mais visivel, Forja simplificada e mensagens de batalha mais claras sem mexer nas regras.
