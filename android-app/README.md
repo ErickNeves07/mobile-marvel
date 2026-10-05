@@ -1,6 +1,6 @@
 # Android app
 
-Aplicativo Android nativo em Java. O APK debug atual é 0.9.0 em `../artifacts/Marvel-Ruptura-Infinita-debug-0.9.0.apk`; o APK assinado está em `../artifacts/Marvel-Ruptura-Infinita-release.apk`.
+Aplicativo Android nativo em Java. O candidato local atual é 0.11.0 (`versionCode` 11); ainda não há APK dessa versão. O último APK conhecido está em `../artifacts/Marvel-Ruptura-Infinita-debug-0.9.0.apk`.
 
 O código-fonte inclui splash vetorial animada, desafio diário e recompensas locais, batalhas interativas, seleção de equipe possuída, busca Comic Vine e narrativa Deadpool. O gameplay funciona offline, mas o build comum do Android Studio usa por padrão `https://mobile-marvel-8qex.onrender.com` para imagens/editorial/IA. `-PriApiBaseUrl=https://host-backend` substitui o host e `-PriApiBaseUrl=` desliga o backend. Provider keys ficam exclusivamente no servidor; HTTP cleartext não é permitido no APK.
 

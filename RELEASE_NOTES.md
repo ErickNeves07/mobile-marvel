@@ -1,3 +1,21 @@
+# Candidato local 0.11.0 - 2026-10-05 (APK pendente)
+
+- Combate usa tres herois com HP individual, troca gratuita, dano do chefe apenas no ativo, super compartilhado e batalhas sem limite de acoes.
+- Se um heroi cair, o jogador escolhe um reserva vivo. Cards mostram HP e especial por personagem; ataque, defesa e desestabilizacao recebem animacoes proprias.
+- Vitoria/recompensa e derrota mostram resumo dos acontecimentos sem alterar economia ou premios.
+- Deadpool recebe roster completo, desbloqueios, variantes, atributos authored, equipe/luta atual, campanha, recursos, Forja e desafio diario. O backend local aceita contexto ate 6.000 caracteres.
+- Build e testes pendentes: Gradle Wrapper nao conseguiu baixar por bloqueio de rede; SDK Android e Python base da venv nao estavam acessiveis pelas permissoes do ambiente. Render ainda precisa do deploy do backend atualizado para aceitar `game_context`.
+- Nenhum APK foi produzido/instalado; nenhum push, deploy ou commit foi feito.
+
+# Candidato local 0.10.0 — 2026-10-05 (ainda sem APK)
+
+- Deadpool agora aceita temas gerais e humor sem comentar a tela atual; o contexto enviado pelo jogo mantém equipe, coleção, variantes e campanhas para perguntas sobre o app.
+- Imagens Comic Vine são pré-carregadas para o trio inicial, personagens da Câmara, chefes e roster; bitmaps ficam somente em cache LRU em memória limitado a 20 MiB.
+- Prólogo antes do Nexus, cena narrativa após cada vitória e conclusão depois de Titã; a Câmara mostra o papel de Reed e Doutor Estranho com retratos atribuídos.
+- Trilha ambiente nos destinos e volume maior nas batalhas; efeitos da interface/batalha ampliados. Desafio diário mostra “?” antes de revelar o personagem.
+- Build debug pendente: rede bloqueou download do Wrapper e o modo offline não encontrou AGP 8.13.2 no cache local; OneDrive também negou a gravação do relatório Gradle. Nenhum teste foi executado.
+- Nenhum APK 0.10.0 foi produzido, instalado, enviado ao GitHub ou publicado no Render nesta etapa.
+
 # Candidato local 0.8.0 - 2026-10-04
 
 - Audio de interface no app e trilha original discreta somente durante batalhas; ambos podem ser desligados pelo controle de audio.

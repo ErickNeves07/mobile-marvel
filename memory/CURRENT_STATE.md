@@ -1,4 +1,33 @@
-# Estado atual - 2026-10-04
+# Current state - 2026-10-05
+
+## Spec 042 - implementation in validation
+
+- Erick resolved Q-059: free switch, boss damages active hero only, reserve HP persists, HP uses Vida/9, bosses target trio strength, shared super and no action cap. DEC-093 records the rule.
+- Android combat now models 3 fighters with independent HP, required replacement after KO, character-specific super moves, attack/defense/control visuals, and recap on victory/reward and defeat.
+- Deadpool local context includes current battle, owned characters and variants, authored stats, campaigns, resources, inventory and daily challenge state. Local backend schema accepts 6,000 characters; Render still needs the code deployed for full context (Q-057).
+- Targeted Java domain smoke passed switching, HP persistence, active-only damage, shared super after switching, KO/replacement/defeat, counter-based victory and an 8-action battle. Python syntax compilation passed. Full Gradle/backend suites remain blocked by SDK, venv and network access restrictions. No external actions performed.
+
+# Estado atual - 2026-10-05
+
+## Spec 042 — aguardando decisão crítica sobre combate
+
+- Rascunhada `specs/042-active-hero-battle-deadpool-context/`. A auditoria confirma: batalha atual agrega HP/força, encerra em seis rounds; personagem/vida por membro ainda não existem. `VariantStats` já fornece Vida/Ataque/Defesa/Velocidade authored.
+- Q-059 pergunta custo de troca, alvo dos golpes e retenção de HP, normalização de Vida e escala de chefes. Sem resposta, nenhuma implementação de combate iniciada.
+- Deadpool está parcialmente contextualizado: equipe, progresso, desbloqueios/tiers e próxima missão; não recebe números de atributos, recursos, status do desafio nem estado detalhado da luta. O spec propõe ampliar o payload factual para recomendar equipe e comentar força sem delegar regras à IA.
+- **Próximo passo:** aguardar resposta Q-059 e finalizar requirements/design antes do código de combate.
+
+## Spec 041 — narrativa, Câmara, áudio, imagens e desafio diário
+
+- Implementados prompt/UX amplo do Deadpool, sem referência automática à tela; contexto de equipe, coleção e campanhas continua sendo enviado pelo cliente. O Render ainda precisa do deploy do backend que aceita `game_context` (Q-057).
+- Imagens Comic Vine começam a ser aquecidas no início: trio inicial, Reed/Estranho/Deadpool, nove chefes e roster. Cache de bitmaps é LRU em memória (20 MiB); metadados são regulados a uma chamada por segundo. Não há persistência dos binários.
+- Câmara mostra cartões Comic Vine atribuídos com funções operacionais de Reed e Doutor Estranho. Prólogo aparece antes da primeira entrada no Nexus; cada vitória mostra sua cena; capítulo 9 fecha a ruptura mantendo o gancho da prisão. Desafio diário mostra “?” até a revelação.
+- Trilha ambiente nos cinco destinos principais e mais alta em batalha; efeitos de ação e interface aumentados, com o toggle existente.
+- Compilação local não validada: Wrapper baixou Gradle 8.13, mas AGP 8.13.2 não pôde ser resolvido porque as conexões a Google Maven, Maven Central e Plugin Portal falharam com `SocketException: Permission denied`. A saída foi redirecionada para `.validation-output/spec041`; `--no-problems-report` contornou a gravação negada no diretório de build do OneDrive. Nenhum teste foi executado nesta sessão.
+- Próximo passo executável: repetir `scripts/validate-local.ps1 -Target android` com cache de dependências acessível e destino de build local, revisar o APK resultante e, depois do deploy Render, Erick testar IA. Não foi feito push/deploy ou instalação nesta tarefa.
+
+# Estado anterior - 2026-10-04
+
+- **2026-10-05:** APK debug 0.9.0 instalado por cima de 0.8.0 no telefone `C6OFVWYD4DZTBA5H` com `adb install -r`, sem limpeza de dados. `dumpsys` confirmou `versionCode=9`/`versionName=0.9.0`; MainActivity abriu, processo ativo e nenhum erro fatal no log consultado. Render ainda expõe `DeadpoolLineRequest` apenas com `context_id,prompt`, portanto precisa de deploy do commit `5769b41` para contexto pleno.
 
 - Spec 040 concluída localmente: Deadpool deixa de usar atalhos fixos Magneto/X-Men, recebe missão/equipe/variantes/progresso reais; avisos das nove batalhas agora correspondem a cada adversário. Contrato backend local `game_context` e fatos authored incluem Thanos.
 - Android 0.9.0 passou JVM/lint/debug/release, 34/34 testes instrumentados no AVD; backend 58/58. Release assinada v2 instalou e abriu no AVD. APKs e hashes em RELEASE_NOTES.

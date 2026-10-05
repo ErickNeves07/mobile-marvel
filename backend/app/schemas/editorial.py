@@ -72,7 +72,7 @@ class DeadpoolLineRequest(BaseModel):
 
     context_id: str = Field(min_length=1, max_length=40, pattern=r"^[a-z_]+$")
     prompt: str = Field(default="", max_length=300)
-    game_context: str = Field(default="", max_length=1_200)
+    game_context: str = Field(default="", max_length=6_000)
 
 
 

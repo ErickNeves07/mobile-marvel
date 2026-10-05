@@ -51,7 +51,8 @@ public final class LovableScreensTest {
         assertTrue(result[0].contains("Homem-Aranha"));
         assertTrue(result[0].contains("Wolverine"));
         assertTrue(result[0].contains("Tocha Humana"));
-        assertTrue(result[0].length() <= 1_200);
+        assertTrue(result[0].length() <= 6_000);
+        assertTrue(result[0].contains("Vida/Ataque/Defesa/Velocidade"));
         instrumentation.runOnMainSync(activity::finish);
     }
 
@@ -309,7 +310,8 @@ public final class LovableScreensTest {
         try (ForgeRepository repository = new ForgeRepository(activity)) {
             repository.loadCampaign("rupture", campaign.teamIds);
         }
-        instrumentation.runOnMainSync(() -> invoke(battle, activity, new LovableBattle(31), campaign));
+        LovableBattle battleState = new LovableBattle(31);
+        instrumentation.runOnMainSync(() -> invoke(battle, activity, battleState, campaign));
         instrumentation.waitForIdleSync();
         assertTrue(hasText(root, "INVESTIDA DIRETA"));
         instrumentation.runOnMainSync(() -> capture(activity, root, "battle-initial.png"));
@@ -322,9 +324,15 @@ public final class LovableScreensTest {
             Thread.sleep(1900);
             instrumentation.waitForIdleSync();
         }
-        assertTrue(hasText(root, "ESPECIAL · TEIAS, GARRAS E CHAMAS"));
-        instrumentation.runOnMainSync(() -> findText(root, "ESPECIAL · TEIAS, GARRAS E CHAMAS").performClick());
+        assertTrue(hasText(root, "SUPER GLOBAL · RAJADA DE TEIAS"));
+        instrumentation.runOnMainSync(() -> findText(root, "SUPER GLOBAL · RAJADA DE TEIAS").performClick());
         Thread.sleep(2600);
+        instrumentation.waitForIdleSync();
+        driveBattleToVictory(battleState);
+        Method render = MainActivity.class.getDeclaredMethod("renderMagnetoBattle",
+                LovableBattle.class, CampaignState.class);
+        render.setAccessible(true);
+        instrumentation.runOnMainSync(() -> invoke(render, activity, battleState, campaign));
         instrumentation.waitForIdleSync();
         assertTrue(hasText(root, "VITÓRIA"));
         assertTrue(hasText(root, "COLETAR RECOMPENSA"));
@@ -363,17 +371,18 @@ public final class LovableScreensTest {
         battle.setAccessible(true);
         CampaignState campaign = new CampaignState("rupture", 1,
                 Arrays.asList("homem-aranha", "wolverine", "tocha-humana"));
-        instrumentation.runOnMainSync(() -> invoke(battle, activity, new LovableBattle(29), campaign));
+        LovableBattle battleState = new LovableBattle(29);
+        for (LovableBattle.Fighter fighter : battleState.fighters()) fighter.health = 1;
+        battleState.choose(LovableBattle.Choice.DEFEND);
+        battleState.selectFighter("wolverine");
+        battleState.choose(LovableBattle.Choice.DEFEND);
+        battleState.selectFighter("tocha-humana");
+        battleState.choose(LovableBattle.Choice.DEFEND);
+        instrumentation.runOnMainSync(() -> invoke(battle, activity, battleState, campaign));
         instrumentation.waitForIdleSync();
         assertTrue(hasText(root, "Homem-Aranha"));
         assertTrue(hasText(root, "Wolverine"));
         assertTrue(hasText(root, "Tocha Humana"));
-        for (String choice : new String[]{"PROTEGER", "PROTEGER", "PROTEGER",
-                "PROTEGER", "PROTEGER", "PROTEGER"}) {
-            instrumentation.runOnMainSync(() -> findText(root, choice).performClick());
-            Thread.sleep(1900);
-            instrumentation.waitForIdleSync();
-        }
         assertTrue(hasText(root, "DERROTA"));
         assertTrue(hasText(root, "TENTAR NOVAMENTE"));
         assertTrue(!hasText(root, "COLETAR RECOMPENSA"));
@@ -399,6 +408,24 @@ public final class LovableScreensTest {
     private static void invoke(Method method, MainActivity activity, Object... args) {
         try { method.invoke(activity, args); }
         catch (ReflectiveOperationException error) { throw new AssertionError(error); }
+    }
+
+    private static void driveBattleToVictory(LovableBattle battle) {
+        int actions = 0;
+        LovableBattle.Choice[] counters = {LovableBattle.Choice.DEFEND,
+                LovableBattle.Choice.CONTROL, LovableBattle.Choice.ATTACK,
+                LovableBattle.Choice.CONTROL, LovableBattle.Choice.ATTACK,
+                LovableBattle.Choice.DEFEND};
+        while (!battle.victory && !battle.defeat && actions++ < 80) {
+            if (battle.replacementRequired) {
+                for (LovableBattle.Fighter fighter : battle.fighters()) {
+                    if (fighter.alive()) { battle.selectFighter(fighter.spec.id); break; }
+                }
+            }
+            if (battle.canSpecial()) battle.special();
+            else battle.choose(counters[(battle.round + battle.mission.counterOffset) % counters.length]);
+        }
+        if (!battle.victory) throw new AssertionError("Counter strategy did not finish the encounter");
     }
 
     private static boolean hasText(View view, String target) { return findText(view, target) != null; }

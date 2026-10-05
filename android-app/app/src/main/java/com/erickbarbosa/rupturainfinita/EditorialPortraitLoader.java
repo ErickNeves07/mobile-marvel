@@ -18,6 +18,7 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,7 +34,9 @@ final class EditorialPortraitLoader {
     private final ExecutorService executor = Executors.newFixedThreadPool(2);
     private final Handler main = new Handler(Looper.getMainLooper());
     private final Object lock = new Object();
-    private final LruCache<String, Portrait> cache = new LruCache<String, Portrait>(12 * 1024 * 1024) {
+    private final Object requestLock = new Object();
+    private long lastMetadataRequestAt;
+    private final LruCache<String, Portrait> cache = new LruCache<String, Portrait>(20 * 1024 * 1024) {
         @Override protected int sizeOf(String key, Portrait value) {
             return value.bitmap.getByteCount();
         }
@@ -61,6 +64,13 @@ final class EditorialPortraitLoader {
             pending.put(gameId, new ArrayList<>());
         }
         executor.execute(() -> fetch(gameId));
+    }
+
+    void prefetchAll(Collection<String> gameIds) {
+        if (gameIds == null) return;
+        for (String gameId : gameIds) {
+            if (gameId != null && !gameId.trim().isEmpty()) prefetch(gameId);
+        }
     }
 
     void load(String gameId, String characterName, ImageView image, TextView attribution) {
@@ -143,7 +153,13 @@ final class EditorialPortraitLoader {
     }
 
     private Portrait fetchPortrait(String path, String editorialId) throws Exception {
-        JSONObject metadata = backend.cachedGetFresh(path, METADATA_MAX_AGE_MS);
+        JSONObject metadata;
+        synchronized (requestLock) {
+            long wait = 1_000L - (System.currentTimeMillis() - lastMetadataRequestAt);
+            if (lastMetadataRequestAt > 0 && wait > 0) Thread.sleep(wait);
+            metadata = backend.cachedGetFresh(path, METADATA_MAX_AGE_MS);
+            lastMetadataRequestAt = System.currentTimeMillis();
+        }
         if (!editorialId.equals(metadata.getString("game_id"))) {
             throw new IllegalStateException("Portrait game ID mismatch");
         }
@@ -191,8 +207,8 @@ final class EditorialPortraitLoader {
             }
             BitmapFactory.Options options = new BitmapFactory.Options();
             options.inSampleSize = 1;
-            while (bounds.outWidth / options.inSampleSize > 720
-                    || bounds.outHeight / options.inSampleSize > 720) {
+            while (bounds.outWidth / options.inSampleSize > 600
+                    || bounds.outHeight / options.inSampleSize > 600) {
                 options.inSampleSize *= 2;
             }
             Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length, options);

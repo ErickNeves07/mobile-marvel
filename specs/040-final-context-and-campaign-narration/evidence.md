@@ -8,3 +8,4 @@
 - Render GET `/ready`: ok e integrações configuradas; GET `/openapi.json`: contrato legado sem `game_context`. POST real rejeitado por revisão automática por possível cota paga; não foi executado. Telefone físico desconectado.
 - APKs, tamanhos e SHA-256 em `RELEASE_NOTES.md`.
 - Commit `0829bd6` enviado para `origin/main`; Render permaneceu no contrato legado na verificação subsequente. Falta publicação manual do backend pelo painel.
+- 2026-10-05: debug 0.9.0 instalado no telefone `C6OFVWYD4DZTBA5H` sobre 0.8.0; `dumpsys` confirmou versionCode 9, MainActivity abriu, `pidof` ativo e log sem fatal. GET do Render ainda mostrou contrato legado.

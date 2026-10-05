@@ -10,7 +10,12 @@ final class BattleSpecial {
         if (teamIds == null || teamIds.isEmpty()) throw new IllegalArgumentException("Team is required");
         if (teamIds.contains("homem-aranha") && teamIds.contains("wolverine")
                 && teamIds.contains("tocha-humana")) return "Teias, Garras e Chamas";
-        switch (teamIds.get(0)) {
+        return nameForCharacter(teamIds.get(0));
+    }
+
+    static String nameForCharacter(String characterId) {
+        if (characterId == null) throw new IllegalArgumentException("Character is required");
+        switch (characterId) {
             case "homem-de-ferro": return "Salva de Repulsores";
             case "capitao-america": return "Investida do Escudo";
             case "thor": return "Tempestade de Mjolnir";

@@ -1,7 +1,9 @@
 # Dúvidas abertas
 
+- **Q-059 - Resolved by Erick on 2026-10-05:** approved free switching; boss damages only active hero; reserve HP persists; HP uses `Vida/9`; bosses target the trio; shared super; battle ends only when boss or trio falls, with no action limit. See DEC-093/spec 042.
+
 - **Q-057 — Publicação e smoke final do Deadpool:** GET `/openapi.json` do Render em 2026-10-04 ainda expunha só `context_id,prompt`, embora o backend local suporte `game_context` e tenha passado 58 testes. Publicar a revisão e verificar o contrato. A revisão automática rejeitou o POST real por possível consumo de cota paga sem autorização específica; pedir essa autorização antes de testar o provedor.
-- **Q-058 — Instalação física 0.9.0:** o telefone `C6OFVWYD4DZTBA5H` não apareceu em `adb devices` nesta sessão. Release 0.9.0 instalou e abriu no AVD; conectar o telefone e instalar o debug de mesma assinatura para validar nele.
+- **Q-058 — Resolvida em 2026-10-05:** telefone `C6OFVWYD4DZTBA5H` recebeu o debug 0.9.0 sobre 0.8.0; versão e processo em execução confirmados, sem limpeza de dados. A interação manual com todos os fluxos no aparelho permanece fora desta checagem de instalação.
 
 
 ## Atualização do deploy e aparelho — 2026-10-04

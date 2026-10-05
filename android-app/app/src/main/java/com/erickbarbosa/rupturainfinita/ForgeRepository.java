@@ -329,6 +329,18 @@ final class ForgeRepository extends SQLiteOpenHelper {
         return new ChallengeState(day, target, Collections.emptyList(), "ACTIVE");
     }
 
+    ChallengeState loadExistingChallenge(LocalDate date) {
+        if (date == null) throw new IllegalArgumentException("Challenge date is required");
+        String day = date.toString();
+        try (Cursor cursor = getReadableDatabase().query("challenge_runs",
+                new String[]{"target_id", "guesses", "status"}, "challenge_date=?",
+                new String[]{day}, null, null, null)) {
+            if (!cursor.moveToFirst()) return null;
+            return new ChallengeState(day, cursor.getString(0),
+                    decodeList(cursor.getString(1)), cursor.getString(2));
+        }
+    }
+
     ChallengeState submitGuess(ChallengeState state, String guessId, List<GameCatalogCharacter> roster) {
         GameCatalogCharacter guess = findCharacter(roster, guessId);
         if (guess == null) throw new IllegalArgumentException("Unknown character guess");

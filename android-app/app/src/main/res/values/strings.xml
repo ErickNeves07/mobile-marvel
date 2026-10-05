@@ -12,8 +12,8 @@
     <string name="header_back">Voltar ao Nexus</string>
     <string name="nexus_kicker">Operação ativa</string>
     <string name="nexus_page_title">Nexus Multiversal</string>
-    <string name="nexus_reed">Reed Richards\nEngenharia da Câmara</string>
-    <string name="nexus_strange">Dr. Estranho\nSelos de contenção</string>
+    <string name="nexus_reed">Reed Richards\nMapeia e calibra variantes</string>
+    <string name="nexus_strange">Doutor Estranho\nMantém realidades isoladas</string>
     <string name="forge_kicker">Oficina de contenção</string>
     <string name="forge_page_title">Forja das Joias</string>
     <string name="campaigns_kicker">Rotas estáveis e instáveis</string>
@@ -31,7 +31,7 @@
     <string name="deadpool_daily_detail">Adivinhe o herói em seis tentativas.</string>
     <string name="deadpool_strange_label">O que está estranho?</string>
     <string name="deadpool_strange_detail">Ele insiste nesse botão.</string>
-    <string name="deadpool_prompt_label">Como vc quer encarar a próxima missão?</string>
+    <string name="deadpool_prompt_label">O que você quer conversar?</string>
     <string name="nav_nexus">Nexus</string>
     <string name="nav_campaigns">Campanhas</string>
     <string name="nav_forge">Forja</string>
@@ -150,9 +150,9 @@
     <string name="editorial_open_detail">Abrir página da Comic Vine</string>
     <string name="editorial_empty">Nenhum personagem Marvel encontrado.</string>
     <string name="editorial_error">Comic Vine indisponível. Verifique a conexão e tente novamente.</string>
-    <string name="deadpool_prompt_hint">Peça um comentário curto para Deadpool</string>
+    <string name="deadpool_prompt_hint">Peça uma piada, dê sua opinião ou pergunte sobre o jogo</string>
     <string name="deadpool_action">Chamar Deadpool</string>
-    <string name="deadpool_ready">O narrador usa apenas o contexto seguro da tela.</string>
+    <string name="deadpool_ready">Pode falar de qualquer assunto. Para o jogo, ele acompanha sua equipe e seu progresso.</string>
     <string name="deadpool_loading">Deadpool está procurando o roteiro…</string>
     <string name="deadpool_offline">Resposta de reserva do Deadpool. Tente de novo em instantes.</string>
     <string name="deadpool_error">N&#227;o consegui chegar ao backend agora. Confira a conex&#227;o e toque em Chamar Deadpool para tentar outra vez.</string>

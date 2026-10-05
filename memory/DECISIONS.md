@@ -104,3 +104,9 @@ Formato: `DEC-NNN | data | decisão | motivo | consequências`.
 - **DEC-086 | 2026-10-04 | Armadilhas e feedback sao apresentacionais.** Dicas nao prescrevem a escolha; eventos de cerco nao alteram dano, contadores, dificuldade, premios ou vitoria.
 - **DEC-087 | 2026-10-04 | Deadpool recebe resumo allowlisted do jogo local.** Limite de 1.200 caracteres para posse/tier, equipe/variantes, batalha/round e vitorias; sem PII. IA nao decide fatos ou regras.
 - **DEC-088 | 2026-10-04 | Curiosidades continuam editoriais e opcionais.** Comic Vine fornece aparicoes, primeira edicao/data e equipes; UI omite campos ausentes e mantem atributos de jogo separados.
+- **DEC-089 | 2026-10-05 | Cenas authored acompanham cada vitória sem mudar a economia.** O prólogo toca uma vez antes do Nexus; vitória mostra diálogo do capítulo antes da recompensa; nona vitória fecha a ruptura imediata e preserva o gancho da prisão de Thanos.
+- **DEC-090 | 2026-10-05 | Pré-carga editorial é apenas em memória e limitada.** LRU de 20 MiB com bitmaps reamostrados, IDs priorizados e intervalo mínimo de 1 s entre pedidos de metadados; não persistir binários Comic Vine.
+- **DEC-091 | 2026-10-05 | Deadpool conversa em geral e usa estado do jogo sem a tela atual.** A preferência é personalidade/humor geral; quando o assunto é o app, recebe equipe, personagens/variantes possuídos, campanha e vitórias do estado local.
+- **DEC-092 | 2026-10-05 | Desafio diário indica segredo com “?” até ser revelado.** O marcador some somente quando o personagem alvo é exibido após conclusão.
+
+**DEC-093 | 2026-10-05 | Active-hero battle, Q-059.** Erick approved free switching; only the active hero receives damage; reserve HP persists; max HP is `VariantStats.Vida / 9`; bosses are tuned against the trio; super is global; no action cap and battle ends when boss or trio falls.

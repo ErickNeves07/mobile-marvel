@@ -28,6 +28,8 @@ import org.json.JSONException;
 import java.io.IOException;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.HashMap;
 import java.time.LocalDate;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -50,10 +52,14 @@ public final class MainActivity extends AppCompatActivity {
     private ToneGenerator battleTones;
     private MediaPlayer battleMusic;
     private boolean battleOpen;
+    private boolean storyOpen;
     private int deadpoolPortraitTurn;
     private String currentBattleContext = "Nenhuma batalha está em andamento.";
     private String currentTeamContext = "Equipe ainda não escolhida para uma batalha.";
     private BattleMission selectedBattleMission;
+    private LovableBattle currentBattle;
+    private final Map<String, View> battleFighterViews = new HashMap<>();
+    private View battleBossView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -97,10 +103,9 @@ public final class MainActivity extends AppCompatActivity {
         navigationBar = findViewById(R.id.navigation_bar);
         contentContainer = findViewById(R.id.content_container);
         forgeRepository = new ForgeRepository(this);
-        battleTones = new ToneGenerator(AudioManager.STREAM_MUSIC, 24);
+        battleTones = new ToneGenerator(AudioManager.STREAM_MUSIC, 68);
         portraitLoader = new EditorialPortraitLoader(backendClient());
-        for (String id : new String[]{"homem-aranha", "wolverine", "tocha-humana",
-                "doutor-estranho", "senhor-fantastico"}) portraitLoader.prefetch(id);
+        preloadEditorialPortraits();
         transientBack = new OnBackPressedCallback(false) {
             @Override public void handleOnBackPressed() { renderShell(); }
         };
@@ -117,13 +122,13 @@ public final class MainActivity extends AppCompatActivity {
 
     private void renderShell() {
         battleOpen = false;
-        stopBattleMusic();
         currentBattleContext = "Nenhuma batalha está em andamento.";
         transientScreen = false;
         if (transientBack != null) transientBack.setEnabled(false);
         navigationBar.setVisibility(View.VISIBLE);
         renderNavigation();
         renderDestination(selectedDestination);
+        startBattleMusic();
     }
 
     private void renderIntro() {
@@ -202,7 +207,127 @@ public final class MainActivity extends AppCompatActivity {
     private void enterNexus() {
         introVisible = false;
         selectedDestination = AppDestination.NEXUS;
-        renderShell();
+        if (!getPreferences(MODE_PRIVATE).getBoolean("opening_story_seen", false)) {
+            showStorySequence(CampaignStory.opening(), null, () -> {
+                getPreferences(MODE_PRIVATE).edit().putBoolean("opening_story_seen", true).apply();
+                renderShell();
+            });
+        } else {
+            renderShell();
+        }
+    }
+
+    private void showStorySequence(CampaignStory.Scene scene, List<String> teamIds, Runnable after) {
+        storyOpen = true;
+        transientScreen = true;
+        if (transientBack != null) transientBack.setEnabled(true);
+        navigationBar.setVisibility(View.GONE);
+        contentContainer.removeAllViews();
+        startBattleMusic();
+
+        LinearLayout page = new LinearLayout(this);
+        page.setOrientation(LinearLayout.VERTICAL);
+        page.setGravity(Gravity.CENTER_HORIZONTAL);
+        page.setPadding(dimension(R.dimen.space_4), dimension(R.dimen.space_5),
+                dimension(R.dimen.space_4), dimension(R.dimen.space_4));
+        page.setBackground(new IntroRiftDrawable(this));
+        contentContainer.addView(page, new FrameLayout.LayoutParams(-1, -1));
+
+        TextView skip = text("PULAR CENA", R.style.TextAppearance_Ruptura_Label,
+                R.color.text_secondary, true);
+        skip.setGravity(Gravity.END | Gravity.CENTER_VERTICAL);
+        skip.setMinimumHeight(dimension(R.dimen.target_min));
+        page.addView(skip, new LinearLayout.LayoutParams(-1, -2));
+        LinearLayout.LayoutParams spacerParams = new LinearLayout.LayoutParams(1, 0, .25f);
+        page.addView(new View(this), spacerParams);
+        TextView place = text(scene.place, R.style.TextAppearance_Ruptura_Label,
+                R.color.accent_cyan, true);
+        place.setGravity(Gravity.CENTER);
+        place.setAllCaps(true);
+        place.setLetterSpacing(.18f);
+        page.addView(place, new LinearLayout.LayoutParams(-1, -2));
+        TextView title = text(scene.title, R.style.TextAppearance_Ruptura_Display,
+                R.color.text_primary, true);
+        title.setGravity(Gravity.CENTER);
+        title.setTextSize(32f);
+        page.addView(title, new LinearLayout.LayoutParams(-1, -2));
+
+        FrameLayout portraitFrame = new FrameLayout(this);
+        LinearLayout.LayoutParams portraitParams = new LinearLayout.LayoutParams(-1,
+                dimension(R.dimen.space_8) * 4);
+        portraitParams.topMargin = dimension(R.dimen.space_3);
+        portraitParams.bottomMargin = dimension(R.dimen.space_3);
+        page.addView(portraitFrame, portraitParams);
+        ImageView portrait = new ImageView(this);
+        portrait.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        portrait.setContentDescription("Arte editorial do personagem em cena");
+        portraitFrame.addView(portrait, new FrameLayout.LayoutParams(-1, -1));
+        TextView attribution = text(R.string.editorial_portrait_loading,
+                R.style.TextAppearance_Ruptura_Caption, R.color.text_secondary, false);
+        attribution.setGravity(Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL);
+        portraitFrame.addView(attribution, new FrameLayout.LayoutParams(-1, -2, Gravity.BOTTOM));
+
+        TextView speaker = text("", R.style.TextAppearance_Ruptura_Label,
+                R.color.accent_gold, true);
+        speaker.setGravity(Gravity.CENTER);
+        page.addView(speaker, new LinearLayout.LayoutParams(-1, -2));
+        TextView dialogue = text("", R.style.TextAppearance_Ruptura_Body,
+                R.color.text_primary, false);
+        dialogue.setGravity(Gravity.CENTER);
+        dialogue.setPadding(dimension(R.dimen.space_4), dimension(R.dimen.space_3),
+                dimension(R.dimen.space_4), dimension(R.dimen.space_3));
+        dialogue.setBackground(background(R.color.surface_primary, R.color.border_subtle,
+                dimension(R.dimen.radius_card)));
+        LinearLayout.LayoutParams dialogueParams = new LinearLayout.LayoutParams(-1, -2);
+        dialogueParams.topMargin = dimension(R.dimen.space_2);
+        page.addView(dialogue, dialogueParams);
+        LinearLayout.LayoutParams bottomSpacer = new LinearLayout.LayoutParams(1, 0, .25f);
+        page.addView(new View(this), bottomSpacer);
+        TextView progress = text("", R.style.TextAppearance_Ruptura_Caption,
+                R.color.text_secondary, true);
+        progress.setGravity(Gravity.CENTER);
+        page.addView(progress, new LinearLayout.LayoutParams(-1, -2));
+        TextView next = action("CONTINUAR", () -> { });
+        LinearLayout.LayoutParams nextParams = new LinearLayout.LayoutParams(-1, -2);
+        nextParams.topMargin = dimension(R.dimen.space_2);
+        page.addView(next, nextParams);
+
+        final int[] index = {0};
+        final boolean[] finished = {false};
+        Runnable finish = () -> {
+            if (finished[0]) return;
+            finished[0] = true;
+            storyOpen = false;
+            if (after != null) after.run();
+            else renderShell();
+        };
+        Runnable[] renderLine = new Runnable[1];
+        renderLine[0] = () -> {
+            if (index[0] >= scene.lines.size()) { finish.run(); return; }
+            CampaignStory.Line line = scene.lines.get(index[0]);
+            String speakerName = line.speakerName;
+            String characterId = line.speakerId;
+            if ("team".equals(characterId)) {
+                List<GameCatalogCharacter> roster = loadRoster();
+                characterId = teamIds != null && !teamIds.isEmpty() ? teamIds.get(0) : "homem-aranha";
+                for (GameCatalogCharacter character : roster) {
+                    if (character.id.equals(characterId)) { speakerName = character.name.toUpperCase(java.util.Locale.ROOT); break; }
+                }
+            }
+            speaker.setText(speakerName);
+            dialogue.setText(line.text);
+            progress.setText((index[0] + 1) + " / " + scene.lines.size());
+            if (line.opponent) portraitLoader.loadOpponent(characterId, speakerName, portrait, attribution);
+            else portraitLoader.load(characterId, speakerName, portrait, attribution);
+            if (ValueAnimator.areAnimatorsEnabled()) {
+                dialogue.setAlpha(0f);
+                dialogue.setTranslationY(dimension(R.dimen.space_2));
+                dialogue.animate().alpha(1f).translationY(0f).setDuration(animationDelay(240)).start();
+            }
+        };
+        next.setOnClickListener(view -> { playUiSound(); index[0]++; renderLine[0].run(); });
+        skip.setOnClickListener(view -> { playUiSound(); finish.run(); });
+        renderLine[0].run();
     }
 
     private void renderNavigation() {
@@ -313,6 +438,7 @@ public final class MainActivity extends AppCompatActivity {
 
         scroll.addView(page);
         contentContainer.addView(scroll, new FrameLayout.LayoutParams(-1, -1));
+        startBattleMusic();
     }
 
     private void addThemeToggle(LinearLayout parent) {
@@ -365,17 +491,25 @@ public final class MainActivity extends AppCompatActivity {
 
     private void playUiSound() {
         if (!getPreferences(MODE_PRIVATE).getBoolean("battle_sounds", true) || battleTones == null) return;
-        battleTones.startTone(ToneGenerator.TONE_PROP_BEEP, 55);
+        battleTones.startTone(ToneGenerator.TONE_PROP_ACK, 90);
     }
 
     private void startBattleMusic() {
-        if (!battleOpen || !getPreferences(MODE_PRIVATE).getBoolean("battle_sounds", true)
-                || battleMusic != null) return;
-        battleMusic = MediaPlayer.create(this, R.raw.battle_ambience);
-        if (battleMusic == null) return;
-        battleMusic.setLooping(true);
-        battleMusic.setVolume(.12f, .12f);
-        battleMusic.start();
+        boolean enabled = getPreferences(MODE_PRIVATE).getBoolean("battle_sounds", true);
+        boolean ambientDestination = selectedDestination == AppDestination.NEXUS
+                || selectedDestination == AppDestination.CAMPAIGNS
+                || selectedDestination == AppDestination.FORGE
+                || selectedDestination == AppDestination.COLLECTION
+                || selectedDestination == AppDestination.DEADPOOL;
+        if (!enabled || (!battleOpen && !ambientDestination)) { stopBattleMusic(); return; }
+        if (battleMusic == null) {
+            battleMusic = MediaPlayer.create(this, R.raw.battle_ambience);
+            if (battleMusic == null) return;
+            battleMusic.setLooping(true);
+            battleMusic.start();
+        }
+        float volume = battleOpen ? .52f : .24f;
+        battleMusic.setVolume(volume, volume);
     }
 
     private void stopBattleMusic() {
@@ -393,6 +527,22 @@ public final class MainActivity extends AppCompatActivity {
     @Override protected void onResume() {
         super.onResume();
         startBattleMusic();
+    }
+
+    private void preloadEditorialPortraits() {
+        List<String> ids = new ArrayList<>();
+        for (String id : new String[]{"homem-aranha", "wolverine", "tocha-humana",
+                "doutor-estranho", "senhor-fantastico", "deadpool"}) {
+            if (!ids.contains(id)) ids.add(id);
+        }
+        for (BattleMission mission : BattleMission.ALL) {
+            String id = "battle:" + mission.opponentId;
+            if (!ids.contains(id)) ids.add(id);
+        }
+        for (GameCatalogCharacter character : loadRoster()) {
+            if (!ids.contains(character.id)) ids.add(character.id);
+        }
+        portraitLoader.prefetchAll(ids);
     }
 
     private void renderPageHeader(LinearLayout page, AppDestination destination) {
@@ -1563,7 +1713,7 @@ public final class MainActivity extends AppCompatActivity {
                 true, this::showDailyChallengeScreen);
         addComicCard(secondRow, R.string.deadpool_strange_label, R.string.deadpool_strange_detail,
                 true, () -> {
-                    contextId[0] = "forge";
+                    contextId[0] = "app";
                     cardPrompt[0] = "Comente algo estranho sobre as Joias e a fusão 2 para 1.";
                     if (sendRequest[0] != null) sendRequest[0].run();
                 });
@@ -1662,33 +1812,84 @@ public final class MainActivity extends AppCompatActivity {
         CampaignState saved = forgeRepository.loadCampaign("rupture", java.util.Arrays.asList(
                 "homem-aranha", "wolverine", "tocha-humana"));
         BattleMission focusedMission = deadpoolMission();
-        StringBuilder summary = new StringBuilder("Tela atual: ").append(selectedDestination.name())
-                .append(". Batalha: ").append(currentBattleContext)
-                .append(". Missão selecionada/próxima: ").append(focusedMission.title)
-                .append(" contra ").append(focusedMission.opponentName)
-                .append(" em ").append(focusedMission.location)
-                .append(". Equipe salva: ").append(describeTeam(saved.teamIds))
-                .append(". Adversários das nove campanhas: Rei do Crime, Ultron, Ameaça Tecnológica, ")
-                .append("Dormammu, Ronan, Magneto, Annihilus, Doutor Destino, Thanos (Titã em Colapso).")
-                .append(". Desbloqueados e variantes: ");
-        int count = 0;
-        for (GameCatalogCharacter character : roster) {
-            if (!forgeRepository.ownsCharacter(character.id)) continue;
-            if (count++ > 0) summary.append("; ");
-            summary.append(character.name).append(" [");
-            java.util.Set<GameVariantTier> tiers = forgeRepository.loadOwnedTiers(character.id);
-            int tierCount = 0;
-            for (GameVariantTier tier : tiers) {
-                if (tierCount++ > 0) summary.append('/');
-                summary.append(getString(tier.labelRes));
+        StringBuilder summary = new StringBuilder("Fatos autorais do jogo (use estes para mecânicas e dicas; Comic Vine fornece apenas dados editoriais): ")
+                .append("batalhas usam três heróis; um ativo age por turno; troca é grátis; HP individual persiste; ")
+                .append("chefe atinge só o ativo; super é global, carrega com ações e pode ser usado por qualquer vivo; ")
+                .append("ataque, defesa e desestabilização são opções; batalha segue até chefe ou trio cair. ")
+                .append("Recompensas e resultados são fixos pelo app, não pela IA. ")
+                .append("Missão selecionada/próxima: ").append(focusedMission.title).append(" contra ")
+                .append(focusedMission.opponentName).append(" em ").append(focusedMission.location)
+                .append(". Equipe salva em ordem: ").append(describeTeam(saved.teamIds)).append(". ");
+        if (currentBattle != null) {
+            LovableBattle b = currentBattle;
+            summary.append("Batalha atual: ").append(b.mission.title).append("; ação ")
+                    .append(b.round + 1).append("; chefe ").append(b.boss).append('/')
+                    .append(b.maxBoss).append(" HP; super global ").append(b.charge).append("%; ativo ");
+            LovableBattle.Fighter active = b.activeFighter();
+            summary.append(active == null ? "nenhum" : active.spec.name + " HP " + active.health
+                    + "/" + active.maxHealth).append("; status ")
+                    .append(b.victory ? "vitória" : b.defeat ? "derrota" : "em andamento")
+                    .append("; equipe em combate: ");
+            for (LovableBattle.Fighter fighter : b.fighters()) {
+                summary.append(fighter.spec.name).append(' ')
+                        .append(fighter.alive() ? fighter.health + "/" + fighter.maxHealth + " HP" : "KO")
+                        .append("; ");
             }
-            summary.append(", equipada ")
-                    .append(getString(tierById(forgeRepository.loadEquippedTier(character.id)).labelRes))
-                    .append(']');
-            if (summary.length() >= 780) break;
+            summary.append("resumo: ").append(b.summary().toDisplayText())
+                    .append("; último evento: ").append(b.feedback).append(". ");
         }
-        if (count == 0) summary.append("nenhum");
-        summary.append(". Batalhas concluídas: ");
+        summary.append("Elenco do jogo; atributos são balanceamento autoral, não fatos editoriais: ");
+        for (GameCatalogCharacter character : roster) {
+            if (summary.length() > 4_700) break;
+            boolean owned = forgeRepository.ownsCharacter(character.id);
+            summary.append(character.name).append(owned ? " [liberado; grupo " : " [bloqueado; grupo ")
+                    .append(getString(groupLabel(character.groupId))).append("; variantes ");
+            java.util.Set<GameVariantTier> tiers = owned
+                    ? forgeRepository.loadOwnedTiers(character.id) : java.util.Collections.emptySet();
+            if (tiers.isEmpty()) summary.append("nenhuma");
+            else {
+                int tierCount = 0;
+                for (GameVariantTier tier : tiers) {
+                    if (tierCount++ > 0) summary.append('/');
+                    summary.append(getString(tier.labelRes));
+                }
+            }
+            GameVariantTier equipped = owned
+                    ? tierById(forgeRepository.loadEquippedTier(character.id)) : GameVariantTier.ORIGIN;
+            int[] stats = VariantStats.forVariant(character.id, equipped);
+            summary.append("; ").append(owned ? "equipada " : "base ").append(getString(equipped.labelRes))
+                    .append("; Vida/Ataque/Defesa/Velocidade ")
+                    .append(stats[0]).append('/').append(stats[1]).append('/')
+                    .append(stats[2]).append('/').append(stats[3])
+                    .append("; especial ").append(BattleSpecial.nameForCharacter(character.id))
+                    .append("]; ");
+        }
+        PlayerResources resources = forgeRepository.loadPlayerResources();
+        summary.append("Recursos: ").append(resources.credits).append(" créditos, ")
+                .append(resources.xp).append(" XP. Manopla ")
+                .append(forgeRepository.isGauntletActivated() ? "ativa" : "inativa").append(". ");
+        ForgeInventory inventory = forgeRepository.load();
+        summary.append("Inventário autoral (estilhaços/fragmentos/núcleos instáveis/joias): ");
+        for (InfinityStone stone : InfinityStone.values()) {
+            summary.append(stone.name()).append(' ')
+                    .append(inventory.count(stone, ForgeStage.SHARD)).append('/')
+                    .append(inventory.count(stone, ForgeStage.FRAGMENT)).append('/')
+                    .append(inventory.count(stone, ForgeStage.UNSTABLE_CORE)).append('/')
+                    .append(inventory.count(stone, ForgeStage.COMPLETE)).append("; ");
+        }
+        ChallengeState daily = forgeRepository.loadExistingChallenge(LocalDate.now());
+        summary.append("Desafio diário: ").append(daily == null ? "não iniciado hoje" : daily.status
+                + ", " + daily.guesses.size() + " tentativas feitas de 6; palpites ");
+        if (daily != null) {
+            for (String guessId : daily.guesses) {
+                GameCatalogCharacter guessed = findCharacter(roster, guessId);
+                if (guessed != null) summary.append(guessed.name).append('/');
+            }
+        }
+        summary.append(". ");
+        summary.append("Campanhas, na ordem: Rei do Crime/Nova York; Ultron/Complexo; ameaça tecnológica/Wakanda; ")
+                .append("Dormammu/Dimensão Espelhada; Ronan/Knowhere; Magneto/Instituto Xavier; ")
+                .append("Annihilus/Zona Negativa; Doutor Destino/Latveria; Thanos/Titã. Concluídas: ");
         int wins = 0;
         for (BattleMission mission : BattleMission.ALL) {
             if (!forgeRepository.hasCompletedMission(mission.campaignId, mission.number)) continue;
@@ -1696,11 +1897,13 @@ public final class MainActivity extends AppCompatActivity {
             summary.append(mission.title);
         }
         summary.append(" ( ").append(wins).append(" de ").append(BattleMission.ALL.size()).append(" )");
-        return summary.substring(0, Math.min(summary.length(), 1_200));
+        return summary.substring(0, Math.min(summary.length(), 6_000));
     }
 
     private BattleMission deadpoolMission() {
-        if (selectedBattleMission != null) return selectedBattleMission;
+        if (currentBattle != null && !currentBattle.victory && !currentBattle.defeat)
+            return currentBattle.mission;
+        if (selectedBattleMission != null && currentBattle == null) return selectedBattleMission;
         CampaignState campaign = forgeRepository.loadCampaign("rupture", java.util.Arrays.asList(
                 "homem-aranha", "wolverine", "tocha-humana"));
         return BattleMission.forMission("rupture", Math.min(campaign.unlockedMission,
@@ -1881,12 +2084,23 @@ public final class MainActivity extends AppCompatActivity {
         track.addView(new View(this), new LinearLayout.LayoutParams(0, -1,
                 Math.max(1, 100 - progress)));
         TextView lore = text("Reed projetou a estrutura de contenção; Estranho manteve os selos. "
-                        + "Diferente da manopla clássica, esta não foi feita para usar as Joias, "
-                        + "e sim para impedir que elas voltem a se procurar.",
+                        + "A Câmara mede e estabiliza a assinatura da variante escolhida. Reed "
+                        + "calibra os instrumentos; Estranho mantém cada realidade isolada por selos. "
+                        + "Eles protegem a passagem entre realidades, sem controlar os heróis.",
                 R.style.TextAppearance_Ruptura_Body, R.color.text_secondary, false);
         LinearLayout.LayoutParams loreParams = new LinearLayout.LayoutParams(-1, -2);
         loreParams.topMargin = dimension(R.dimen.space_3);
         resonance.addView(lore, loreParams);
+
+        LinearLayout roles = new LinearLayout(this);
+        roles.setOrientation(LinearLayout.HORIZONTAL);
+        LinearLayout.LayoutParams rolesParams = new LinearLayout.LayoutParams(-1, -2);
+        rolesParams.topMargin = dimension(R.dimen.space_3);
+        state.addView(roles, rolesParams);
+        addChamberRole(roles, "senhor-fantastico", "Reed Richards",
+                "Mapeia a assinatura e calibra a estabilidade da variante.");
+        addChamberRole(roles, "doutor-estranho", "Doutor Estranho",
+                "Sela as ramificações para que uma realidade não invada outra.");
 
         for (int i = 0; i < stones.length; i++) {
             final int index = i;
@@ -1944,6 +2158,36 @@ public final class MainActivity extends AppCompatActivity {
         LinearLayout.LayoutParams actionParams = new LinearLayout.LayoutParams(-1, -2);
         actionParams.topMargin = dimension(R.dimen.space_3);
         state.addView(action, actionParams);
+    }
+
+    private void addChamberRole(LinearLayout parent, String id, String name, String role) {
+        LinearLayout card = card();
+        card.setOrientation(LinearLayout.VERTICAL);
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(0, -2, 1f);
+        params.setMargins(dimension(R.dimen.space_1), 0, dimension(R.dimen.space_1), 0);
+        parent.addView(card, params);
+        ImageView portrait = new ImageView(this);
+        portrait.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        portrait.setBackground(background(R.color.surface_elevated, R.color.border_subtle,
+                dimension(R.dimen.radius_card)));
+        card.addView(portrait, new LinearLayout.LayoutParams(-1, dimension(R.dimen.space_8) * 3));
+        TextView credit = text(R.string.editorial_portrait_loading,
+                R.style.TextAppearance_Ruptura_Caption, R.color.text_secondary, false);
+        credit.setGravity(Gravity.CENTER);
+        card.addView(credit, new LinearLayout.LayoutParams(-1, -2));
+        portraitLoader.load(id, name, portrait, credit);
+        TextView label = text(name.toUpperCase(java.util.Locale.ROOT),
+                R.style.TextAppearance_Ruptura_Label, R.color.accent_cyan, true);
+        label.setGravity(Gravity.CENTER);
+        LinearLayout.LayoutParams labelParams = new LinearLayout.LayoutParams(-1, -2);
+        labelParams.topMargin = dimension(R.dimen.space_2);
+        card.addView(label, labelParams);
+        TextView description = text(role, R.style.TextAppearance_Ruptura_Caption,
+                R.color.text_secondary, false);
+        description.setGravity(Gravity.CENTER);
+        LinearLayout.LayoutParams descriptionParams = new LinearLayout.LayoutParams(-1, -2);
+        descriptionParams.topMargin = dimension(R.dimen.space_1);
+        card.addView(description, descriptionParams);
     }
 
     private void showGauntletUnlockChoice() {
@@ -2197,6 +2441,18 @@ public final class MainActivity extends AppCompatActivity {
             GameCatalogCharacter revealed = findCharacter(roster, state.targetId);
             ImageView portrait = editorialImage(mystery, dimension(R.dimen.space_8) * 4);
             portraitLoader.load(revealed.id, revealed.name, portrait, null);
+        } else {
+            TextView mysteryMark = text("?", R.style.TextAppearance_Ruptura_Display,
+                    R.color.accent_cyan, true);
+            mysteryMark.setTextSize(76f);
+            mysteryMark.setGravity(Gravity.CENTER);
+            mysteryMark.setBackground(background(R.color.surface_elevated,
+                    R.color.border_subtle, dimension(R.dimen.radius_card)));
+            mysteryMark.setContentDescription("Personagem misterioso ainda não revelado");
+            LinearLayout.LayoutParams markParams = new LinearLayout.LayoutParams(-1,
+                    dimension(R.dimen.space_8) * 4);
+            markParams.bottomMargin = dimension(R.dimen.space_2);
+            mystery.addView(mysteryMark, markParams);
         }
         mystery.addView(text("GRUPO: " + ("ACTIVE".equals(state.status) ? "???"
                         : getString(groupLabel(findCharacter(roster, state.targetId).groupId)))
@@ -2731,6 +2987,16 @@ public final class MainActivity extends AppCompatActivity {
                 R.color.text_primary, true);
         title.setGravity(Gravity.CENTER);
         page.addView(title);
+        if (currentBattle != null) {
+            LinearLayout recap = card();
+            LinearLayout.LayoutParams recapParams = new LinearLayout.LayoutParams(-1, -2);
+            recapParams.topMargin = dimension(R.dimen.space_4);
+            page.addView(recap, recapParams);
+            recap.addView(text("RELATÓRIO DA BATALHA", R.style.TextAppearance_Ruptura_Label,
+                    R.color.accent_cyan, true));
+            recap.addView(text(currentBattle.summary().toDisplayText(),
+                    R.style.TextAppearance_Ruptura_Body, R.color.text_primary, false));
+        }
         LinearLayout.LayoutParams firstRow = new LinearLayout.LayoutParams(-1, -2);
         firstRow.topMargin = dimension(R.dimen.space_6);
         LinearLayout fragmentsCard = card();
@@ -2861,11 +3127,57 @@ public final class MainActivity extends AppCompatActivity {
                 R.color.text_primary, true));
         page.addView(text("Toque em três personagens da sua coleção. A variante equipada altera o poder da equipe.",
                 R.style.TextAppearance_Ruptura_Body, R.color.text_secondary, false));
-        TextView slots = text("SELECIONADOS  " + selected.size() + "/3",
-                R.style.TextAppearance_Ruptura_Label, R.color.accent_cyan, true);
+        LinearLayout slotRow = new LinearLayout(this);
+        slotRow.setGravity(Gravity.CENTER_VERTICAL);
         LinearLayout.LayoutParams slotsParams = new LinearLayout.LayoutParams(-1, -2);
         slotsParams.topMargin = dimension(R.dimen.space_4);
-        page.addView(slots, slotsParams);
+        page.addView(slotRow, slotsParams);
+        for (int slotIndex = 0; slotIndex < 3; slotIndex++) {
+            int position = slotIndex;
+            LinearLayout slot = card();
+            slot.setPadding(dimension(R.dimen.space_2), dimension(R.dimen.space_2),
+                    dimension(R.dimen.space_2), dimension(R.dimen.space_2));
+            slot.setGravity(Gravity.CENTER);
+            LinearLayout.LayoutParams slotParams = new LinearLayout.LayoutParams(0, -2, 1f);
+            slotParams.setMargins(dimension(R.dimen.space_1), 0,
+                    dimension(R.dimen.space_1), 0);
+            slotRow.addView(slot, slotParams);
+            slot.setMinimumHeight(dimension(R.dimen.space_8) * 3);
+            if (slotIndex < selected.size()) {
+                String chosenId = selected.get(slotIndex);
+                GameCatalogCharacter chosenCharacter = findCharacter(roster, chosenId);
+                if (chosenCharacter != null) {
+                    TextView slotNumber = text("SLOT " + (slotIndex + 1),
+                            R.style.TextAppearance_Ruptura_Caption, R.color.accent_gold, true);
+                    slotNumber.setGravity(Gravity.CENTER);
+                    slot.addView(slotNumber);
+                    GameVariantTier chosenTier = tierById(forgeRepository.loadEquippedTier(chosenId));
+                    ImageView chosenPortrait = editorialImage(slot, dimension(R.dimen.space_8) * 2);
+                    portraitLoader.loadVariant(chosenId, chosenTier, chosenCharacter.name,
+                            chosenPortrait, null);
+                    TextView chosenName = text(chosenCharacter.name,
+                            R.style.TextAppearance_Ruptura_Caption, R.color.accent_cyan, true);
+                    chosenName.setGravity(Gravity.CENTER);
+                    slot.addView(chosenName);
+                    slot.addView(text("TOQUE PARA REMOVER", R.style.TextAppearance_Ruptura_Caption,
+                            R.color.text_secondary, false));
+                    slot.setClickable(true);
+                    slot.setFocusable(true);
+                    slot.setOnClickListener(view -> {
+                        selected.remove(chosenId);
+                        renderTeamChooser(roster, campaign, mission, selected);
+                    });
+                }
+            } else {
+                TextView emptySlot = text("+\nSLOT " + (slotIndex + 1),
+                        R.style.TextAppearance_Ruptura_Title, R.color.text_secondary, true);
+                emptySlot.setGravity(Gravity.CENTER);
+                slot.addView(emptySlot);
+            }
+        }
+        TextView slotHint = text("Escolha três heróis. Toque em um slot preenchido para liberar a vaga.",
+                R.style.TextAppearance_Ruptura_Caption, R.color.text_secondary, false);
+        page.addView(slotHint);
         LinearLayout row = null;
         int shown = 0;
         for (GameCatalogCharacter character : roster) {
@@ -2912,8 +3224,8 @@ public final class MainActivity extends AppCompatActivity {
                 try {
                     CampaignState saved = forgeRepository.saveTeam(campaign.campaignId,
                             new ArrayList<>(selected), roster);
-                    int power = GameRules.equippedTeamPower(roster, saved.teamIds, forgeRepository);
-                    runOnUiThread(() -> showMagnetoBattle(new LovableBattle(power,
+                    List<LovableBattle.FighterSpec> fighters = buildBattleFighters(roster, saved.teamIds);
+                    runOnUiThread(() -> showMagnetoBattle(new LovableBattle(fighters,
                             BattleMission.forMission(saved.campaignId, mission)), saved));
                 } catch (RuntimeException error) {
                     runOnUiThread(() -> android.widget.Toast.makeText(this,
@@ -2929,9 +3241,10 @@ public final class MainActivity extends AppCompatActivity {
     }
 
     private void showMagnetoBattle(LovableBattle battle, CampaignState campaign) {
+        currentBattle = battle;
         selectedBattleMission = battle.mission;
         currentBattleContext = battle.mission.title + " — " + battle.mission.opponentName
-                + ", rodada " + Math.min(battle.round + 1, LovableBattle.MAX_ROUNDS)
+                + ", ação " + (battle.round + 1)
                 + (battle.victory ? ", concluída" : battle.defeat ? ", derrota" : ", em andamento");
         currentTeamContext = describeTeam(campaign.teamIds);
         transientScreen = true;
@@ -2941,6 +3254,29 @@ public final class MainActivity extends AppCompatActivity {
         battleAnimating = false;
         battleClaiming = false;
         renderMagnetoBattle(battle, campaign);
+    }
+
+    private List<LovableBattle.FighterSpec> buildBattleFighters(
+            List<GameCatalogCharacter> roster, List<String> teamIds) {
+        List<LovableBattle.FighterSpec> specs = new ArrayList<>();
+        for (String id : teamIds) {
+            GameCatalogCharacter character = findCharacter(roster, id);
+            if (character == null || !forgeRepository.ownsCharacter(id))
+                throw new IllegalArgumentException("Battle character is unavailable");
+            GameVariantTier tier = tierById(forgeRepository.loadEquippedTier(id));
+            if (!forgeRepository.loadOwnedTiers(id).contains(tier))
+                throw new IllegalStateException("Equipped variant is not owned");
+            specs.add(new LovableBattle.FighterSpec(id, character.name,
+                    getString(tier.labelRes).toUpperCase(java.util.Locale.ROOT),
+                    VariantStats.forVariant(id, tier), BattleSpecial.nameForCharacter(id)));
+        }
+        return specs;
+    }
+
+    private List<LovableBattle.FighterSpec> copyBattleFighters(LovableBattle battle) {
+        List<LovableBattle.FighterSpec> specs = new ArrayList<>();
+        for (LovableBattle.Fighter fighter : battle.fighters()) specs.add(fighter.spec);
+        return specs;
     }
 
     private String describeTeam(List<String> ids) {
@@ -2973,8 +3309,7 @@ public final class MainActivity extends AppCompatActivity {
         LinearLayout titles = new LinearLayout(this);
         titles.setOrientation(LinearLayout.VERTICAL);
         heading.addView(titles, new LinearLayout.LayoutParams(0, -2, 1f));
-        titles.addView(text("ROUND " + Math.min(battle.round + 1, LovableBattle.MAX_ROUNDS)
-                        + "/" + LovableBattle.MAX_ROUNDS + "  ·  "
+        titles.addView(text("AÇÃO " + (battle.round + 1) + "  ·  "
                         + battle.mission.title.toUpperCase(java.util.Locale.ROOT),
                 R.style.TextAppearance_Ruptura_Caption, R.color.accent_xmen, true));
         titles.addView(text(battle.mission.location.toUpperCase(java.util.Locale.ROOT),
@@ -3002,6 +3337,7 @@ public final class MainActivity extends AppCompatActivity {
         scene.setOrientation(LinearLayout.VERTICAL);
         central.addView(scene);
         LinearLayout boss = card();
+        battleBossView = boss;
         boss.setGravity(Gravity.CENTER);
         boss.setMinimumHeight(dimension(R.dimen.space_8) * 5);
         boss.setBackground(new AngularPanelDrawable(getColor(R.color.surface_primary),
@@ -3023,25 +3359,66 @@ public final class MainActivity extends AppCompatActivity {
         LinearLayout team = new LinearLayout(this);
         scene.addView(team, new LinearLayout.LayoutParams(-1, -2));
         List<GameCatalogCharacter> battleRoster = loadRoster();
-        for (String id : campaign.teamIds) {
-            GameCatalogCharacter selected = findCharacter(battleRoster, id);
-            String name = selected == null ? id : selected.name;
+        battleFighterViews.clear();
+        for (LovableBattle.Fighter fighter : battle.fighters()) {
+            LovableBattle.FighterSpec spec = fighter.spec;
+            boolean active = spec.id.equals(battle.activeFighterId);
+            FrameLayout frame = new FrameLayout(this);
             LinearLayout member = card();
             member.setPadding(dimension(R.dimen.space_1), dimension(R.dimen.space_1),
                     dimension(R.dimen.space_1), dimension(R.dimen.space_1));
+            member.setBackground(new AngularPanelDrawable(getColor(R.color.surface_primary),
+                    getColor(R.color.surface_elevated), getColor(fighter.alive()
+                    ? active ? R.color.accent_cyan : R.color.border_subtle : R.color.accent_deadpool),
+                    dimension(R.dimen.angular_cut), false));
+            frame.addView(member, new FrameLayout.LayoutParams(-1, -2));
             ImageView portrait = editorialImage(member, dimension(R.dimen.space_8) * 2);
-            portraitLoader.loadVariant(id, tierById(forgeRepository.loadEquippedTier(id)),
-                    name, portrait, null);
-            TextView nameLabel = text(name, R.style.TextAppearance_Ruptura_Caption,
-                    R.color.accent_cyan, true);
+            portraitLoader.loadVariant(spec.id, tierById(forgeRepository.loadEquippedTier(spec.id)),
+                    spec.name, portrait, null);
+            TextView state = text(!fighter.alive() ? "CAIU" : active ? "ATIVO" : "TOQUE PARA ATIVAR",
+                    R.style.TextAppearance_Ruptura_Caption,
+                    !fighter.alive() ? R.color.accent_deadpool : active ? R.color.accent_cyan : R.color.text_secondary,
+                    true);
+            state.setGravity(Gravity.CENTER);
+            member.addView(state);
+            TextView nameLabel = text(spec.name, R.style.TextAppearance_Ruptura_Caption,
+                    R.color.text_primary, true);
             nameLabel.setGravity(Gravity.CENTER);
             member.addView(nameLabel);
-            member.addView(text(getString(tierById(forgeRepository.loadEquippedTier(id)).labelRes),
+            TextView variantLabel = text(spec.tierName, R.style.TextAppearance_Ruptura_Caption,
+                    R.color.text_secondary, false);
+            variantLabel.setGravity(Gravity.CENTER);
+            member.addView(variantLabel);
+            member.addView(text(spec.specialName, R.style.TextAppearance_Ruptura_Caption,
+                    R.color.accent_gold, false));
+            member.addView(text("HP " + fighter.health + " / " + fighter.maxHealth,
                     R.style.TextAppearance_Ruptura_Caption, R.color.text_secondary, false));
+            LinearLayout hp = new LinearLayout(this);
+            member.addView(hp, new LinearLayout.LayoutParams(-1, dimension(R.dimen.space_1)));
+            addBattleBar(hp, Math.round(fighter.health * 100f / fighter.maxHealth),
+                    fighter.alive() ? active ? R.color.accent_cyan : R.color.accent_gold
+                            : R.color.accent_deadpool);
             LinearLayout.LayoutParams memberParams = new LinearLayout.LayoutParams(0, -2, 1f);
             memberParams.setMargins(dimension(R.dimen.space_1), dimension(R.dimen.space_2),
                     dimension(R.dimen.space_1), 0);
-            team.addView(member, memberParams);
+            team.addView(frame, memberParams);
+            battleFighterViews.put(spec.id, frame);
+            frame.setContentDescription(spec.name + ", " + spec.tierName + ", HP "
+                    + fighter.health + " de " + fighter.maxHealth + ", especial " + spec.specialName
+                    + (active ? ", personagem ativo" : fighter.alive()
+                    ? ", toque para ativar sem gastar ação" : ", fora de combate"));
+            if (fighter.alive() && !battle.victory && !battle.defeat) {
+                frame.setClickable(true);
+                frame.setFocusable(true);
+                frame.setOnClickListener(view -> {
+                    if (battleAnimating || spec.id.equals(battle.activeFighterId)) return;
+                    try {
+                        battle.selectFighter(spec.id);
+                        playUiSound();
+                        renderMagnetoBattle(battle, campaign);
+                    } catch (IllegalStateException | IllegalArgumentException ignored) { }
+                });
+            }
         }
         if (battle.victory) {
             scene.addView(text("RESSONÂNCIA INTERROMPIDA", R.style.TextAppearance_Ruptura_Caption,
@@ -3058,6 +3435,13 @@ public final class MainActivity extends AppCompatActivity {
             scene.addView(text(battle.mission.opponentName
                             + " manteve o controle do campo. Uma nova tentativa pode mudar o resultado.",
                     R.style.TextAppearance_Ruptura_Body, R.color.text_secondary, false));
+            scene.addView(text("RELATÓRIO DA BATALHA", R.style.TextAppearance_Ruptura_Label,
+                    R.color.accent_cyan, true));
+            scene.addView(text(battle.summary().toDisplayText(),
+                    R.style.TextAppearance_Ruptura_Body, R.color.text_primary, false));
+        } else if (battle.replacementRequired) {
+            scene.addView(text("ESCOLHA UM HERÓI VIVO PARA CONTINUAR",
+                    R.style.TextAppearance_Ruptura_Label, R.color.accent_cyan, true));
         } else if (battle.canChoose()) {
             LinearLayout intent = card();
             LinearLayout.LayoutParams intentParams = new LinearLayout.LayoutParams(-1, -2);
@@ -3085,8 +3469,7 @@ public final class MainActivity extends AppCompatActivity {
 
         if (battle.defeat) {
             screen.addView(action("TENTAR NOVAMENTE", () -> showMagnetoBattle(
-                    new LovableBattle(GameRules.equippedTeamPower(loadRoster(),
-                            campaign.teamIds, forgeRepository), battle.mission),
+                    new LovableBattle(copyBattleFighters(battle), battle.mission),
                     campaign)), new LinearLayout.LayoutParams(-1, -2));
         } else if (!battle.victory) {
             LinearLayout charge = new LinearLayout(this);
@@ -3097,14 +3480,19 @@ public final class MainActivity extends AppCompatActivity {
             addBattleBar(charge, battle.charge, R.color.accent_gold);
             charge.addView(text(battle.charge + "%", R.style.TextAppearance_Ruptura_Caption,
                     R.color.accent_gold, true));
+            if (battle.replacementRequired) {
+                screen.addView(text("Toque em um dos personagens vivos para trocar. A troca não consome ação.",
+                        R.style.TextAppearance_Ruptura_Caption, R.color.text_secondary, false));
+            }
             if (battle.canSpecial()) {
-                TextView special = action("ESPECIAL · " + BattleSpecial.nameForTeam(campaign.teamIds)
+                TextView special = action("SUPER GLOBAL · " + battle.activeFighter().spec.specialName
                         .toUpperCase(java.util.Locale.ROOT), () -> {
                     if (battleAnimating || !battle.canSpecial()) return;
                     battleAnimating = true;
                     battle.special();
                     playBattleSound(ToneGenerator.TONE_CDMA_ALERT_CALL_GUARD);
                     renderMagnetoBattle(battle, campaign);
+                    animateBattleAction(battle.activeFighterId, null, true);
                     showBattleImpact("KRAKOOM", battle.lastBossDamage, battle.lastTeamDamage, true);
                     contentContainer.postDelayed(() -> { battleAnimating = false;
                         renderMagnetoBattle(battle, campaign); }, animationDelay(2500));
@@ -3112,11 +3500,13 @@ public final class MainActivity extends AppCompatActivity {
                 special.setEnabled(!battleAnimating);
                 screen.addView(special, new LinearLayout.LayoutParams(-1, -2));
             }
-            LinearLayout choices = new LinearLayout(this);
-            screen.addView(choices, new LinearLayout.LayoutParams(-1, -2));
-            battleChoice(choices, "⚔\nINVESTIR\nDANO ALTO", LovableBattle.Choice.ATTACK, battle, campaign);
-            battleChoice(choices, "⬡\nPROTEGER\nREDUZ IMPACTO", LovableBattle.Choice.DEFEND, battle, campaign);
-            battleChoice(choices, "✦\nDESESTABILIZAR\n+ CARGA", LovableBattle.Choice.CONTROL, battle, campaign);
+            if (!battle.replacementRequired) {
+                LinearLayout choices = new LinearLayout(this);
+                screen.addView(choices, new LinearLayout.LayoutParams(-1, -2));
+                battleChoice(choices, "⚔\nINVESTIR\nDANO ALTO", LovableBattle.Choice.ATTACK, battle, campaign);
+                battleChoice(choices, "⬡\nPROTEGER\nREDUZ IMPACTO", LovableBattle.Choice.DEFEND, battle, campaign);
+                battleChoice(choices, "✦\nDESESTABILIZAR\n+ CARGA", LovableBattle.Choice.CONTROL, battle, campaign);
+            }
         } else {
             TextView reward = action("COLETAR RECOMPENSA", () -> {
                 if (battleClaiming || !battle.victory) return;
@@ -3126,14 +3516,18 @@ public final class MainActivity extends AppCompatActivity {
                         boolean granted = forgeRepository.completeMission(campaign.campaignId,
                                 battle.mission.number);
                         runOnUiThread(() -> {
-                            if (granted) showCampaignRewardScreen(campaign.campaignId,
-                                    battle.mission.number);
-                            else {
-                                renderShell();
-                                android.widget.Toast.makeText(this,
-                                        "Missão já concluída; recompensa não duplicada",
-                                        android.widget.Toast.LENGTH_LONG).show();
-                            }
+                            Runnable continueAfterStory = () -> {
+                                if (granted) showCampaignRewardScreen(campaign.campaignId,
+                                        battle.mission.number);
+                                else {
+                                    renderShell();
+                                    android.widget.Toast.makeText(this,
+                                            "Missão já concluída; recompensa não duplicada",
+                                            android.widget.Toast.LENGTH_LONG).show();
+                                }
+                            };
+                            showStorySequence(CampaignStory.afterMission(battle.mission.number),
+                                    campaign.teamIds, continueAfterStory);
                         });
                     } catch (RuntimeException error) {
                         runOnUiThread(() -> { battleClaiming = false;
@@ -3171,6 +3565,7 @@ public final class MainActivity extends AppCompatActivity {
                     : choice == LovableBattle.Choice.DEFEND ? ToneGenerator.TONE_PROP_ACK
                     : ToneGenerator.TONE_DTMF_5);
             renderMagnetoBattle(battle, campaign);
+            animateBattleAction(battle.activeFighterId, choice, false);
             String actionLabel = battle.lastTrap ? "ARMADILHA"
                     : choice == LovableBattle.Choice.ATTACK ? "GOLPE"
                     : choice == LovableBattle.Choice.DEFEND ? "GUARDA" : "RESSONÂNCIA";
@@ -3179,6 +3574,42 @@ public final class MainActivity extends AppCompatActivity {
             contentContainer.postDelayed(() -> { battleAnimating = false;
                 renderMagnetoBattle(battle, campaign); }, animationDelay(1800));
         });
+    }
+
+    private void animateBattleAction(String fighterId, LovableBattle.Choice choice,
+                                     boolean special) {
+        View fighter = battleFighterViews.get(fighterId);
+        if (fighter == null || animationDelay(1) == 0) return;
+        if (special || choice == LovableBattle.Choice.ATTACK) {
+            fighter.animate().translationY(-dimension(R.dimen.space_8))
+                    .scaleX(1.06f).scaleY(1.06f).setDuration(180)
+                    .withEndAction(() -> fighter.animate().translationY(0f)
+                            .scaleX(1f).scaleY(1f).setDuration(260));
+            if (battleBossView != null) {
+                battleBossView.animate().scaleX(1.04f).scaleY(1.04f).setDuration(180)
+                        .withEndAction(() -> battleBossView.animate().scaleX(1f).scaleY(1f)
+                                .setDuration(240));
+            }
+        } else if (choice == LovableBattle.Choice.DEFEND && fighter instanceof FrameLayout) {
+            FrameLayout frame = (FrameLayout) fighter;
+            TextView shield = text("🛡", R.style.TextAppearance_Ruptura_Display,
+                    R.color.accent_cyan, true);
+            shield.setGravity(Gravity.CENTER);
+            shield.setShadowLayer(dimension(R.dimen.space_2), 0, 0,
+                    getColor(R.color.accent_cyan));
+            FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(-1, -1, Gravity.CENTER);
+            frame.addView(shield, params);
+            shield.setScaleX(.45f);
+            shield.setScaleY(.45f);
+            shield.setAlpha(.25f);
+            shield.animate().scaleX(1.25f).scaleY(1.25f).alpha(.94f).setDuration(240)
+                    .withEndAction(() -> shield.animate().alpha(0f).setDuration(650)
+                            .withEndAction(() -> frame.removeView(shield)));
+        } else if (choice == LovableBattle.Choice.CONTROL) {
+            fighter.animate().rotation(3f).setDuration(100)
+                    .withEndAction(() -> fighter.animate().rotation(-3f).setDuration(100)
+                            .withEndAction(() -> fighter.animate().rotation(0f).setDuration(100)));
+        }
     }
 
     private int animationDelay(int normal) {
@@ -3207,8 +3638,10 @@ public final class MainActivity extends AppCompatActivity {
             ring.setScaleY(.25f);
             ring.animate().scaleX(2f).scaleY(2f).alpha(0f).setDuration(1200);
         }
+        LovableBattle.Fighter active = currentBattle == null ? null : currentBattle.activeFighter();
+        String damagedName = active == null ? "HERÓI" : active.spec.name.toUpperCase(java.util.Locale.ROOT);
         TextView impact = text(label + "\n-" + bossDamage + " CHEFE"
-                        + (teamDamage > 0 ? " · -" + teamDamage + " EQUIPE" : ""),
+                        + (teamDamage > 0 ? " · -" + teamDamage + " HP " + damagedName : ""),
                 R.style.TextAppearance_Ruptura_Title,
                 special ? R.color.accent_gold : R.color.accent_deadpool, true);
         impact.setGravity(Gravity.CENTER);

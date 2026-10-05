@@ -1,4 +1,32 @@
+## 2026-10-05 - Spec 042 implementation
+
+- Erick approved Q-059 recommendation. Registered DEC-093 and marked the blocking question resolved.
+- Implemented active-hero combat with three independent HP pools, free swaps, active-only incoming damage, global super, replacement after KO, no action cap and result recaps.
+- Updated team picker cards and per-action visual effects. Expanded Deadpool context with owned roster/variants, authored stats, resources, forge inventory, campaign and daily challenge state; backend schema limit is 6,000 characters.
+- Added focused domain coverage for switching, HP persistence, super sharing, KO/replacement, uncapped actions and battle outcomes.
+- Validation: Java domain smoke and Python syntax passed. Gradle/pytest suites were blocked by inaccessible SDK/venv and wrapper network restrictions. Render deployment, push, commit and install were not performed.
+
 # Log de sessões
+
+## 2026-10-05 — discovery spec 042, combate individual e Deadpool
+
+- Lida documentação mandatória, `LovableBattle`, `VariantStats`, seleção, recaps, payload/schema Deadpool e requisitos das specs 040/041.
+- Auditoria: batalha atual tem HP compartilhado, força agregada e teto de 6 rounds; UI seleciona três cards com indicador atual; vitória/derrota não traz resumo. Deadpool recebe equipe/posses/tiers/próxima missão/vitórias (até 1.200 chars), sem atributos numéricos, inventário, desafio ou estado detalhado da luta.
+- Criados requirements/design/tasks/evidence da spec `042-active-hero-battle-deadpool-context`. Q-059 [CRÍTICA] registrada; solicitação de escolha ao Erick está pendente. Nenhuma alteração de feature ou regra de negócio foi feita.
+- Próximo passo: incorporar resposta Q-059, aprovar spec e então implementar/domínio/UI/Deadpool.
+
+## 2026-10-05 — spec 041, narrativa e imagens pré-carregadas
+
+- Deadpool agora recebe uma chamada geral como padrão, texto de entrada aceita perguntas comuns/piadas, e o resumo do jogo não expõe a tela atual.
+- Adicionada pré-carga de retratos com LRU em memória de 20 MiB e intervalo mínimo de um segundo entre chamadas de metadados Comic Vine. Implementados papéis ilustrados na Câmara, prólogo, cenas após todas as vitórias e conclusão após a campanha 9; tela do desafio diário usa “?” antes da revelação. Trilha nos destinos, volume de batalha e efeitos da interface aumentados.
+- Build debug não validou: primeira tentativa exigiu download do Gradle 8.13 (rede negada); segunda usou distribuição instalada, mas plugin Android 8.13.2 não estava disponível offline e o relatório em `app/build/reports` foi negado pelo OneDrive. Nenhum teste executado por instrução desta sessão.
+- Sem push, deploy, smoke pago ou instalação de APK. Próximo passo: compilar pelo script com dependências acessíveis e diretório local de build; depois atualizar Render e validar contexto do Deadpool.
+
+## 2026-10-05 — instalação física 0.9.0
+
+- Telefone `C6OFVWYD4DZTBA5H` apareceu em `adb devices`. APK debug 0.9.0 com SHA-256 `51960BB0ABD0BE551377B710C8B5AB2FE3CBF667E66F5C1B4B60A428AA410BFA` instalado com `adb install -r` sobre 0.8.0, sem limpar dados. `am start`, `dumpsys` e `pidof` confirmaram versão 9/0.9.0 e app em execução; log AndroidRuntime consultado sem falha fatal.
+- GET `/openapi.json` do Render ainda mostra `context_id,prompt` sem `game_context`; publicação manual do backend permanece pendente. Nenhum POST de IA foi executado.
+
 
 ## 2026-10-04 — spec 040, revisão de narrativa e entrega 0.9.0
 

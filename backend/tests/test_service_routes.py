@@ -95,10 +95,16 @@ def test_deadpool_route_rejects_unknown_context_and_extra_fields():
     assert extra.status_code == 422
 
 
-def test_deadpool_prompt_size_is_bounded():
+def test_deadpool_prompt_size_is_bounded(monkeypatch):
+    monkeypatch.setattr(main.groq, "generate", lambda _request: "bounded")
+    monkeypatch.setattr(main.gemini, "generate", lambda _request: "bounded")
     response = client.post("/v1/ai/deadpool-line", json={"context_id": "nexus", "prompt": "x" * 301})
     assert response.status_code == 422
-    context = client.post("/v1/ai/deadpool-line", json={"context_id": "app", "game_context": "x" * 1_201})
+    accepted_context = client.post("/v1/ai/deadpool-line", json={
+        "context_id": "app", "game_context": "x" * 6_000
+    })
+    assert accepted_context.status_code == 200
+    context = client.post("/v1/ai/deadpool-line", json={"context_id": "app", "game_context": "x" * 6_001})
     assert context.status_code == 422
 
 
