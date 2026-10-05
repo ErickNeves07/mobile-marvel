@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Marvel: Ruptura Infinita</string>
-    <string name="intro_skip">Pular abertura</string>
-    <string name="intro_phase">Fase 27 · Nexus estável</string>
+    <string name="intro_skip">Pular</string>
+    <string name="intro_phase">Aventura espacial</string>
     <string name="intro_marvel">Marvel</string>
     <string name="intro_ruptura">Ruptura</string>
     <string name="intro_infinita">Infinita</string>
-    <string name="intro_tagline">Toda realidade deixa fragmentos.</string>
-    <string name="intro_enter">Entrar no Nexus</string>
-    <string name="intro_demo">Nova demonstração</string>
+    <string name="intro_tagline">As Joias se espalharam pelo universo. Sua equipe precisa de você!</string>
+    <string name="intro_enter">Começar aventura</string>
+    <string name="intro_demo">Uma nova missão espera por você</string>
     <string name="header_back">Voltar ao Nexus</string>
     <string name="nexus_kicker">Operação ativa</string>
     <string name="nexus_page_title">Nexus Multiversal</string>
@@ -16,8 +16,8 @@
     <string name="nexus_strange">Doutor Estranho\nMantém realidades isoladas</string>
     <string name="forge_kicker">Oficina de contenção</string>
     <string name="forge_page_title">Forja das Joias</string>
-    <string name="campaigns_kicker">Rotas estáveis e instáveis</string>
-    <string name="campaigns_page_title">Mapa de Campanhas</string>
+    <string name="campaigns_kicker">Escolha seu caminho</string>
+    <string name="campaigns_page_title">Mapa de aventuras</string>
     <string name="collection_kicker">Arquivo de variantes</string>
     <string name="deadpool_kicker">Camada não renderizada</string>
     <string name="deadpool_page_title">Deadpool\nFora do Multiverso</string>

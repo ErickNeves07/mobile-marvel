@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="TextAppearance.Ruptura.Display" parent="TextAppearance.AppCompat">
-        <item name="android:fontFamily">@font/barlow_condensed_extrabold</item>
+        <item name="android:fontFamily">@font/sora_variable</item>
         <item name="android:textSize">@dimen/text_display</item>
         <item name="android:textColor">@color/text_primary</item>
         <item name="android:textStyle">bold</item>
@@ -9,7 +9,7 @@
     </style>
 
     <style name="TextAppearance.Ruptura.Title" parent="TextAppearance.AppCompat">
-        <item name="android:fontFamily">@font/barlow_condensed_bold</item>
+        <item name="android:fontFamily">@font/sora_variable</item>
         <item name="android:textSize">@dimen/text_title</item>
         <item name="android:textColor">@color/text_primary</item>
         <item name="android:textStyle">bold</item>
@@ -24,14 +24,14 @@
     </style>
 
     <style name="TextAppearance.Ruptura.Label" parent="TextAppearance.AppCompat">
-        <item name="android:fontFamily">@font/barlow_condensed_bold</item>
+        <item name="android:fontFamily">@font/sora_variable</item>
         <item name="android:textSize">@dimen/text_label</item>
         <item name="android:textColor">@color/text_secondary</item>
         <item name="android:includeFontPadding">false</item>
     </style>
 
     <style name="TextAppearance.Ruptura.Caption" parent="TextAppearance.AppCompat">
-        <item name="android:fontFamily">@font/barlow_condensed_bold</item>
+        <item name="android:fontFamily">@font/sora_variable</item>
         <item name="android:textSize">@dimen/text_caption</item>
         <item name="android:textColor">@color/text_secondary</item>
         <item name="android:includeFontPadding">false</item>

@@ -10,7 +10,7 @@ import android.graphics.Rect;
 import android.graphics.Shader;
 import android.graphics.drawable.Drawable;
 
-/** The clipped, layered panel shape used by the published Lovable prototype. */
+/** Rounded layered panel shared by cards and controls in the playful theme. */
 final class AngularPanelDrawable extends Drawable {
     private final Paint fill = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint border = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -26,7 +26,7 @@ final class AngularPanelDrawable extends Drawable {
         this.cut = cut;
         this.large = large;
         border.setStyle(Paint.Style.STROKE);
-        border.setStrokeWidth(1f);
+        border.setStrokeWidth(1.5f);
         border.setColor(borderColor);
     }
 
@@ -37,22 +37,10 @@ final class AngularPanelDrawable extends Drawable {
         float top = bounds.top + 1f;
         float right = bounds.right - 1f;
         float bottom = bounds.bottom - 1f;
-        float safeCut = Math.min(cut, Math.min((right - left) / 3f, (bottom - top) / 3f));
+        float radius = Math.min(cut * (large ? 1.2f : 1f),
+                Math.min((right - left) / 2f, (bottom - top) / 2f));
         outline.reset();
-        outline.moveTo(left, large ? top + safeCut : top);
-        outline.lineTo(large ? left + safeCut : right, top);
-        if (large) {
-            outline.lineTo(right - safeCut, top);
-            outline.lineTo(right, top + safeCut);
-            outline.lineTo(right, bottom);
-            outline.lineTo(left + safeCut, bottom);
-            outline.lineTo(left, bottom - safeCut);
-        } else {
-            outline.lineTo(right, bottom - safeCut);
-            outline.lineTo(right - safeCut, bottom);
-            outline.lineTo(left, bottom);
-        }
-        outline.close();
+        outline.addRoundRect(left, top, right, bottom, radius, radius, Path.Direction.CW);
         fill.setShader(new LinearGradient(left, top, right, bottom, topColor, bottomColor,
                 Shader.TileMode.CLAMP));
     }

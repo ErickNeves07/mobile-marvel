@@ -126,3 +126,5 @@ Formato: `DEC-NNN | data | decisão | motivo | consequências`.
 **DEC-100 | 2026-10-05 | Limite de contexto do Deadpool.** Manter `game_context` do cliente limitado a 6.000 caracteres e validar mensagens de provider até 8.000, reservando espaço para instruções/fatos do backend. Gemini e Groq usam o mesmo limite; testes usam providers mockados.
 
 **DEC-101 | 2026-10-05 | Replay de vitória mostra a cena sem repetir recursos.** Cada coleta válida mostra a cena authored; o registro persistido continua idempotente e uma missão já coletada mostra o recibo existente sem conceder XP, créditos ou fragmentos outra vez.
+
+**DEC-102 | 2026-10-05 | O redesign confortável abrange todo o app em branch separada.** Erick confirmou aplicar a linguagem das páginas públicas de abertura, Nexus e campanhas a todas as telas, preservar os retratos Comic Vine e manter `main` com a versão atual. A branch experimental usa `0.13.0-playful` para identificação, sem alterar economia, combate, IA ou backend.

@@ -1,5 +1,12 @@
 # Current state - 2026-10-05
 
+## Spec 048 - redesign infantil/confortável em branch separada
+
+- Erick confirmou o alcance no app inteiro. A branch `feat/playful-design` parte de `origin/main` em `eee2fee`; a `main` permanece com o design anterior.
+- Abertura, Nexus e mapa de nove capítulos foram recompostos com base nas três páginas públicas do Lovable. Paleta, tipografia, cards, botões, navegação e cantos arredondados alcançam Forja, Coleção, batalha, desafio, Deadpool e subfluxos. Retratos continuam via Comic Vine; números e bloqueios vêm do banco local.
+- APK experimental identificado como `versionCode=13` / `0.13.0-playful`. Testes Android JVM, lint e debug passaram; instrumentação no emulador **42/42** após a última mudança de UI. Capturas revisadas em `reports/playful-design/` para abertura, Nexus e campanhas nos modos escuro/claro.
+- Próximo: revisar Git/segredos, registrar commit Conventional Commit e enviar somente `feat/playful-design` ao remoto. Não mesclar nem instalar no celular físico nesta tarefa.
+
 ## Spec 047 - regressões Deadpool, Nexus e recompensa corrigidas localmente
 
 - Causa do Deadpool: o cliente permitia 6.000 caracteres de `game_context`, mas os adapters Gemini/Groq rejeitavam mensagens acima de 4.000. Como o backend acrescenta instruções e fatos, a chamada real caía para a resposta local. Limite agora é 8.000; há teste de rota pelo validador real com Gemini mockado.

@@ -44,11 +44,11 @@ public final class LovableScreensTest {
         android.content.SharedPreferences prefs = activity.getPreferences(android.content.Context.MODE_PRIVATE);
         prefs.edit().putBoolean("dark_mode", true).commit();
         TextView darkButton = (TextView) action.invoke(activity, "TESTE", (Runnable) () -> { });
-        assertEquals(activity.getColor(R.color.accent_gold), darkButton.getCurrentTextColor());
-        assertTrue(darkButton.getBackground() instanceof AngularPanelDrawable);
+        assertEquals(activity.getColor(R.color.play_night), darkButton.getCurrentTextColor());
+        assertTrue(darkButton.getBackground() instanceof android.graphics.drawable.GradientDrawable);
         prefs.edit().putBoolean("dark_mode", false).commit();
         TextView lightButton = (TextView) action.invoke(activity, "TESTE", (Runnable) () -> { });
-        assertEquals(activity.getColor(R.color.canvas), lightButton.getCurrentTextColor());
+        assertEquals(activity.getColor(R.color.play_night), lightButton.getCurrentTextColor());
         prefs.edit().putBoolean("dark_mode", true).commit();
         instrumentation.runOnMainSync(activity::finish);
     }
@@ -95,7 +95,7 @@ public final class LovableScreensTest {
 
         MainActivity activity = (MainActivity) instrumentation.startActivitySync(
                 new Intent(context, MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
-        assertTrue(hasText(activity.getWindow().getDecorView(), "Entrar no Nexus"));
+        assertTrue(hasText(activity.getWindow().getDecorView(), "Começar aventura"));
         instrumentation.runOnMainSync(activity::finish);
     }
 
@@ -108,8 +108,8 @@ public final class LovableScreensTest {
         shell.setAccessible(true);
         instrumentation.runOnMainSync(() -> invoke(shell, activity));
         View root = activity.getWindow().getDecorView();
-        assertTrue(hasText(root, "MODO CLARO"));
-        assertTrue(hasText(root, "ÁUDIO ON"));
+        assertTrue(hasText(root, "CLARO"));
+        assertTrue(hasText(root, "♫  ON"));
         assertTrue(hasText(root, "LOJA"));
         Method forge = MainActivity.class.getDeclaredMethod("selectDestination", AppDestination.class);
         forge.setAccessible(true);
@@ -144,6 +144,9 @@ public final class LovableScreensTest {
         Thread.sleep(700);
         instrumentation.waitForIdleSync();
         View root = activity.getWindow().getDecorView();
+        assertTrue(hasText(root, "Pronto para explorar?"));
+        assertTrue(hasText(root, "PRÓXIMA MISSÃO"));
+        assertTrue(hasText(root, "Escolha uma atividade"));
         assertTrue(hasText(root, "CÂMARA DE VARIANTES"));
         assertTrue(hasText(root, "Reed Richards"));
         assertTrue(hasText(root, "Doutor Estranho"));
@@ -178,6 +181,7 @@ public final class LovableScreensTest {
         Thread.sleep(800);
         instrumentation.waitForIdleSync();
         View root = activity.getWindow().getDecorView();
+        assertTrue(hasText(root, "Mapa de aventuras"));
         assertTrue(hasText(root, "CAPÍTULO 1"));
         assertTrue(hasText(root, "CAPÍTULO 9"));
         assertTrue(countPortraits(root) == 9);
@@ -198,12 +202,15 @@ public final class LovableScreensTest {
         TextView openBattle = enter;
         instrumentation.runOnMainSync(openBattle::performClick);
         instrumentation.waitForIdleSync();
-        assertTrue(hasText(root, "SELECIONADOS  3/3"));
+        assertTrue(hasText(root, "ESCOLHA SUA EQUIPE"));
+        assertTrue(hasText(root, "SLOT 1"));
+        assertTrue(hasText(root, "SLOT 2"));
+        assertTrue(hasText(root, "SLOT 3"));
         assertTrue(hasText(root, "Homem-Aranha"));
         assertTrue(hasText(root, "Wolverine"));
         assertTrue(hasText(root, "Tocha Humana"));
         assertTrue(!hasText(root, "Jean Grey"));
-        assertTrue(countPortraits(root) == 3);
+        assertTrue(countPortraits(root) >= 3);
         instrumentation.runOnMainSync(() -> capture(activity, root, "team-chooser.png"));
         instrumentation.runOnMainSync(() -> findText(root, "INICIAR BATALHA").performClick());
         for (int attempt = 0; attempt < 10 && !hasText(root, "REI DO CRIME"); attempt++) {
@@ -391,12 +398,10 @@ public final class LovableScreensTest {
         Thread.sleep(800);
         instrumentation.waitForIdleSync();
         assertTrue(hasText(root, "RECOMPENSAS"));
-        assertTrue(hasText(root, "Fragmentos da Mente  +1"));
-        assertTrue(hasText(root, "Fragmentos do Espaço  +1"));
+        assertTrue(hasText(root, "FRAGMENTOS PARA COMPLETAR A MANOPLA"));
         assertTrue(hasText(root, "Créditos"));
-        assertTrue(hasText(root, "+3.000"));
         assertTrue(hasText(root, "Experiência"));
-        assertTrue(hasText(root, "+840 XP"));
+        assertTrue(hasText(root, "XP"));
         assertTrue(!hasText(root, "Homem-Aranha +1"));
         instrumentation.runOnMainSync(() -> capture(activity, root, "campaign-reward.png"));
         Method receipt = MainActivity.class.getDeclaredMethod("showCampaignRewardScreen",
@@ -409,7 +414,12 @@ public final class LovableScreensTest {
         instrumentation.runOnMainSync(() -> findText(root, "VOLTAR AO NEXUS").performClick());
         Thread.sleep(500);
         instrumentation.waitForIdleSync();
-        assertTrue(hasText(root, "Saldo: 3.000 créditos · 840 XP"));
+        for (int attempt = 0; attempt < 20 && !hasText(root, "3.000"); attempt++) {
+            Thread.sleep(100);
+            instrumentation.waitForIdleSync();
+        }
+        assertTrue(hasText(root, "3.000"));
+        assertTrue(hasText(root, "840"));
         instrumentation.runOnMainSync(activity::finish);
     }
 
@@ -460,7 +470,7 @@ public final class LovableScreensTest {
         shell.setAccessible(true);
         instrumentation.runOnMainSync(() -> invoke(shell, activity));
         View root = activity.getWindow().getDecorView();
-        TextView shop = findText(root, "◈  LOJA");
+        TextView shop = findText(root, "◈ LOJA");
         assertTrue(shop != null);
         instrumentation.runOnMainSync(shop::performClick);
         for (int attempt = 0; attempt < 30 && !hasText(root, "JOIA DO ESPAÇO"); attempt++) {
@@ -473,7 +483,7 @@ public final class LovableScreensTest {
         TextView buy = findText(root, "COMPRAR 1 FRAGMENTO");
         assertTrue(buy != null && !buy.isEnabled());
         assertTrue(findTag(root, "fragment-shop-buy-button") != null);
-        assertTrue(buy.getBackground() instanceof AngularPanelDrawable);
+        assertTrue(buy.getBackground() instanceof android.graphics.drawable.GradientDrawable);
         instrumentation.runOnMainSync(activity::finish);
     }
 

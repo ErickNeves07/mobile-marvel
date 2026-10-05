@@ -526,3 +526,11 @@ Commit 49c535e publicado em origin/main. O trabalho no repositório está comple
 - Removido placeholder literal da acessibilidade no Nexus. Callback atrasado de batalha não substitui a cena pós-vitória; recompensa indica processamento e permite retry em erro; replay também mostra cena, mantendo recursos idempotentes.
 - Backend passou `pip check` e 60 testes pytest. Android passou unit tests, compilação de androidTest, lint e assemble debug. Instrumentação runtime e ações externas ficaram pendentes.
 - Erick precisa publicar o backend no Render e testar o Deadpool depois. Nenhum deploy/instalação foi feito.
+
+## 2026-10-05 - Spec 048: redesign em branch experimental
+
+- Criado worktree isolado `feat/playful-design` a partir de `origin/main` `eee2fee`; `main` não foi editada nesta tarefa.
+- Inspecionadas as três páginas públicas Lovable em perfil Chrome temporário isolado. A revisão automática rejeitou abrir a janela pessoal do Chrome por conter WhatsApp; nenhuma página privada foi lida.
+- Implementados visual suave e colorido em todo o Android, abertura desenhada em código, Nexus com dados reais e mapa com estados reais e nove retratos de chefes. Corrigido corte dos controles de topo visto no emulador; retratos pendentes têm inicial visível.
+- JVM, lint, APK debug e **42/42 testes instrumentados** passaram após a última mudança de interface. O APK `0.13.0-playful` passou novamente por JVM/lint/build. Capturas finais registradas em `reports/playful-design/`.
+- Próximo: revisar diff, fazer commit e push somente da branch experimental. Não foi feito deploy ou instalação no celular físico.

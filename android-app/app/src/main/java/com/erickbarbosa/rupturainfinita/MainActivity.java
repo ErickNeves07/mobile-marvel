@@ -144,36 +144,48 @@ public final class MainActivity extends AppCompatActivity {
         LinearLayout intro = new LinearLayout(this);
         intro.setOrientation(LinearLayout.VERTICAL);
         intro.setGravity(Gravity.CENTER_HORIZONTAL);
-        intro.setPadding(dimension(R.dimen.space_6), dimension(R.dimen.space_6),
-                dimension(R.dimen.space_6), dimension(R.dimen.space_8));
+        intro.setPadding(dimension(R.dimen.space_5), dimension(R.dimen.space_5),
+                dimension(R.dimen.space_5), dimension(R.dimen.space_6));
         intro.setBackground(new IntroRiftDrawable(this));
 
         TextView skip = text(R.string.intro_skip, R.style.TextAppearance_Ruptura_Label,
-                R.color.text_secondary, true);
-        skip.setAllCaps(true);
-        skip.setLetterSpacing(0.28f);
-        skip.setGravity(Gravity.END | Gravity.CENTER_VERTICAL);
+                R.color.text_primary, true);
+        skip.setGravity(Gravity.CENTER);
         skip.setMinimumHeight(dimension(R.dimen.target_min));
+        skip.setPadding(dimension(R.dimen.space_4), 0, dimension(R.dimen.space_4), 0);
+        skip.setBackground(background(R.color.surface_primary, R.color.surface_primary,
+                dimension(R.dimen.radius_pill)));
         skip.setClickable(true);
         skip.setFocusable(true);
         skip.setOnClickListener(view -> enterNexus());
-        intro.addView(skip, new LinearLayout.LayoutParams(-1, -2));
+        LinearLayout.LayoutParams skipParams = new LinearLayout.LayoutParams(-2, -2);
+        skipParams.gravity = Gravity.END;
+        intro.addView(skip, skipParams);
 
         LinearLayout titleBlock = new LinearLayout(this);
         titleBlock.setOrientation(LinearLayout.VERTICAL);
         titleBlock.setGravity(Gravity.CENTER);
         intro.addView(titleBlock, new LinearLayout.LayoutParams(-1, 0, 1f));
+        PlayfulOrbitView orbit = new PlayfulOrbitView(this);
+        LinearLayout.LayoutParams orbitParams = new LinearLayout.LayoutParams(
+                dimension(R.dimen.space_8) * 7, dimension(R.dimen.space_8) * 7);
+        orbitParams.gravity = Gravity.CENTER;
+        orbitParams.bottomMargin = dimension(R.dimen.space_4);
+        titleBlock.addView(orbit, orbitParams);
         TextView phase = text(R.string.intro_phase, R.style.TextAppearance_Ruptura_Label,
-                R.color.text_secondary, true);
+                R.color.play_night, true);
         phase.setAllCaps(true);
-        phase.setLetterSpacing(0.22f);
+        phase.setLetterSpacing(0.04f);
         phase.setGravity(Gravity.CENTER);
+        phase.setPadding(dimension(R.dimen.space_4), dimension(R.dimen.space_1),
+                dimension(R.dimen.space_4), dimension(R.dimen.space_1));
+        phase.setBackground(background(R.color.play_sun, R.color.play_sun,
+                dimension(R.dimen.radius_pill)));
         titleBlock.addView(phase);
-        for (int label : new int[]{R.string.intro_marvel, R.string.intro_ruptura, R.string.intro_infinita}) {
+        for (int label : new int[]{R.string.intro_ruptura, R.string.intro_infinita}) {
             TextView line = text(label, R.style.TextAppearance_Ruptura_Display,
-                    label == R.string.intro_ruptura ? R.color.accent_cyan : R.color.text_primary, true);
-            line.setTextSize(46f);
-            line.setAllCaps(true);
+                    label == R.string.intro_infinita ? R.color.accent_cyan : R.color.text_primary, true);
+            line.setTextSize(42f);
             line.setGravity(Gravity.CENTER);
             titleBlock.addView(line);
         }
@@ -184,23 +196,10 @@ public final class MainActivity extends AppCompatActivity {
         taglineParams.topMargin = dimension(R.dimen.space_4);
         titleBlock.addView(tagline, taglineParams);
 
-        LinearLayout gems = new LinearLayout(this);
-        gems.setGravity(Gravity.CENTER);
-        for (int color : new int[]{R.color.stone_space, R.color.stone_mind,
-                R.color.stone_reality, R.color.stone_power, R.color.stone_time, R.color.stone_soul}) {
-            View gem = new View(this);
-            gem.setBackgroundColor(getColor(color));
-            gem.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
-            LinearLayout.LayoutParams gemParams = new LinearLayout.LayoutParams(0,
-                    dimension(R.dimen.space_2), 1f);
-            gemParams.setMargins(dimension(R.dimen.space_1), 0,
-                    dimension(R.dimen.space_1), 0);
-            gems.addView(gem, gemParams);
-        }
-        intro.addView(gems, new LinearLayout.LayoutParams(-1, -2));
         TextView enter = action(getString(R.string.intro_enter), this::enterNexus);
+        enter.setContentDescription(getString(R.string.intro_enter));
         LinearLayout.LayoutParams enterParams = new LinearLayout.LayoutParams(-1, -2);
-        enterParams.topMargin = dimension(R.dimen.space_4);
+        enterParams.topMargin = dimension(R.dimen.space_6);
         intro.addView(enter, enterParams);
         TextView demo = text(R.string.intro_demo, R.style.TextAppearance_Ruptura_Caption,
                 R.color.text_secondary, false);
@@ -353,6 +352,8 @@ public final class MainActivity extends AppCompatActivity {
 
     private void renderNavigation() {
         navigationBar.removeAllViews();
+        navigationBar.setBackgroundColor(getColor(R.color.nav_surface));
+        navigationBar.setElevation(dimension(R.dimen.space_2));
         for (AppDestination destination : AppDestination.values()) {
             boolean selected = destination == selectedDestination;
             int selectedColor = destination == AppDestination.DEADPOOL
@@ -365,7 +366,7 @@ public final class MainActivity extends AppCompatActivity {
             item.setFocusable(true);
             item.setClickable(true);
             item.setSelected(selected);
-            item.setBackgroundColor(getColor(R.color.canvas));
+            item.setBackgroundColor(getColor(R.color.nav_surface));
 
             ImageView icon = new ImageView(this);
             icon.setImageResource(destination.iconRes);
@@ -377,7 +378,7 @@ public final class MainActivity extends AppCompatActivity {
             label.setText(destination.labelRes);
             label.setTextAppearance(R.style.TextAppearance_Ruptura_Caption);
             label.setTextColor(getColor(selected ? selectedColor : R.color.text_secondary));
-            label.setTypeface(getResources().getFont(R.font.barlow_condensed_bold));
+            label.setTypeface(getResources().getFont(R.font.sora_variable), Typeface.BOLD);
             label.setGravity(Gravity.CENTER);
             label.setMaxLines(2);
             label.setAllCaps(true);
@@ -387,7 +388,7 @@ public final class MainActivity extends AppCompatActivity {
             item.addView(icon, new LinearLayout.LayoutParams(-1, dimension(R.dimen.nav_icon_height)));
             item.addView(label, new LinearLayout.LayoutParams(-1, -2));
             View indicator = new View(this);
-            indicator.setBackgroundColor(selected ? getColor(selectedColor) : getColor(R.color.canvas));
+            indicator.setBackgroundColor(selected ? getColor(selectedColor) : getColor(R.color.nav_surface));
             indicator.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
             LinearLayout.LayoutParams indicatorParams = new LinearLayout.LayoutParams(
                     dimension(R.dimen.space_6), dimension(R.dimen.border_width) * 2);
@@ -443,10 +444,11 @@ public final class MainActivity extends AppCompatActivity {
             nexusContent.setPadding(dimension(R.dimen.space_4), 0,
                     dimension(R.dimen.space_4), 0);
             page.addView(nexusContent);
-            renderNexusGauntletPreview(nexusContent);
             renderNexusResources(nexusContent);
+            renderNexusGauntletPreview(nexusContent);
+            renderNexusNextMission(nexusContent);
             renderNexusShortcuts(nexusContent);
-            renderDailyChallenge(nexusContent);
+            renderNexusChamberCard(nexusContent);
         }
         if (destination == AppDestination.FORGE) {
             renderForgeInventory(page);
@@ -466,11 +468,11 @@ public final class MainActivity extends AppCompatActivity {
 
     private void addThemeToggle(LinearLayout parent) {
         boolean dark = isDarkMode();
-        TextView toggle = text(dark ? "☼  MODO CLARO" : "☾  MODO ESCURO",
+        TextView toggle = text(dark ? "☼  CLARO" : "☾  ESCURO",
                 R.style.TextAppearance_Ruptura_Label, R.color.accent_gold, true);
         toggle.setGravity(Gravity.CENTER);
         toggle.setMinimumHeight(dimension(R.dimen.target_min));
-        toggle.setPadding(dimension(R.dimen.space_3), 0, dimension(R.dimen.space_3), 0);
+        toggle.setPadding(dimension(R.dimen.space_2), 0, dimension(R.dimen.space_2), 0);
         toggle.setBackground(background(R.color.surface_primary, R.color.border_subtle,
                 dimension(R.dimen.radius_pill)));
         toggle.setFocusable(true);
@@ -487,12 +489,12 @@ public final class MainActivity extends AppCompatActivity {
 
     private void addSoundToggle(LinearLayout parent) {
         boolean enabled = getPreferences(MODE_PRIVATE).getBoolean("battle_sounds", true);
-        TextView toggle = text(enabled ? "♫  ÁUDIO ON" : "♫  ÁUDIO OFF",
+        TextView toggle = text(enabled ? "♫  ON" : "♫  OFF",
                 R.style.TextAppearance_Ruptura_Label,
                 enabled ? R.color.accent_cyan : R.color.text_secondary, true);
         toggle.setGravity(Gravity.CENTER);
         toggle.setMinimumHeight(dimension(R.dimen.target_min));
-        toggle.setPadding(dimension(R.dimen.space_3), 0, dimension(R.dimen.space_3), 0);
+        toggle.setPadding(dimension(R.dimen.space_2), 0, dimension(R.dimen.space_2), 0);
         toggle.setBackground(background(R.color.surface_primary, R.color.border_subtle,
                 dimension(R.dimen.radius_pill)));
         toggle.setContentDescription(enabled ? "Desativar sons e música" : "Ativar sons e música");
@@ -518,11 +520,11 @@ public final class MainActivity extends AppCompatActivity {
     }
 
     private void addShopButton(LinearLayout parent) {
-        TextView shop = text("◈  LOJA", R.style.TextAppearance_Ruptura_Label,
+        TextView shop = text("◈ LOJA", R.style.TextAppearance_Ruptura_Label,
                 R.color.accent_gold, true);
         shop.setGravity(Gravity.CENTER);
         shop.setMinimumHeight(dimension(R.dimen.target_min));
-        shop.setPadding(dimension(R.dimen.space_3), 0, dimension(R.dimen.space_3), 0);
+        shop.setPadding(dimension(R.dimen.space_2), 0, dimension(R.dimen.space_2), 0);
         shop.setBackground(background(R.color.surface_primary, R.color.accent_gold,
                 dimension(R.dimen.radius_pill)));
         shop.setContentDescription("Abrir loja de fragmentos");
@@ -665,28 +667,9 @@ public final class MainActivity extends AppCompatActivity {
     }
 
     private TextView shopButton(String label, boolean enabled, Runnable task) {
-        if (!isDarkMode()) {
-            TextView lightButton = action(label, task);
-            lightButton.setEnabled(enabled);
-            lightButton.setAlpha(enabled ? 1f : .55f);
-            return lightButton;
-        }
-        TextView button = text(label, R.style.TextAppearance_Ruptura_Label,
-                enabled ? R.color.accent_gold : R.color.text_secondary, true);
-        button.setGravity(Gravity.CENTER);
-        button.setAllCaps(true);
-        button.setLetterSpacing(0.06f);
-        button.setMinHeight(dimension(R.dimen.target_min));
-        button.setPadding(dimension(R.dimen.space_3), dimension(R.dimen.space_2),
-                dimension(R.dimen.space_3), dimension(R.dimen.space_2));
-        button.setFocusable(true);
-        button.setClickable(true);
+        TextView button = action(label, task);
         button.setEnabled(enabled);
-        button.setAlpha(enabled ? 1f : .72f);
-        button.setBackground(new AngularPanelDrawable(getColor(R.color.surface_elevated),
-                getColor(R.color.surface_primary), getColor(enabled
-                ? R.color.accent_gold : R.color.border_subtle), dimension(R.dimen.angular_cut), false));
-        button.setOnClickListener(view -> { playUiSound(); task.run(); });
+        button.setAlpha(enabled ? 1f : .55f);
         return button;
     }
 
@@ -765,16 +748,16 @@ public final class MainActivity extends AppCompatActivity {
                 : destination == AppDestination.CAMPAIGNS ? R.string.campaigns_kicker
                 : R.string.collection_kicker;
         TextView kicker = text(kickerRes, R.style.TextAppearance_Ruptura_Label,
-                R.color.text_secondary, true);
+                R.color.accent_cyan, true);
         kicker.setAllCaps(true);
-        kicker.setLetterSpacing(0.22f);
+        kicker.setLetterSpacing(0.06f);
         labels.addView(kicker);
         int titleRes = destination == AppDestination.FORGE ? R.string.forge_page_title
                 : destination == AppDestination.CAMPAIGNS ? R.string.campaigns_page_title
                 : R.string.nav_collection;
         TextView title = text(titleRes, R.style.TextAppearance_Ruptura_Display,
                 R.color.text_primary, true);
-        title.setAllCaps(true);
+        title.setAllCaps(false);
         title.setSingleLine(true);
         title.setEllipsize(android.text.TextUtils.TruncateAt.END);
         labels.addView(title);
@@ -802,34 +785,17 @@ public final class MainActivity extends AppCompatActivity {
     private void renderNexusHero(LinearLayout page) {
         LinearLayout hero = new LinearLayout(this);
         hero.setOrientation(LinearLayout.VERTICAL);
-        hero.setPadding(dimension(R.dimen.space_4), dimension(R.dimen.space_4),
-                dimension(R.dimen.space_4), dimension(R.dimen.space_4));
-        hero.setBackground(new NexusPortalDrawable(getResources().getDisplayMetrics().density));
-        TextView kicker = text(R.string.nexus_kicker, R.style.TextAppearance_Ruptura_Label,
+        hero.setPadding(dimension(R.dimen.space_5), dimension(R.dimen.space_3),
+                dimension(R.dimen.space_5), dimension(R.dimen.space_4));
+        TextView kicker = text("Olá, herói!", R.style.TextAppearance_Ruptura_Body,
                 R.color.text_secondary, true);
-        kicker.setAllCaps(true);
-        kicker.setLetterSpacing(0.22f);
         hero.addView(kicker);
-        TextView title = text(R.string.nexus_page_title, R.style.TextAppearance_Ruptura_Display,
+        TextView title = text("Pronto para explorar?", R.style.TextAppearance_Ruptura_Display,
                 R.color.text_primary, true);
-        title.setAllCaps(true);
+        title.setTextSize(30f);
+        title.setMaxWidth(dimension(R.dimen.space_8) * 9);
         hero.addView(title);
-        View spacer = new View(this);
-        hero.addView(spacer, new LinearLayout.LayoutParams(1, 0, 1f));
-        TextView status = text("CÂMARA DE VARIANTES  ·  CONTENÇÃO BAXTER + SELOS MÍSTICOS",
-                R.style.TextAppearance_Ruptura_Caption, R.color.accent_cyan, true);
-        status.setGravity(Gravity.CENTER);
-        status.setPadding(dimension(R.dimen.space_2), dimension(R.dimen.space_2),
-                dimension(R.dimen.space_2), dimension(R.dimen.space_2));
-        hero.addView(status);
-        LinearLayout people = new LinearLayout(this);
-        people.setGravity(Gravity.CENTER);
-        addNexusCompanion(people, "senhor-fantastico", "Reed Richards", R.string.nexus_reed);
-        addNexusCompanion(people, "doutor-estranho", "Doutor Estranho", R.string.nexus_strange);
-        LinearLayout.LayoutParams peopleParams = new LinearLayout.LayoutParams(-1, -2);
-        peopleParams.topMargin = dimension(R.dimen.space_2);
-        hero.addView(people, peopleParams);
-        page.addView(hero, new LinearLayout.LayoutParams(-1, dimension(R.dimen.nexus_hero_height)));
+        page.addView(hero, new LinearLayout.LayoutParams(-1, -2));
     }
 
     private void addNexusCompanion(LinearLayout people, String gameId, String name, int labelRes) {
@@ -860,24 +826,54 @@ public final class MainActivity extends AppCompatActivity {
     }
 
     private void renderNexusResources(LinearLayout page) {
-        LinearLayout panel = card();
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, -2);
-        params.topMargin = dimension(R.dimen.space_3);
-        page.addView(panel, params);
-        panel.addView(text("RECURSOS DA EQUIPE", R.style.TextAppearance_Ruptura_Label,
-                R.color.accent_gold, true));
-        TextView balances = text("Carregando créditos e XP…",
-                R.style.TextAppearance_Ruptura_Body, R.color.text_primary, false);
-        balances.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
-        panel.addView(balances);
+        LinearLayout stats = new LinearLayout(this);
+        stats.setGravity(Gravity.CENTER_VERTICAL);
+        page.addView(stats, new LinearLayout.LayoutParams(-1, -2));
+        TextView xp = addNexusStat(stats, "✦", "XP", R.color.play_mint);
+        TextView stones = addNexusStat(stats, "⬡", "JOIAS", R.color.play_sun);
+        TextView credits = addNexusStat(stats, "◉", "CRÉDITOS", R.color.play_coral);
         forgeExecutor.execute(() -> {
             PlayerResources resources = forgeRepository.loadPlayerResources();
+            ForgeInventory inventory = forgeRepository.load();
+            int completed = 0;
+            for (InfinityStone stone : InfinityStone.values()) {
+                if (inventory.count(stone, ForgeStage.COMPLETE) > 0) completed++;
+            }
+            int count = completed;
             runOnUiThread(() -> {
-                if (balances.getParent() == panel) balances.setText(getString(
-                        R.string.player_resources, formatAmount(resources.credits),
-                        formatAmount(resources.xp)));
+                if (stats.getParent() != page) return;
+                xp.setText(formatAmount(resources.xp));
+                stones.setText(count + "/6");
+                credits.setText(formatAmount(resources.credits));
             });
         });
+    }
+
+    private TextView addNexusStat(LinearLayout parent, String icon, String label, int accent) {
+        LinearLayout stat = new LinearLayout(this);
+        stat.setOrientation(LinearLayout.VERTICAL);
+        stat.setGravity(Gravity.CENTER);
+        stat.setMinimumHeight(dimension(R.dimen.space_8) * 3);
+        stat.setBackground(background(R.color.surface_primary, R.color.border_subtle,
+                dimension(R.dimen.radius_card)));
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(0, -2, 1f);
+        params.leftMargin = dimension(R.dimen.space_1);
+        params.rightMargin = dimension(R.dimen.space_1);
+        parent.addView(stat, params);
+        TextView iconView = text(icon, R.style.TextAppearance_Ruptura_Title, accent, true);
+        iconView.setGravity(Gravity.CENTER);
+        iconView.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+        stat.addView(iconView);
+        TextView caption = text(label, R.style.TextAppearance_Ruptura_Caption,
+                R.color.text_secondary, true);
+        caption.setGravity(Gravity.CENTER);
+        stat.addView(caption);
+        TextView value = text("…", R.style.TextAppearance_Ruptura_Body,
+                R.color.text_primary, true);
+        value.setGravity(Gravity.CENTER);
+        value.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
+        stat.addView(value);
+        return value;
     }
 
     private String formatAmount(long amount) {
@@ -889,21 +885,50 @@ public final class MainActivity extends AppCompatActivity {
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, -2);
         params.topMargin = dimension(R.dimen.space_4);
         page.addView(preview, params);
-        TextView label = text(R.string.gauntlet_heading, R.style.TextAppearance_Ruptura_Label,
-                R.color.accent_gold, true);
+        TextView label = text("COLEÇÃO DE JOIAS", R.style.TextAppearance_Ruptura_Label,
+                R.color.accent_cyan, true);
         label.setAllCaps(true);
-        label.setLetterSpacing(.16f);
         preview.addView(label);
-        TextView count = text(R.string.gauntlet_loading, R.style.TextAppearance_Ruptura_Title,
+        TextView count = text("Carregando Joias…", R.style.TextAppearance_Ruptura_Title,
                 R.color.text_primary, true);
         preview.addView(count);
-        GauntletConstellationView constellation = new GauntletConstellationView(this);
-        LinearLayout.LayoutParams visualParams = new LinearLayout.LayoutParams(-1,
-                dimension(R.dimen.space_8) * 5);
-        visualParams.topMargin = dimension(R.dimen.space_3);
-        preview.addView(constellation, visualParams);
+        LinearLayout gems = new LinearLayout(this);
+        gems.setGravity(Gravity.CENTER);
+        LinearLayout.LayoutParams gemsParams = new LinearLayout.LayoutParams(-1, -2);
+        gemsParams.topMargin = dimension(R.dimen.space_4);
+        preview.addView(gems, gemsParams);
+        TextView[] gemIcons = new TextView[InfinityStone.values().length];
+        for (InfinityStone stone : InfinityStone.values()) {
+            LinearLayout slot = new LinearLayout(this);
+            slot.setOrientation(LinearLayout.VERTICAL);
+            slot.setGravity(Gravity.CENTER);
+            gems.addView(slot, new LinearLayout.LayoutParams(0, -2, 1f));
+            TextView gem = text("◆", R.style.TextAppearance_Ruptura_Title,
+                    stoneColor(stone), true);
+            gem.setGravity(Gravity.CENTER);
+            gem.setTextSize(26f);
+            gem.setBackground(background(R.color.canvas, R.color.border_subtle,
+                    dimension(R.dimen.radius_pill)));
+            slot.addView(gem, new LinearLayout.LayoutParams(dimension(R.dimen.target_min),
+                    dimension(R.dimen.target_min)));
+            String name = getString(stone.labelRes).replace("Joia do ", "")
+                    .replace("Joia da ", "");
+            TextView caption = text(name, R.style.TextAppearance_Ruptura_Caption,
+                    R.color.text_secondary, true);
+            caption.setGravity(Gravity.CENTER);
+            caption.setSingleLine(true);
+            slot.addView(caption);
+            gemIcons[stone.ordinal()] = gem;
+        }
+        TextView open = text("Ver manopla  ›", R.style.TextAppearance_Ruptura_Body,
+                R.color.accent_cyan, true);
+        open.setGravity(Gravity.CENTER);
+        LinearLayout.LayoutParams openParams = new LinearLayout.LayoutParams(-1, -2);
+        openParams.topMargin = dimension(R.dimen.space_3);
+        preview.addView(open, openParams);
         preview.setClickable(true);
         preview.setFocusable(true);
+        preview.setContentDescription("Abrir: Forja das Joias e Manopla de Contenção");
         preview.setOnClickListener(view -> selectDestination(AppDestination.FORGE));
         forgeExecutor.execute(() -> {
             ForgeInventory inventory = forgeRepository.load();
@@ -915,8 +940,14 @@ public final class MainActivity extends AppCompatActivity {
             }
             int total = complete;
             runOnUiThread(() -> {
-                count.setText(getString(R.string.nexus_gauntlet_count, total));
-                constellation.setCompleted(state);
+                if (preview.getParent() != page) return;
+                count.setText(total + " de 6 completas!");
+                for (InfinityStone stone : InfinityStone.values()) {
+                    TextView gem = gemIcons[stone.ordinal()];
+                    gem.setAlpha(state[stone.ordinal()] ? 1f : .45f);
+                    gem.setContentDescription(getString(stone.labelRes) + (state[stone.ordinal()]
+                            ? " completa" : " em formação"));
+                }
             });
         });
     }
@@ -940,39 +971,184 @@ public final class MainActivity extends AppCompatActivity {
         page.addView(intro, introParams);
     }
 
+    private void renderNexusNextMission(LinearLayout page) {
+        LinearLayout panel = card();
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, -2);
+        params.topMargin = dimension(R.dimen.space_4);
+        page.addView(panel, params);
+
+        LinearLayout top = new LinearLayout(this);
+        top.setGravity(Gravity.CENTER_VERTICAL);
+        panel.addView(top);
+        LinearLayout copy = new LinearLayout(this);
+        copy.setOrientation(LinearLayout.VERTICAL);
+        top.addView(copy, new LinearLayout.LayoutParams(0, -2, 1f));
+        TextView chip = text("PRÓXIMA MISSÃO", R.style.TextAppearance_Ruptura_Caption,
+                R.color.play_night, true);
+        chip.setPadding(dimension(R.dimen.space_3), dimension(R.dimen.space_1),
+                dimension(R.dimen.space_3), dimension(R.dimen.space_1));
+        chip.setBackground(background(R.color.play_coral, R.color.play_coral,
+                dimension(R.dimen.radius_pill)));
+        copy.addView(chip, new LinearLayout.LayoutParams(-2, -2));
+        TextView title = text("Preparando aventura…", R.style.TextAppearance_Ruptura_Title,
+                R.color.text_primary, true);
+        LinearLayout.LayoutParams titleParams = new LinearLayout.LayoutParams(-1, -2);
+        titleParams.topMargin = dimension(R.dimen.space_2);
+        copy.addView(title, titleParams);
+        TextView subtitle = text("Seu próximo capítulo está chegando.",
+                R.style.TextAppearance_Ruptura_Caption, R.color.text_secondary, false);
+        copy.addView(subtitle);
+
+        FrameLayout portraitFrame = new FrameLayout(this);
+        portraitFrame.setBackground(background(R.color.play_sun, R.color.play_sun,
+                dimension(R.dimen.radius_card)));
+        portraitFrame.setClipToOutline(true);
+        TextView portraitFallback = text("?", R.style.TextAppearance_Ruptura_Display,
+                R.color.play_night, true);
+        portraitFallback.setGravity(Gravity.CENTER);
+        portraitFrame.addView(portraitFallback, new FrameLayout.LayoutParams(-1, -1));
+        ImageView portrait = new ImageView(this);
+        portrait.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        portrait.setClipToOutline(true);
+        portraitFrame.addView(portrait, new FrameLayout.LayoutParams(-1, -1));
+        LinearLayout.LayoutParams portraitParams = new LinearLayout.LayoutParams(
+                dimension(R.dimen.space_8) * 3, dimension(R.dimen.space_8) * 3);
+        portraitParams.leftMargin = dimension(R.dimen.space_2);
+        top.addView(portraitFrame, portraitParams);
+
+        TextView description = text("", R.style.TextAppearance_Ruptura_Body,
+                R.color.text_secondary, false);
+        LinearLayout.LayoutParams descriptionParams = new LinearLayout.LayoutParams(-1, -2);
+        descriptionParams.topMargin = dimension(R.dimen.space_3);
+        panel.addView(description, descriptionParams);
+        android.widget.ProgressBar progress = new android.widget.ProgressBar(this, null,
+                android.R.attr.progressBarStyleHorizontal);
+        progress.setMax(BattleMission.ALL.size());
+        progress.setProgressTintList(android.content.res.ColorStateList.valueOf(
+                getColor(R.color.play_sun)));
+        progress.setProgressBackgroundTintList(android.content.res.ColorStateList.valueOf(
+                getColor(R.color.play_soft)));
+        LinearLayout.LayoutParams progressParams = new LinearLayout.LayoutParams(-1,
+                dimension(R.dimen.space_2));
+        progressParams.topMargin = dimension(R.dimen.space_3);
+        panel.addView(progress, progressParams);
+        TextView open = action("CONTINUAR MISSÃO  ›",
+                () -> selectDestination(AppDestination.CAMPAIGNS));
+        panel.addView(open);
+
+        forgeExecutor.execute(() -> {
+            BattleMission next = BattleMission.ALL.get(BattleMission.ALL.size() - 1);
+            int wins = 0;
+            for (BattleMission mission : BattleMission.ALL) {
+                if (forgeRepository.hasCompletedMission(mission.campaignId, mission.number)) wins++;
+                else if (next == BattleMission.ALL.get(BattleMission.ALL.size() - 1)) next = mission;
+            }
+            BattleMission selected = next;
+            int completed = wins;
+            runOnUiThread(() -> {
+                if (panel.getParent() != page) return;
+                boolean finished = completed == BattleMission.ALL.size();
+                chip.setText(finished ? "JORNADA CONCLUÍDA" : "PRÓXIMA MISSÃO");
+                title.setText(finished ? "Você fechou a ruptura!" : selected.title);
+                subtitle.setText("Capítulo " + selected.number + " · Chefe: "
+                        + selected.opponentName);
+                description.setText(finished
+                        ? "Reviva os capítulos e monte novas equipes para cada batalha."
+                        : "Enfrente " + selected.opponentName + " em " + selected.location
+                        + ". Escolha heróis desbloqueados para sua equipe.");
+                progress.setProgress(completed);
+                progress.setContentDescription(completed + " de " + BattleMission.ALL.size()
+                        + " capítulos concluídos");
+                open.setText(finished ? "REVER CAMPANHAS  ›" : "CONTINUAR MISSÃO  ›");
+                portraitFallback.setText(selected.opponentName.substring(0, 1));
+                portraitLoader.loadOpponent(selected.opponentId, selected.opponentName,
+                        portrait, null);
+            });
+        });
+    }
+
     private void renderNexusShortcuts(LinearLayout page) {
-        TextView heading = text(R.string.nexus_shortcuts_heading,
+        TextView heading = text("Escolha uma atividade",
                 R.style.TextAppearance_Ruptura_Title, R.color.text_primary, true);
         LinearLayout.LayoutParams headingParams = new LinearLayout.LayoutParams(-1, -2);
-        headingParams.topMargin = dimension(R.dimen.space_8);
+        headingParams.topMargin = dimension(R.dimen.space_5);
         page.addView(heading, headingParams);
+        LinearLayout tiles = new LinearLayout(this);
+        LinearLayout.LayoutParams tilesParams = new LinearLayout.LayoutParams(-1, -2);
+        tilesParams.topMargin = dimension(R.dimen.space_3);
+        page.addView(tiles, tilesParams);
+        addNexusActivityTile(tiles, "▱", "Mapa", R.color.play_mint,
+                () -> selectDestination(AppDestination.CAMPAIGNS), "Abrir: Campanhas");
+        addNexusActivityTile(tiles, "?", "Desafio", R.color.play_sun,
+                this::showDailyChallengeScreen, "Abrir: Desafio diário");
+        addNexusActivityTile(tiles, "✦", "Joias", R.color.play_coral,
+                () -> selectDestination(AppDestination.FORGE), "Abrir: Forja das Joias");
+    }
 
-        for (AppDestination destination : AppDestination.nexusShortcuts()) {
-            LinearLayout shortcut = new LinearLayout(this);
-            shortcut.setOrientation(LinearLayout.VERTICAL);
-            shortcut.setPadding(dimension(R.dimen.space_4), dimension(R.dimen.space_4),
-                    dimension(R.dimen.space_4), dimension(R.dimen.space_4));
-            shortcut.setMinimumHeight(dimension(R.dimen.target_min));
-            shortcut.setFocusable(true);
-            shortcut.setClickable(true);
-            shortcut.setBackground(background(R.color.surface_elevated, R.color.border_subtle,
-                    dimension(R.dimen.radius_card)));
-            shortcut.setContentDescription(getString(R.string.nexus_shortcut_action) + ": "
-                    + getString(destination.labelRes));
-            shortcut.setOnClickListener(view -> selectDestination(destination));
+    private void addNexusActivityTile(LinearLayout row, String icon, String title,
+                                      int color, Runnable task, String spokenLabel) {
+        LinearLayout tile = new LinearLayout(this);
+        tile.setOrientation(LinearLayout.VERTICAL);
+        tile.setGravity(Gravity.CENTER);
+        tile.setMinimumHeight(dimension(R.dimen.space_8) * 3);
+        tile.setBackground(background(color, color, dimension(R.dimen.radius_card)));
+        tile.setElevation(dimension(R.dimen.space_1));
+        tile.setClickable(true);
+        tile.setFocusable(true);
+        tile.setContentDescription(spokenLabel);
+        tile.setOnClickListener(view -> { playUiSound(); task.run(); });
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(0, -2, 1f);
+        params.leftMargin = dimension(R.dimen.space_1);
+        params.rightMargin = dimension(R.dimen.space_1);
+        row.addView(tile, params);
+        TextView symbol = text(icon, R.style.TextAppearance_Ruptura_Title,
+                R.color.play_night, true);
+        symbol.setTextSize(27f);
+        symbol.setGravity(Gravity.CENTER);
+        symbol.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+        tile.addView(symbol);
+        TextView label = text(title, R.style.TextAppearance_Ruptura_Body,
+                R.color.play_night, true);
+        label.setGravity(Gravity.CENTER);
+        tile.addView(label);
+    }
 
-            LinearLayout.LayoutParams shortcutParams = new LinearLayout.LayoutParams(-1, -2);
-            shortcutParams.topMargin = dimension(R.dimen.space_4);
-            page.addView(shortcut, shortcutParams);
-
-            shortcut.addView(text(destination.labelRes,
-                    R.style.TextAppearance_Ruptura_Title, R.color.text_primary, true));
-            TextView description = text(destination.descriptionRes,
-                    R.style.TextAppearance_Ruptura_Body, R.color.text_secondary, false);
-            LinearLayout.LayoutParams descriptionParams = new LinearLayout.LayoutParams(-1, -2);
-            descriptionParams.topMargin = dimension(R.dimen.space_2);
-            shortcut.addView(description, descriptionParams);
-        }
+    private void renderNexusChamberCard(LinearLayout page) {
+        LinearLayout chamber = card();
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, -2);
+        params.topMargin = dimension(R.dimen.space_6);
+        page.addView(chamber, params);
+        chamber.addView(text("CÂMARA DE VARIANTES", R.style.TextAppearance_Ruptura_Label,
+                R.color.accent_cyan, true));
+        TextView explanation = text("Reed mapeia cada variante. Os selos do Doutor Estranho "
+                        + "mantêm as realidades separadas enquanto você usa a Manopla.",
+                R.style.TextAppearance_Ruptura_Body, R.color.text_secondary, false);
+        LinearLayout.LayoutParams explanationParams = new LinearLayout.LayoutParams(-1, -2);
+        explanationParams.topMargin = dimension(R.dimen.space_2);
+        chamber.addView(explanation, explanationParams);
+        LinearLayout companions = new LinearLayout(this);
+        companions.setGravity(Gravity.CENTER);
+        LinearLayout.LayoutParams companionParams = new LinearLayout.LayoutParams(-1, -2);
+        companionParams.topMargin = dimension(R.dimen.space_3);
+        chamber.addView(companions, companionParams);
+        addNexusCompanion(companions, "senhor-fantastico", "Reed Richards", R.string.nexus_reed);
+        addNexusCompanion(companions, "doutor-estranho", "Doutor Estranho", R.string.nexus_strange);
+        GauntletConstellationView constellation = new GauntletConstellationView(this);
+        LinearLayout.LayoutParams visualParams = new LinearLayout.LayoutParams(-1,
+                dimension(R.dimen.space_8) * 4);
+        visualParams.topMargin = dimension(R.dimen.space_2);
+        chamber.addView(constellation, visualParams);
+        chamber.addView(action("VER MANOPLA  ›", () -> selectDestination(AppDestination.FORGE)));
+        forgeExecutor.execute(() -> {
+            ForgeInventory inventory = forgeRepository.load();
+            boolean[] state = new boolean[InfinityStone.values().length];
+            for (InfinityStone stone : InfinityStone.values()) {
+                state[stone.ordinal()] = inventory.count(stone, ForgeStage.COMPLETE) > 0;
+            }
+            runOnUiThread(() -> {
+                if (chamber.getParent() == page) constellation.setCompleted(state);
+            });
+        });
     }
 
     private void renderForgeInventory(LinearLayout page) {
@@ -1882,12 +2058,16 @@ public final class MainActivity extends AppCompatActivity {
         Runnable[] sendRequest = {null};
         ImageView deadpoolAvatar = new ImageView(this);
         deadpoolAvatar.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        deadpoolAvatar.setBackground(background(R.color.deadpool_white,
+                R.color.accent_deadpool, dimension(R.dimen.radius_card)));
+        deadpoolAvatar.setClipToOutline(true);
         portraitLoader.loadVariant("deadpool", GameVariantTier.ORIGIN, "Deadpool", deadpoolAvatar, null);
         TextView bubble = text(R.string.deadpool_bubble, R.style.TextAppearance_Ruptura_Body,
                 R.color.deadpool_ink, false);
         bubble.setPadding(dimension(R.dimen.space_3), dimension(R.dimen.space_3),
                 dimension(R.dimen.space_3), dimension(R.dimen.space_3));
-        bubble.setBackground(background(R.color.deadpool_white, R.color.deadpool_ink, 0));
+        bubble.setBackground(background(R.color.deadpool_white, R.color.border_subtle,
+                dimension(R.dimen.radius_card)));
         bubble.setElevation(dimension(R.dimen.space_1));
         LinearLayout speech = new LinearLayout(this);
         speech.setGravity(Gravity.CENTER_VERTICAL);
@@ -1941,7 +2121,8 @@ public final class MainActivity extends AppCompatActivity {
         android.widget.EditText prompt = new android.widget.EditText(this);
         prompt.setTextColor(getColor(R.color.deadpool_ink));
         prompt.setHintTextColor(getColor(R.color.deadpool_body));
-        prompt.setBackground(background(R.color.deadpool_white, R.color.deadpool_ink, 0));
+        prompt.setBackground(background(R.color.deadpool_white, R.color.border_subtle,
+                dimension(R.dimen.radius_card)));
         prompt.setPadding(dimension(R.dimen.space_3), dimension(R.dimen.space_3),
                 dimension(R.dimen.space_3), dimension(R.dimen.space_3));
         prompt.setHint(R.string.deadpool_prompt_hint);
@@ -2557,11 +2738,11 @@ public final class MainActivity extends AppCompatActivity {
     private LinearLayout card() {
         LinearLayout card = new LinearLayout(this);
         card.setOrientation(LinearLayout.VERTICAL);
-        card.setPadding(dimension(R.dimen.space_4), dimension(R.dimen.space_4),
-                dimension(R.dimen.space_4), dimension(R.dimen.space_4));
-        card.setBackground(new AngularPanelDrawable(getColor(R.color.surface_elevated),
-                getColor(R.color.surface_primary), getColor(R.color.border_subtle),
-                dimension(R.dimen.angular_cut), false));
+        card.setPadding(dimension(R.dimen.space_5), dimension(R.dimen.space_5),
+                dimension(R.dimen.space_5), dimension(R.dimen.space_5));
+        card.setBackground(background(R.color.surface_primary, R.color.border_subtle,
+                dimension(R.dimen.radius_card)));
+        card.setElevation(dimension(R.dimen.space_1));
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, -2);
         params.topMargin = dimension(R.dimen.space_4);
         return card;
@@ -2570,9 +2751,9 @@ public final class MainActivity extends AppCompatActivity {
     private ImageView editorialImage(LinearLayout parent, int height) {
         ImageView image = new ImageView(this);
         image.setScaleType(ImageView.ScaleType.FIT_CENTER);
-        image.setBackground(new AngularPanelDrawable(getColor(R.color.surface_primary),
-                getColor(R.color.surface_elevated), getColor(R.color.border_subtle),
-                dimension(R.dimen.angular_cut), false));
+        image.setBackground(background(R.color.surface_primary, R.color.border_subtle,
+                dimension(R.dimen.radius_card)));
+        image.setClipToOutline(true);
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, height);
         params.bottomMargin = dimension(R.dimen.space_2);
         parent.addView(image, params);
@@ -2580,25 +2761,21 @@ public final class MainActivity extends AppCompatActivity {
     }
 
     private TextView action(String label, Runnable task) {
-        boolean dark = isDarkMode();
         TextView button = text(label, R.style.TextAppearance_Ruptura_Label,
-                dark ? R.color.accent_gold : R.color.canvas, true);
+                R.color.play_night, true);
         button.setFocusable(true);
         button.setClickable(true);
         button.setMinimumHeight(dimension(R.dimen.space_8) * 2);
-        button.setPadding(dimension(R.dimen.space_4), dimension(R.dimen.space_3),
-                dimension(R.dimen.space_4), dimension(R.dimen.space_3));
+        button.setPadding(dimension(R.dimen.space_5), dimension(R.dimen.space_3),
+                dimension(R.dimen.space_5), dimension(R.dimen.space_3));
         button.setGravity(Gravity.CENTER);
         button.setAllCaps(true);
-        button.setLetterSpacing(dark ? 0.08f : 0.16f);
+        button.setTextSize(14f);
+        button.setLetterSpacing(0.07f);
         button.setOnClickListener(view -> { playUiSound(); task.run(); });
-        button.setBackground(dark
-                ? new AngularPanelDrawable(getColor(R.color.surface_elevated),
-                        getColor(R.color.surface_primary), getColor(R.color.accent_gold),
-                        dimension(R.dimen.angular_cut), false)
-                : new AngularPanelDrawable(getColor(R.color.accent_cyan),
-                        getColor(R.color.accent_quartet), getColor(R.color.accent_cyan),
-                        dimension(R.dimen.angular_cut), false));
+        button.setBackground(background(R.color.play_mint, R.color.play_mint,
+                dimension(R.dimen.radius_card)));
+        button.setElevation(dimension(R.dimen.space_1));
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, -2);
         params.topMargin = dimension(R.dimen.space_3);
         params.bottomMargin = dimension(R.dimen.space_2);
@@ -2663,9 +2840,8 @@ public final class MainActivity extends AppCompatActivity {
         LinearLayout mystery = card();
         mystery.setGravity(Gravity.BOTTOM);
         mystery.setMinimumHeight(dimension(R.dimen.space_8) * 7);
-        mystery.setBackground(new AngularPanelDrawable(getColor(R.color.surface_primary),
-                getColor(R.color.surface_elevated), getColor(R.color.border_subtle),
-                dimension(R.dimen.angular_cut), false));
+        mystery.setBackground(background(R.color.surface_primary, R.color.border_subtle,
+                dimension(R.dimen.radius_card)));
         panel.addView(mystery, new LinearLayout.LayoutParams(-1, -2));
         if (!"ACTIVE".equals(state.status)) {
             GameCatalogCharacter revealed = findCharacter(roster, state.targetId);
@@ -2802,17 +2978,24 @@ public final class MainActivity extends AppCompatActivity {
 
     private void renderCampaigns(LinearLayout page) {
         List<GameCatalogCharacter> roster = loadRoster();
-        page.addView(text("Cada capítulo é uma batalha. Escolha três personagens da coleção antes de lutar.",
+        LinearLayout guide = card();
+        LinearLayout.LayoutParams guideParams = new LinearLayout.LayoutParams(-1, -2);
+        guideParams.bottomMargin = dimension(R.dimen.space_4);
+        page.addView(guide, guideParams);
+        guide.addView(text("A trilha está aberta!", R.style.TextAppearance_Ruptura_Title,
+                R.color.text_primary, true));
+        guide.addView(text("Toque em um capítulo para ver a missão e montar seu trio desbloqueado.",
                 R.style.TextAppearance_Ruptura_Body, R.color.text_secondary, false));
         int chapter = 1;
         for (BattleMission mission : BattleMission.ALL) {
             addBattleMissionCard(page, roster, mission, chapter++);
             if (chapter <= BattleMission.ALL.size()) {
                 View connector = new View(this);
-                connector.setBackgroundColor(getColor(chapterColor(chapter - 1)));
+                connector.setBackgroundColor(getColor(R.color.border_subtle));
                 LinearLayout.LayoutParams connectorParams = new LinearLayout.LayoutParams(
-                        dimension(R.dimen.space_1) / 2, dimension(R.dimen.space_3));
-                connectorParams.leftMargin = dimension(R.dimen.space_8) * 3 / 4;
+                        Math.max(2, dimension(R.dimen.space_1) / 2),
+                        dimension(R.dimen.space_5));
+                connectorParams.leftMargin = dimension(R.dimen.space_8) - dimension(R.dimen.space_1);
                 page.addView(connector, connectorParams);
             }
         }
@@ -2824,50 +3007,60 @@ public final class MainActivity extends AppCompatActivity {
         LinearLayout row = new LinearLayout(this);
         row.setOrientation(LinearLayout.HORIZONTAL);
         LinearLayout.LayoutParams rowParams = new LinearLayout.LayoutParams(-1, -2);
-        rowParams.topMargin = chapter == 1 ? dimension(R.dimen.space_3) : 0;
+        rowParams.topMargin = chapter == 1 ? dimension(R.dimen.space_2) : 0;
         page.addView(row, rowParams);
 
-        TextView node = text("◆", R.style.TextAppearance_Ruptura_Title, accent, true);
+        TextView node = text(String.valueOf(chapter), R.style.TextAppearance_Ruptura_Title,
+                R.color.play_night, true);
         node.setGravity(Gravity.CENTER);
-        node.setShadowLayer(dimension(R.dimen.space_2), 0f, 0f, getColor(accent));
+        node.setBackground(background(R.color.play_sun, R.color.play_sun,
+                dimension(R.dimen.radius_card)));
         node.setContentDescription("Nó " + chapter + " do mapa de campanhas");
-        row.addView(node, new LinearLayout.LayoutParams(dimension(R.dimen.space_8),
-                dimension(R.dimen.space_8)));
+        row.addView(node, new LinearLayout.LayoutParams(dimension(R.dimen.space_8) * 2,
+                dimension(R.dimen.space_8) * 2));
 
         LinearLayout item = card();
-        item.setPadding(dimension(R.dimen.space_3), dimension(R.dimen.space_3),
-                dimension(R.dimen.space_3), dimension(R.dimen.space_3));
         item.setClickable(true);
         item.setFocusable(true);
         item.setContentDescription("Abrir capítulo " + chapter + ": " + mission.title);
         item.setOnClickListener(view -> { });
         LinearLayout.LayoutParams itemParams = new LinearLayout.LayoutParams(0, -2, 1f);
-        itemParams.leftMargin = dimension(R.dimen.space_1);
+        itemParams.leftMargin = dimension(R.dimen.space_2);
         row.addView(item, itemParams);
 
-        LinearLayout artPanel = new LinearLayout(this);
-        artPanel.setGravity(Gravity.CENTER);
-        artPanel.setBackground(new AngularPanelDrawable(getColor(R.color.surface_primary),
-                getColor(accent), getColor(accent), dimension(R.dimen.angular_cut), false));
-        item.addView(artPanel, new LinearLayout.LayoutParams(-1, dimension(R.dimen.space_8) * 4));
+        LinearLayout artAndInfo = new LinearLayout(this);
+        artAndInfo.setGravity(Gravity.CENTER_VERTICAL);
+        item.addView(artAndInfo, new LinearLayout.LayoutParams(-1, -2));
+        FrameLayout artPanel = new FrameLayout(this);
+        artPanel.setBackground(background(R.color.surface_elevated, accent,
+                dimension(R.dimen.radius_card)));
+        artPanel.setClipToOutline(true);
+        artAndInfo.addView(artPanel, new LinearLayout.LayoutParams(
+                dimension(R.dimen.space_8) * 2, dimension(R.dimen.space_8) * 2));
+        TextView fallback = text(mission.opponentName.substring(0, 1),
+                R.style.TextAppearance_Ruptura_Title, accent, true);
+        fallback.setGravity(Gravity.CENTER);
+        artPanel.addView(fallback, new FrameLayout.LayoutParams(-1, -1));
         ImageView image = new ImageView(this);
         image.setScaleType(ImageView.ScaleType.CENTER_CROP);
-        image.setBackgroundColor(getColor(R.color.surface_primary));
-        artPanel.addView(image, new LinearLayout.LayoutParams(-1, -1));
+        image.setClipToOutline(true);
+        artPanel.addView(image, new FrameLayout.LayoutParams(-1, -1));
         portraitLoader.loadOpponent(mission.opponentId, mission.opponentName, image, null);
 
         LinearLayout info = new LinearLayout(this);
         info.setGravity(Gravity.CENTER_VERTICAL);
-        LinearLayout.LayoutParams infoParams = new LinearLayout.LayoutParams(-1, -2);
-        infoParams.topMargin = dimension(R.dimen.space_2);
-        item.addView(info, infoParams);
+        LinearLayout.LayoutParams infoParams = new LinearLayout.LayoutParams(0, -2, 1f);
+        infoParams.leftMargin = dimension(R.dimen.space_3);
+        artAndInfo.addView(info, infoParams);
         LinearLayout copy = new LinearLayout(this);
         copy.setOrientation(LinearLayout.VERTICAL);
         info.addView(copy, new LinearLayout.LayoutParams(0, -2, 1f));
         copy.addView(text("CAPÍTULO " + chapter, R.style.TextAppearance_Ruptura_Caption,
                 R.color.text_secondary, true));
-        copy.addView(text(mission.title, R.style.TextAppearance_Ruptura_Label,
-                R.color.text_primary, true));
+        TextView missionTitle = text(mission.title, R.style.TextAppearance_Ruptura_Title,
+                R.color.text_primary, true);
+        missionTitle.setTextSize(17f);
+        copy.addView(missionTitle);
         copy.addView(text("Chefe: " + mission.opponentName + " · Poder "
                         + formatAmount(mission.recommendedPower),
                 R.style.TextAppearance_Ruptura_Caption, R.color.text_secondary, false));
@@ -2876,10 +3069,20 @@ public final class MainActivity extends AppCompatActivity {
         stateIcon.setContentDescription("Progresso do capítulo " + chapter);
         info.addView(stateIcon, new LinearLayout.LayoutParams(dimension(R.dimen.space_8),
                 dimension(R.dimen.space_8)));
-        View progress = new View(this);
-        progress.setBackgroundColor(getColor(accent));
+        TextView status = text("Carregando progresso…", R.style.TextAppearance_Ruptura_Caption,
+                R.color.text_secondary, true);
+        LinearLayout.LayoutParams statusParams = new LinearLayout.LayoutParams(-1, -2);
+        statusParams.topMargin = dimension(R.dimen.space_3);
+        item.addView(status, statusParams);
+        android.widget.ProgressBar progress = new android.widget.ProgressBar(this, null,
+                android.R.attr.progressBarStyleHorizontal);
+        progress.setMax(100);
+        progress.setProgress(0);
+        progress.setProgressTintList(android.content.res.ColorStateList.valueOf(getColor(accent)));
+        progress.setProgressBackgroundTintList(android.content.res.ColorStateList.valueOf(
+                getColor(R.color.surface_elevated)));
         LinearLayout.LayoutParams progressParams = new LinearLayout.LayoutParams(-1,
-                Math.max(2, dimension(R.dimen.space_1) / 2));
+                dimension(R.dimen.space_1));
         progressParams.topMargin = dimension(R.dimen.space_2);
         item.addView(progress, progressParams);
 
@@ -2897,6 +3100,15 @@ public final class MainActivity extends AppCompatActivity {
                 stateIcon.setText(completed ? "✓" : available ? "›" : "•");
                 stateIcon.setTextColor(getColor(completed ? R.color.accent_latveria
                         : available ? accent : R.color.text_secondary));
+                node.setText(completed ? "✓" : String.valueOf(chapter));
+                node.setAlpha(available || completed ? 1f : .48f);
+                status.setText(completed ? "Vitória registrada · toque para rejogar"
+                        : available ? "Pronto para jogar · escolha seu trio"
+                        : gauntletRequired ? "Complete a Manopla para entrar"
+                        : "Conclua o capítulo anterior");
+                status.setTextColor(getColor(completed ? R.color.accent_latveria
+                        : available ? accent : R.color.text_secondary));
+                progress.setProgress(completed ? 100 : available ? 32 : 0);
                 item.setOnClickListener(view -> showCampaignMissionDetails(roster, mission,
                         state, completed, available, gauntletRequired, reward, accent, label));
             });
@@ -3999,17 +4211,8 @@ public final class MainActivity extends AppCompatActivity {
         view.setText(value);
         view.setTextAppearance(styleRes);
         view.setTextColor(getColor(colorRes));
-        if (styleRes == R.style.TextAppearance_Ruptura_Display) {
-            view.setTypeface(getResources().getFont(R.font.barlow_condensed_extrabold));
-        } else if (styleRes == R.style.TextAppearance_Ruptura_Title
-                || styleRes == R.style.TextAppearance_Ruptura_Label
-                || styleRes == R.style.TextAppearance_Ruptura_Caption) {
-            view.setTypeface(getResources().getFont(bold
-                    ? R.font.barlow_condensed_bold : R.font.barlow_condensed_regular));
-        } else {
-            Typeface sora = getResources().getFont(R.font.sora_variable);
-            view.setTypeface(sora, bold ? Typeface.BOLD : Typeface.NORMAL);
-        }
+        Typeface sora = getResources().getFont(R.font.sora_variable);
+        view.setTypeface(sora, bold ? Typeface.BOLD : Typeface.NORMAL);
         view.setGravity(Gravity.START | Gravity.CENTER_VERTICAL);
         return view;
     }
@@ -4017,7 +4220,7 @@ public final class MainActivity extends AppCompatActivity {
     private GradientDrawable background(int fill, int stroke, int radius) {
         GradientDrawable drawable = new GradientDrawable();
         drawable.setColor(getColor(fill));
-        drawable.setCornerRadius(radius);
+        drawable.setCornerRadius(radius == 0 ? dimension(R.dimen.space_3) : radius);
         if (fill != stroke) {
             drawable.setStroke(dimension(R.dimen.border_width), getColor(stroke));
         } else if (fill == R.color.accent_cyan) {
