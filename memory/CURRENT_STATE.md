@@ -7,7 +7,7 @@
 - Deadpool keeps generated backend text when `fallback=false`, differentiates provider fallback from network failure, and backend logs sanitized Gemini/Groq codes only.
 - Battle active hero and shared Super are more prominent. Shared primary buttons and the fragment shop use dark/gold styling in dark mode; light mode retains its prior primary palette.
 - Final Android validation passed (`testDebugUnitTest`, `lintDebug`, `assembleDebug`, instrumentation-test compile). Instrumentation runtime was not executed. Backend `pip check` and pytest passed (59 tests). One approved minimal live request earlier returned `fallback=false`.
-- Erick authorized push for this change set. No Render deployment or phone installation was performed. Next: deploy backend diagnostics, then build/install Android and verify the Chamber, duplicate receipt, battle, shop, and both themes on-device.
+- Commit `873d55c` was pushed to `origin/main`. APK 0.12.0 was installed on phone `C6OFVWYD4DZTBA5H` with `adb install -r`, preserving app data, and launched successfully (process confirmed). Render deployment was not performed. Next: deploy backend diagnostics and manually verify the Chamber, duplicate receipt, battle, shop, and both themes.
 
 ## Specs 043-045 - implementadas e enviadas, aguardando deploy
 

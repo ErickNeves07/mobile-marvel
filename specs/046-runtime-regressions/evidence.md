@@ -1,6 +1,6 @@
 # 046 - Evidence
 
-Status: implemented and validated locally; push authorized by Erick. Deployment and phone installation are not part of this step.
+Status: pushed as `873d55c` and installed as Android 0.12.0 on phone `C6OFVWYD4DZTBA5H`; Render deployment remains pending.
 
 ## Implementation evidence
 
@@ -20,5 +20,5 @@ Status: implemented and validated locally; push authorized by Erick. Deployment 
 
 ## Limitations / next step
 
-- Confirm the changes on the phone after building/installing the updated Android app, especially both dark and light themes and the first-use/repeated-reward flows.
-- Deploy the backend diagnostics changes before using Render logs to distinguish provider failures. No Render deployment or phone installation was performed.
+- App install and launch were confirmed on the phone. Manually verify both themes and the Chamber/repeated-reward flows.
+- Deploy the backend diagnostics changes before using Render logs to distinguish provider failures. Render deployment was not performed.

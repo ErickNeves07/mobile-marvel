@@ -518,4 +518,4 @@ Commit 49c535e publicado em origin/main. O trabalho no repositório está comple
 - Added safe Gemini/Groq failure codes in backend logs and differentiated local Deadpool replies from provider fallback versus backend connection failure.
 - Highlighted the active fighter, redesigned the charged Super, and restyled global actions/shop buttons for dark mode while retaining the light-mode action palette.
 - Android validator passed JVM tests, lint, debug build and instrumentation APK compilation; instrumentation was not run on device. Backend validation passed `pip check` and 59 pytest tests. One explicitly approved minimal live generation earlier in this task returned `fallback=false`.
-- Erick authorized pushing this change set. No Render deployment or phone installation was requested; next check is deploy, then manual verification on the phone.
+- Commit `873d55c` pushed to origin. APK 0.12.0 installed via `adb install -r` on phone `C6OFVWYD4DZTBA5H`; data preserved, launch verified by process ID. Render deploy remains pending.
