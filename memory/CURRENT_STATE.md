@@ -1,5 +1,12 @@
 # Current state - 2026-10-05
 
+## Specs 043-045 - implementadas, aguardando push/deploy
+
+- Ajustes autorizados e documentados nas specs 043-045. Deadpool: retry legado/contexto curto e fallback local; lore: back conclui a cena e briefing reapresentavel da Camara. Chefes: +6% HP/+8% dano. Loja: Fragmentos por creditos, XP desbloqueia ofertas, DB v8.
+- Validacao local 2026-10-05: Android `testDebugUnitTest`, `lintDebug`, `assembleDebug` passaram; backend `pip check` e `pytest` passaram (58 testes). Testes instrumentados no unico AVD compilaram mas nao executaram porque a assinatura instalada difere; os dados do AVD foram preservados.
+- Render nao foi acessivel nesta sessao. Confirmar apos deploy que `/ready` responde e `GEMINI_API_KEY` esta configurada para IA online; o fallback local continua funcional sem backend. Nenhuma chamada paga, instalacao no telefone ou deploy foi feita.
+- Commits locais criados: `05170f7`, `6ce5c4e`, `ac9c363`; push para `origin/main` solicitado, deploy por Erick e instalacao somente apos nova solicitacao.
+
 ## GitHub handoff
 
 - The active-hero battle and expanded Deadpool context changes are in `0e7387c` (`feat(gameplay): add active-hero battles and Deadpool context`). Android compile fix `25db6bf` defines missing `space_5=20dp`. No Render deployment was started.

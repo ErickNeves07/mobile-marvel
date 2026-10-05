@@ -110,3 +110,11 @@ Formato: `DEC-NNN | data | decisão | motivo | consequências`.
 - **DEC-092 | 2026-10-05 | Desafio diário indica segredo com “?” até ser revelado.** O marcador some somente quando o personagem alvo é exibido após conclusão.
 
 **DEC-093 | 2026-10-05 | Active-hero battle, Q-059.** Erick approved free switching; only the active hero receives damage; reserve HP persists; max HP is `VariantStats.Vida / 9`; bosses are tuned against the trio; super is global; no action cap and battle ends when boss or trio falls.
+
+**DEC-094 | 2026-10-05 | Leve reforço uniforme dos chefes, solicitado por Erick.** Aplicar +6% de HP máximo e +8% de dano final recebido em todas as nove campanhas; preservar intents, mitigação/contra, regras e recompensas.
+
+**DEC-095 | 2026-10-05 | Câmara explica os papéis de Reed/Estranho no local de uso.** Remover os dois retratos de companhia no Nexus; mostrar uma sequência inicial revisável na Câmara: Reed mapeia/calibra assinaturas variantes; Estranho sela realidades para evitar colisões. Isso segue a delegação de apresentação do pedido de Erick e R-USER-006.
+
+**DEC-096 | 2026-10-05 | Loja local vende somente Fragmentos com progressão de XP.** Um Fragmento de uma Joia por compra; preço 800/900/1000/1100/1200/1300 por Espaço/Mente/Realidade/Poder/Tempo/Alma. Desbloqueios em 0/840/1760/2860/3720/4720 XP acumulado. XP não é gasto; fusões 2:1 continuam manuais. Valores e configuração foram delegados por Erick.
+
+**DEC-097 | 2026-10-05 | Compatibilidade Deadpool segue segura sem rede/contrato novo.** Repetir HTTP 422 uma única vez com corpo legado limitado a 300 caracteres e `context_id` compatível; falha final usa fala local contextual sem alterar gameplay. Nunca logar prompt/estado nem chamar provider em teste.

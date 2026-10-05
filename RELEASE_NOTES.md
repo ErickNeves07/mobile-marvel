@@ -1,3 +1,12 @@
+# Candidato local 0.12.0 - 2026-10-05 (push solicitado; deploy Render pendente)
+
+- Deadpool tem retry compativel com o schema legado do Render, contexto compacto com equipe/batalha/missao/recursos e respostas locais com humor quando o backend falha. O status do Render e a presenca de `GEMINI_API_KEY` ainda precisam ser confirmados apos deploy.
+- Chefes ganharam +6% de HP e +8% de dano final recebido pela equipe, mantendo padroes de contra-ataque, recompensas e regras de derrota.
+- Cenas de lore agora continuam para a recompensa mesmo ao fechar com Voltar; a Camara explica Reed (mapeamento/calibragem) e Strange (selos de realidades) na primeira abertura, com opcao de rever.
+- Loja no topo esquerdo vende um Fragmento por compra: espaco 800 cr/0 XP, mente 900/840 XP, realidade 1.000/1.760 XP, poder 1.100/2.860 XP, tempo 1.200/3.720 XP e alma 1.300/4.720 XP. XP desbloqueia e nao e consumido; compra e idempotente/transacional. Database v8 migra v7.
+- Validacao: `testDebugUnitTest`, `lintDebug`, `assembleDebug` passaram; backend `pip check` e pytest passaram (58 testes). `connectedDebugAndroidTest` nao executou testes: instalacao existente no AVD usa assinatura diferente; preservamos os dados do AVD. Build Android versionCode 12 / versionName 0.12.0.
+- Nenhuma instalacao no celular, deploy Render ou chamada paga foi feita. App Android e backend local ficam prontos para push/deploy; confirmar a chave Gemini no Render para IA online.
+
 # Candidato local 0.11.0 - 2026-10-05 (Android instalado; Render pendente)
 
 - Combate usa tres herois com HP individual, troca gratuita, dano do chefe apenas no ativo, super compartilhado e batalhas sem limite de acoes.

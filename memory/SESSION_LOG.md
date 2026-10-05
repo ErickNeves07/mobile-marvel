@@ -495,3 +495,15 @@ Commit 49c535e publicado em origin/main. O trabalho no repositório está comple
 - O celular físico `C6OFVWYD4DZTBA5H` estava conectado junto com um emulador; a instalação foi direcionada explicitamente ao telefone. O APK debug `versionCode=11`, `versionName=0.11.0` instalou com `adb install -r` e abriu em `MainActivity`, sem crash recente no logcat.
 - A primeira compilação falhou por referência inexistente a `R.dimen.space_5` em `MainActivity`; foi definido `space_5=20dp`. Em seguida `testDebugUnitTest`, `lintDebug` e `assembleDebug` passaram via `scripts/validate-local.ps1 -Target android`.
 - A correção Android foi registrada em `25db6bf` e incluída no handoff ao branch principal. Nenhum deploy Render foi feito; pytest backend continua pendente porque a venv configurada não está acessível.
+## 2026-10-05 - Specs 043–045 e auditoria inicial
+
+- Erick pediu reparo Deadpool/lore/Câmara, buff leve dos chefes, loja de Fragmentos por XP/créditos e push; instrução também deixa preços e apresentação da Câmara a critério do agente. Specs 043–045 foram escritas antes do código.
+- Auditoria Android/backend identificou retry Deadpool 422 que mantém `context_id=app`, cancelamento de continuação da recompensa ao apertar Voltar na cena, retratos soltos de Reed/Estranho no Nexus e ausência de loja. Chefes usam fórmula linear em `LovableBattle`; créditos/XP e estágios estão no `ForgeRepository` schema v7.
+- Tentativas read-only de consultar Render `/ready` e `/openapi.json` falharam por indisponibilidade de rede desta sessão. Nenhum POST pago foi feito. Android device não será instalado nesta tarefa; Erick pediu fazê-lo somente depois do deploy e de uma nova solicitação.
+- Decisões delegadas registradas em DEC-094..097: buff +6% HP/+8% dano; sequência inicial revisável na Câmara e remoção dos portraits do Nexus; loja de um `FRAGMENT` com tabela de XP/preço; Deadpool com fallback legado e resposta local.
+
+## 2026-10-05 - conclusao local 0.12.0 e push solicitado
+
+- Specs 043-045 implementadas. Android: 44 testes JVM, lint e assemble passaram; backend `pip check` limpo e pytest 58/58 passaram.
+- Testes instrumentados foram compilados; o AVD rejeitou a instalacao por assinatura diferente (`INSTALL_FAILED_UPDATE_INCOMPATIBLE`). Dados do AVD foram preservados.
+- Commits locais: `05170f7`, `6ce5c4e`, `ac9c363`; documentacao de release em preparacao para commit. Push foi autorizado por Erick. Render nao foi acessivel; nao houve deploy, chamada paga ou instalacao no celular.

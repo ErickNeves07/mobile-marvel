@@ -67,6 +67,8 @@ Não implemente áreas afetadas até resposta quando marcadas como **CRÍTICA**.
 
 ## Pendências técnicas de validação (não são dúvidas de produto)
 
+- **Q-060 — Verificação pós-deploy Deadpool/Render:** a rede deste ambiente recusou conexão a `/ready` e `/openapi.json`. Após Erick publicar a revisão, conferir schema com `game_context` e presença booleana de Gemini/Groq. `/ready` não prova geração; não fazer POST pago sem autorização específica. Esta checagem não bloqueia o código/testes locais.
+
 - **TalkBack falado:** nós, rótulos, estado selecionado e bounds foram inspecionados via UIAutomator; ainda não foi realizado ensaio com o serviço TalkBack falando. Não bloqueia shell MVP 0.
 - **Git fora do workspace:** leitura do Git pelo processo com sandbox restrito foi negada; nenhuma operação Git foi necessária para concluir as specs locais. Não houve commit.
 - **Encoding do validador no terminal:** a sessão exibiu alguns acentos como mojibake apesar do script UTF-8 funcionar e passar. Conferir em outro host PowerShell antes de tratar como defeito de produto.
