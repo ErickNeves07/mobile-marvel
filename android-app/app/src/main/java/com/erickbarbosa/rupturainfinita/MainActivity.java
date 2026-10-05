@@ -235,6 +235,7 @@ public final class MainActivity extends AppCompatActivity {
         LinearLayout page = new LinearLayout(this);
         page.setOrientation(LinearLayout.VERTICAL);
         page.setGravity(Gravity.CENTER_HORIZONTAL);
+        page.setTag("campaign-story-sequence");
         page.setPadding(dimension(R.dimen.space_4), dimension(R.dimen.space_5),
                 dimension(R.dimen.space_4), dimension(R.dimen.space_4));
         page.setBackground(new IntroRiftDrawable(this));
@@ -956,8 +957,8 @@ public final class MainActivity extends AppCompatActivity {
             shortcut.setClickable(true);
             shortcut.setBackground(background(R.color.surface_elevated, R.color.border_subtle,
                     dimension(R.dimen.radius_card)));
-            shortcut.setContentDescription(getString(R.string.nexus_shortcut_action,
-                    getString(destination.labelRes)));
+            shortcut.setContentDescription(getString(R.string.nexus_shortcut_action) + ": "
+                    + getString(destination.labelRes));
             shortcut.setOnClickListener(view -> selectDestination(destination));
 
             LinearLayout.LayoutParams shortcutParams = new LinearLayout.LayoutParams(-1, -2);
@@ -1998,7 +1999,7 @@ public final class MainActivity extends AppCompatActivity {
                     if (!BackendClient.shouldRetryDeadpoolWithoutContext(error.statusCode, request))
                         throw error;
                     org.json.JSONObject legacy = new org.json.JSONObject();
-                    legacy.put("context_id", "nexus");
+                    legacy.put("context_id", contextId);
                     legacy.put("prompt", DeadpoolPrompt.legacy(prompt, gameContext));
                     response = client.post("/v1/ai/deadpool-line", legacy);
                 }
@@ -3536,6 +3537,7 @@ public final class MainActivity extends AppCompatActivity {
         contentContainer.removeAllViews();
         LinearLayout screen = new LinearLayout(this);
         screen.setOrientation(LinearLayout.VERTICAL);
+        screen.setTag("campaign-battle-screen");
         screen.setPadding(dimension(R.dimen.space_4), dimension(R.dimen.space_3),
                 dimension(R.dimen.space_4), dimension(R.dimen.space_4));
         screen.setBackgroundColor(getColor(R.color.canvas));
@@ -3776,8 +3778,8 @@ public final class MainActivity extends AppCompatActivity {
                     renderMagnetoBattle(battle, campaign);
                     animateBattleAction(battle.activeFighterId, null, true);
                     showBattleImpact("KRAKOOM", battle.lastBossDamage, battle.lastTeamDamage, true);
-                    contentContainer.postDelayed(() -> { battleAnimating = false;
-                        renderMagnetoBattle(battle, campaign); }, animationDelay(2500));
+                    contentContainer.postDelayed(() -> finishBattleActionAnimation(battle, campaign),
+                            animationDelay(2500));
                 });
                 special.setEnabled(!battleAnimating);
                 screen.addView(special, new LinearLayout.LayoutParams(-1, -2));
@@ -3790,9 +3792,12 @@ public final class MainActivity extends AppCompatActivity {
                 battleChoice(choices, "✦\nDESESTABILIZAR\n+ CARGA", LovableBattle.Choice.CONTROL, battle, campaign);
             }
         } else {
+            TextView[] rewardControl = new TextView[1];
             TextView reward = action("COLETAR RECOMPENSA", () -> {
                 if (battleClaiming || !battle.victory) return;
                 battleClaiming = true;
+                rewardControl[0].setEnabled(false);
+                rewardControl[0].setText("REGISTRANDO RECOMPENSA...");
                 forgeExecutor.execute(() -> {
                     try {
                         boolean granted = forgeRepository.completeMission(campaign.campaignId,
@@ -3803,12 +3808,13 @@ public final class MainActivity extends AppCompatActivity {
                                 showCampaignRewardScreen(campaign.campaignId,
                                         battle.mission.number, granted);
                             };
-                            if (granted) showStorySequence(CampaignStory.afterMission(
-                                    battle.mission.number), campaign.teamIds, continueAfterStory);
-                            else continueAfterStory.run();
+                            showStorySequence(CampaignStory.afterMission(battle.mission.number),
+                                    campaign.teamIds, continueAfterStory);
                         });
                     } catch (RuntimeException error) {
                         runOnUiThread(() -> { battleClaiming = false;
+                            rewardControl[0].setEnabled(true);
+                            rewardControl[0].setText("COLETAR RECOMPENSA");
                             android.widget.Toast.makeText(this, error instanceof ForgeException
                                             ? "Libere espaço na Forja para receber os Fragmentos."
                                             : "Não foi possível concluir a missão",
@@ -3816,6 +3822,7 @@ public final class MainActivity extends AppCompatActivity {
                     }
                 });
             });
+            rewardControl[0] = reward;
             reward.setEnabled(!battleClaiming);
             screen.addView(reward, new LinearLayout.LayoutParams(-1, -2));
         }
@@ -3849,9 +3856,20 @@ public final class MainActivity extends AppCompatActivity {
                     : choice == LovableBattle.Choice.DEFEND ? "GUARDA" : "RESSONÂNCIA";
             showBattleImpact(actionLabel + (battle.lastCounter ? " · BRECHA" : ""),
                     battle.lastBossDamage, battle.lastTeamDamage, false);
-            contentContainer.postDelayed(() -> { battleAnimating = false;
-                renderMagnetoBattle(battle, campaign); }, animationDelay(1800));
+            contentContainer.postDelayed(() -> finishBattleActionAnimation(battle, campaign),
+                    animationDelay(1800));
         });
+    }
+
+    private boolean shouldRerenderBattleAfterAction(LovableBattle battle) {
+        return currentBattle == battle && !battleClaiming && !storyOpen
+                && contentContainer.getChildCount() > 0
+                && "campaign-battle-screen".equals(contentContainer.getChildAt(0).getTag());
+    }
+
+    private void finishBattleActionAnimation(LovableBattle battle, CampaignState campaign) {
+        battleAnimating = false;
+        if (shouldRerenderBattleAfterAction(battle)) renderMagnetoBattle(battle, campaign);
     }
 
     private void animateBattleAction(String fighterId, LovableBattle.Choice choice,

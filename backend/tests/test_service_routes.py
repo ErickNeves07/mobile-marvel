@@ -4,6 +4,7 @@ import app.main as main
 from app.services.comic_vine import ComicVineError
 from app.services.groq_narrative import GroqNarrativeError
 from app.services.gemini_narrative import GeminiNarrativeError
+from app.services.groq_narrative import GroqNarrativeAdapter, MAX_MESSAGE_CHARS
 
 
 client = TestClient(main.app)
@@ -146,3 +147,23 @@ def test_deadpool_provider_failure_logs_only_safe_codes(monkeypatch, caplog):
     assert "provider=groq code=http_401" in logs
     for private_value in ("never-log-this-key", "never-log-this-prompt", "never-log-this-response"):
         assert private_value not in logs
+
+
+def test_deadpool_accepts_full_client_context_through_provider_validation(monkeypatch):
+    monkeypatch.setenv("GEMINI_API_KEY", "test-key")
+    captured = {}
+
+    def validate_and_generate(request):
+        messages = GroqNarrativeAdapter._validate_messages(request.messages)
+        captured["system_chars"] = len(messages[0]["content"])
+        return "Resposta gerada com o contexto completo."
+
+    monkeypatch.setattr(main.gemini, "generate", validate_and_generate)
+    monkeypatch.setattr(main.groq, "generate", lambda _request: (_ for _ in ()).throw(
+        AssertionError("Groq should not run after a valid Gemini response")))
+    response = client.post("/v1/ai/deadpool-line", json={"context_id": "app",
+                           "prompt": "Quem está no meu time?", "game_context": "x" * 6_000})
+    assert response.status_code == 200
+    assert response.json() == {"text": "Resposta gerada com o contexto completo.", "fallback": False}
+    assert captured["system_chars"] > 4_000
+    assert captured["system_chars"] < MAX_MESSAGE_CHARS

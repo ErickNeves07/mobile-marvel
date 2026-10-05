@@ -1,5 +1,13 @@
 # Current state - 2026-10-05
 
+## Spec 047 - regressões Deadpool, Nexus e recompensa corrigidas localmente
+
+- Causa do Deadpool: o cliente permitia 6.000 caracteres de `game_context`, mas os adapters Gemini/Groq rejeitavam mensagens acima de 4.000. Como o backend acrescenta instruções e fatos, a chamada real caía para a resposta local. Limite agora é 8.000; há teste de rota pelo validador real com Gemini mockado.
+- Retry HTTP 422 do app preserva o `context_id` original (`app`), como antes da regressão introduzida em `05170f7`.
+- Nexus remove o token `%1$s` da string de acessibilidade. Vitória protege a cena contra callbacks atrasados da animação; o botão indica processamento e volta a ficar ativo em falha. Repetir missão mostra a cena, mas os recursos seguem idempotentes.
+- Validação em 2026-10-05: backend `pip check` limpo e **60 testes pytest passaram**; Android `testDebugUnitTest`, `assembleDebugAndroidTest`, `lintDebug` e `assembleDebug` passaram offline usando cache local. Testes instrumentados compilados; execução em aparelho não feita.
+- Render precisa receber o backend atualizado para Deadpool usar contexto completo. Nenhuma chamada ao provider, instalação, commit, push ou deploy foi feita nesta sessão. Próximo: Erick faz deploy do backend e solicita instalação quando quiser testar o APK.
+
 ## Spec 046 - implemented locally, awaiting deployment
 
 - Restored Reed Richards and Doctor Strange portraits/roles in the Nexus Chamber panel. The one-time Chamber briefing now uses `chamber_briefing_seen_v2`; its replay button is removed.

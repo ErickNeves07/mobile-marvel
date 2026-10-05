@@ -122,3 +122,7 @@ Formato: `DEC-NNN | data | decisão | motivo | consequências`.
 **DEC-098 | 2026-10-05 | Theme-aware primary actions.** Keep the existing cyan/quartet action palette in light mode. In dark mode, shared actions and shop purchases use dark surfaces with gold text/borders; gameplay and disabled-state rules do not change.
 
 **DEC-099 | 2026-10-05 | Super follows the active hero.** The control names the current hero's move and says the charge is shared, while preserving the current global meter and combat rules.
+
+**DEC-100 | 2026-10-05 | Limite de contexto do Deadpool.** Manter `game_context` do cliente limitado a 6.000 caracteres e validar mensagens de provider até 8.000, reservando espaço para instruções/fatos do backend. Gemini e Groq usam o mesmo limite; testes usam providers mockados.
+
+**DEC-101 | 2026-10-05 | Replay de vitória mostra a cena sem repetir recursos.** Cada coleta válida mostra a cena authored; o registro persistido continua idempotente e uma missão já coletada mostra o recibo existente sem conceder XP, créditos ou fragmentos outra vez.

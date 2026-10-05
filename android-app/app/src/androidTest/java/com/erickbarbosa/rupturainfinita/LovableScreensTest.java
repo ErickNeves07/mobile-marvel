@@ -147,6 +147,8 @@ public final class LovableScreensTest {
         assertTrue(hasText(root, "CÂMARA DE VARIANTES"));
         assertTrue(hasText(root, "Reed Richards"));
         assertTrue(hasText(root, "Doutor Estranho"));
+        assertFalse(hasText(root, "Abrir %1$s"));
+        assertTrue(hasContentDescription(root, "Abrir:"));
         assertTrue(findConstellation(root) != null);
         instrumentation.runOnMainSync(() -> capture(activity, root, "nexus-032.png"));
         Method daily = MainActivity.class.getDeclaredMethod("showDailyChallengeScreen");
@@ -372,6 +374,22 @@ public final class LovableScreensTest {
         instrumentation.runOnMainSync(() -> findText(root, "COLETAR RECOMPENSA").performClick());
         Thread.sleep(800);
         instrumentation.waitForIdleSync();
+        assertTrue("The authored post-battle scene must remain visible", findTag(root,
+                "campaign-story-sequence") != null);
+        Method finishAnimation = MainActivity.class.getDeclaredMethod("finishBattleActionAnimation",
+                LovableBattle.class, CampaignState.class);
+        finishAnimation.setAccessible(true);
+        instrumentation.runOnMainSync(() -> invoke(finishAnimation, activity, battleState, campaign));
+        assertTrue("A stale action timer must not replace the story", findTag(root,
+                "campaign-story-sequence") != null);
+        while (findText(root, "CONTINUAR") != null) {
+            instrumentation.runOnMainSync(() -> findText(root, "CONTINUAR").performClick());
+            instrumentation.waitForIdleSync();
+        }
+        assertTrue(findText(root, "ENCERRAR CENA") != null);
+        instrumentation.runOnMainSync(() -> findText(root, "ENCERRAR CENA").performClick());
+        Thread.sleep(800);
+        instrumentation.waitForIdleSync();
         assertTrue(hasText(root, "RECOMPENSAS"));
         assertTrue(hasText(root, "Fragmentos da Mente  +1"));
         assertTrue(hasText(root, "Fragmentos do Espaço  +1"));
@@ -560,6 +578,18 @@ public final class LovableScreensTest {
     }
 
     private static boolean hasText(View view, String target) { return findText(view, target) != null; }
+
+    private static boolean hasContentDescription(View view, String target) {
+        CharSequence description = view.getContentDescription();
+        if (description != null && description.toString().contains(target)) return true;
+        if (view instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) view;
+            for (int index = 0; index < group.getChildCount(); index++) {
+                if (hasContentDescription(group.getChildAt(index), target)) return true;
+            }
+        }
+        return false;
+    }
 
     private static View findTag(View view, String target) {
         if (target.equals(view.getTag())) return view;

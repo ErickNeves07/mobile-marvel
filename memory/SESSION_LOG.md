@@ -519,3 +519,10 @@ Commit 49c535e publicado em origin/main. O trabalho no repositório está comple
 - Highlighted the active fighter, redesigned the charged Super, and restyled global actions/shop buttons for dark mode while retaining the light-mode action palette.
 - Android validator passed JVM tests, lint, debug build and instrumentation APK compilation; instrumentation was not run on device. Backend validation passed `pip check` and 59 pytest tests. One explicitly approved minimal live generation earlier in this task returned `fallback=false`.
 - Commit `873d55c` pushed to origin. APK 0.12.0 installed via `adb install -r` on phone `C6OFVWYD4DZTBA5H`; data preserved, launch verified by process ID. Render deploy remains pending.
+
+# 2026-10-05 - Spec 047: Deadpool e fluxo de vitória
+
+- Comparado com o fluxo pré-`05170f7`: o retry legado perdeu o `context_id` recebido e agora preserva `app`. Causa principal da IA local: adapter limitava a 4.000 caracteres enquanto o cliente podia enviar 6.000 mais o system prompt. Limite do adapter subiu para 8.000 para Gemini/Groq.
+- Removido placeholder literal da acessibilidade no Nexus. Callback atrasado de batalha não substitui a cena pós-vitória; recompensa indica processamento e permite retry em erro; replay também mostra cena, mantendo recursos idempotentes.
+- Backend passou `pip check` e 60 testes pytest. Android passou unit tests, compilação de androidTest, lint e assemble debug. Instrumentação runtime e ações externas ficaram pendentes.
+- Erick precisa publicar o backend no Render e testar o Deadpool depois. Nenhum deploy/instalação foi feito.

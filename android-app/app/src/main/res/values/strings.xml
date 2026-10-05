@@ -55,7 +55,7 @@
     <string name="campaign_fantastic_four_team">Equipe: Quarteto Fantástico</string>
     <string name="campaign_preview_status">Selecione uma missão para jogar</string>
     <string name="nexus_shortcuts_heading">Acessos rápidos</string>
-    <string name="nexus_shortcut_action">Abrir %1$s</string>
+    <string name="nexus_shortcut_action">Abrir</string>
     <string name="forge_socket_heading">Manopla de Contenção · encaixes</string>
     <string name="forge_inventory_title">Seu inventário</string>
     <string name="forge_open_details">Ver detalhes e fusões ›</string>
