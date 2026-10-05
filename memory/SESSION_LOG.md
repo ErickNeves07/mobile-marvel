@@ -533,4 +533,4 @@ Commit 49c535e publicado em origin/main. O trabalho no repositório está comple
 - Inspecionadas as três páginas públicas Lovable em perfil Chrome temporário isolado. A revisão automática rejeitou abrir a janela pessoal do Chrome por conter WhatsApp; nenhuma página privada foi lida.
 - Implementados visual suave e colorido em todo o Android, abertura desenhada em código, Nexus com dados reais e mapa com estados reais e nove retratos de chefes. Corrigido corte dos controles de topo visto no emulador; retratos pendentes têm inicial visível.
 - JVM, lint, APK debug e **42/42 testes instrumentados** passaram após a última mudança de interface. O APK `0.13.0-playful` passou novamente por JVM/lint/build. Capturas finais registradas em `reports/playful-design/`.
-- Próximo: revisar diff, fazer commit e push somente da branch experimental. Não foi feito deploy ou instalação no celular físico.
+- Commit `3f06b71` enviado a `origin/feat/playful-design`; `origin/main` ficou em `eee2fee`. Não foi feito deploy ou instalação no celular físico. Próximo: revisão do design por Erick nas capturas e eventual pedido de instalação da branch.

@@ -1,6 +1,6 @@
 # 048 - Evidence
 
-Status: implementation and local validation complete; remote branch publication pending.
+Status: complete; branch published separately from `main`.
 
 ## Prototype research
 
@@ -18,3 +18,9 @@ Status: implementation and local validation complete; remote branch publication 
 - Reviewed emulator captures: `reports/playful-design/intro.png`, `nexus-dark.png`, `campaign-dark.png`, `campaign-light.png`. A narrow screen exposed clipped top controls; labels were shortened while full accessibility descriptions remained. Boss portraits now show a legible initial while the existing Comic Vine loader resolves.
 - The emulator did not resolve remote Comic Vine portraits during capture. The portrait loaders, IDs, attribution and fallbacks remain wired; live editorial quality must be reviewed when the branch is installed on a networked device.
 - No backend, gameplay rules, rewards, provider keys or user data were modified. The production phone and `main` were not changed.
+
+## Publication
+
+- `git diff --check` and `git diff --cached --check` passed; staged file list contained only Android UI/tests, spec/memory and four emulator captures. No `.env`, key, APK or cache was committed.
+- Conventional Commit `3f06b71` (`feat(ui): redesign Android app with playful visual system`) was pushed to `origin/feat/playful-design` on 2026-10-05. The follow-up documentation commit records closure.
+- `origin/main` remained at `eee2fee`. No merge, Render deploy or installation on the physical phone was performed.

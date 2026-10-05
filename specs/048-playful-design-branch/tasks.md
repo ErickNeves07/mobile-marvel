@@ -7,4 +7,4 @@
 - [x] T05 - Recompose nine-campaign map with real states and preserved Comic Vine boss portraits.
 - [x] T06 - Extend visual language to all screens in confirmed scope, keeping behavior and editorial images intact.
 - [x] T07 - Add focused UI checks, run unit/lint/build/instrumentation validation, inspect screenshots and accessibility.
-- [ ] T08 - Review diff/secrets, update evidence and memory, commit in English Conventional Commits, and push `feat/playful-design` to origin without altering `main`.
+- [x] T08 - Review diff/secrets, update evidence and memory, commit in English Conventional Commits, and push `feat/playful-design` to origin without altering `main`.

@@ -5,7 +5,7 @@
 - Erick confirmou o alcance no app inteiro. A branch `feat/playful-design` parte de `origin/main` em `eee2fee`; a `main` permanece com o design anterior.
 - Abertura, Nexus e mapa de nove capítulos foram recompostos com base nas três páginas públicas do Lovable. Paleta, tipografia, cards, botões, navegação e cantos arredondados alcançam Forja, Coleção, batalha, desafio, Deadpool e subfluxos. Retratos continuam via Comic Vine; números e bloqueios vêm do banco local.
 - APK experimental identificado como `versionCode=13` / `0.13.0-playful`. Testes Android JVM, lint e debug passaram; instrumentação no emulador **42/42** após a última mudança de UI. Capturas revisadas em `reports/playful-design/` para abertura, Nexus e campanhas nos modos escuro/claro.
-- Próximo: revisar Git/segredos, registrar commit Conventional Commit e enviar somente `feat/playful-design` ao remoto. Não mesclar nem instalar no celular físico nesta tarefa.
+- Commit `3f06b71` foi enviado a `origin/feat/playful-design`. `origin/main` permanece em `eee2fee`. Próximo: Erick pode revisar as capturas e, quando quiser, pedir instalação da branch no celular. Não houve merge, deploy Render nem instalação física nesta tarefa.
 
 ## Spec 047 - regressões Deadpool, Nexus e recompensa corrigidas localmente
 
