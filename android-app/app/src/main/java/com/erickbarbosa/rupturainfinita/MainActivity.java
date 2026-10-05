@@ -54,6 +54,8 @@ public final class MainActivity extends AppCompatActivity {
     private boolean battleOpen;
     private boolean storyOpen;
     private int deadpoolPortraitTurn;
+    private int deadpoolOfflineTurn;
+    private Runnable storyFinish;
     private String currentBattleContext = "Nenhuma batalha está em andamento.";
     private String currentTeamContext = "Equipe ainda não escolhida para uma batalha.";
     private BattleMission selectedBattleMission;
@@ -107,7 +109,10 @@ public final class MainActivity extends AppCompatActivity {
         portraitLoader = new EditorialPortraitLoader(backendClient());
         preloadEditorialPortraits();
         transientBack = new OnBackPressedCallback(false) {
-            @Override public void handleOnBackPressed() { renderShell(); }
+            @Override public void handleOnBackPressed() {
+                if (storyOpen && storyFinish != null) storyFinish.run();
+                else renderShell();
+            }
         };
         getOnBackPressedDispatcher().addCallback(this, transientBack);
         if (introVisible) renderIntro(); else renderShell();
@@ -122,6 +127,8 @@ public final class MainActivity extends AppCompatActivity {
 
     private void renderShell() {
         battleOpen = false;
+        storyOpen = false;
+        storyFinish = null;
         currentBattleContext = "Nenhuma batalha está em andamento.";
         transientScreen = false;
         if (transientBack != null) transientBack.setEnabled(false);
@@ -298,9 +305,11 @@ public final class MainActivity extends AppCompatActivity {
             if (finished[0]) return;
             finished[0] = true;
             storyOpen = false;
+            storyFinish = null;
             if (after != null) after.run();
             else renderShell();
         };
+        storyFinish = finish;
         Runnable[] renderLine = new Runnable[1];
         renderLine[0] = () -> {
             if (index[0] >= scene.lines.size()) { finish.run(); return; }
@@ -317,9 +326,20 @@ public final class MainActivity extends AppCompatActivity {
             speaker.setText(speakerName);
             dialogue.setText(line.text);
             progress.setText((index[0] + 1) + " / " + scene.lines.size());
+            next.setText(index[0] + 1 == scene.lines.size() ? "ENCERRAR CENA" : "CONTINUAR");
             if (line.opponent) portraitLoader.loadOpponent(characterId, speakerName, portrait, attribution);
             else portraitLoader.load(characterId, speakerName, portrait, attribution);
             if (ValueAnimator.areAnimatorsEnabled()) {
+                portrait.animate().cancel();
+                portrait.setAlpha(0f);
+                portrait.setScaleX(.94f);
+                portrait.setScaleY(.94f);
+                portrait.animate().alpha(1f).scaleX(1f).scaleY(1f)
+                        .setDuration(animationDelay(300)).start();
+                speaker.animate().cancel();
+                speaker.setAlpha(0f);
+                speaker.animate().alpha(1f).setDuration(animationDelay(180)).start();
+                dialogue.animate().cancel();
                 dialogue.setAlpha(0f);
                 dialogue.setTranslationY(dimension(R.dimen.space_2));
                 dialogue.animate().alpha(1f).translationY(0f).setDuration(animationDelay(240)).start();
@@ -394,8 +414,10 @@ public final class MainActivity extends AppCompatActivity {
         LinearLayout page = new LinearLayout(this);
         page.setOrientation(LinearLayout.VERTICAL);
         LinearLayout themeRow = new LinearLayout(this);
-        themeRow.setGravity(Gravity.END);
+        themeRow.setGravity(Gravity.CENTER_VERTICAL);
         page.addView(themeRow, new LinearLayout.LayoutParams(-1, -2));
+        addShopButton(themeRow);
+        themeRow.addView(new View(this), new LinearLayout.LayoutParams(0, 1, 1f));
         addThemeToggle(themeRow);
         addSoundToggle(themeRow);
         if (destination == AppDestination.NEXUS) {
@@ -492,6 +514,149 @@ public final class MainActivity extends AppCompatActivity {
     private void playUiSound() {
         if (!getPreferences(MODE_PRIVATE).getBoolean("battle_sounds", true) || battleTones == null) return;
         battleTones.startTone(ToneGenerator.TONE_PROP_ACK, 90);
+    }
+
+    private void addShopButton(LinearLayout parent) {
+        TextView shop = text("◈  LOJA", R.style.TextAppearance_Ruptura_Label,
+                R.color.accent_gold, true);
+        shop.setGravity(Gravity.CENTER);
+        shop.setMinimumHeight(dimension(R.dimen.target_min));
+        shop.setPadding(dimension(R.dimen.space_3), 0, dimension(R.dimen.space_3), 0);
+        shop.setBackground(background(R.color.surface_primary, R.color.accent_gold,
+                dimension(R.dimen.radius_pill)));
+        shop.setContentDescription("Abrir loja de fragmentos");
+        shop.setFocusable(true);
+        shop.setClickable(true);
+        shop.setOnClickListener(view -> {
+            playUiSound();
+            showFragmentShopScreen();
+        });
+        parent.addView(shop, new LinearLayout.LayoutParams(-2, -2));
+    }
+
+    private void showFragmentShopScreen() {
+        transientScreen = true;
+        transientBack.setEnabled(true);
+        navigationBar.setVisibility(View.VISIBLE);
+        contentContainer.removeAllViews();
+        ScrollView scroll = new ScrollView(this);
+        scroll.setFillViewport(true);
+        scroll.setBackgroundColor(getColor(R.color.canvas));
+        contentContainer.addView(scroll, new FrameLayout.LayoutParams(-1, -1));
+        LinearLayout page = new LinearLayout(this);
+        page.setOrientation(LinearLayout.VERTICAL);
+        page.setPadding(dimension(R.dimen.space_4), dimension(R.dimen.space_4),
+                dimension(R.dimen.space_4), dimension(R.dimen.space_6));
+        scroll.addView(page);
+
+        LinearLayout header = new LinearLayout(this);
+        header.setGravity(Gravity.CENTER_VERTICAL);
+        page.addView(header, new LinearLayout.LayoutParams(-1, -2));
+        TextView back = text("‹", R.style.TextAppearance_Ruptura_Title,
+                R.color.text_primary, true);
+        back.setGravity(Gravity.CENTER);
+        back.setMinWidth(dimension(R.dimen.target_min));
+        back.setMinHeight(dimension(R.dimen.target_min));
+        back.setContentDescription("Voltar ao jogo");
+        back.setBackground(background(R.color.surface_primary, R.color.border_subtle,
+                dimension(R.dimen.radius_pill)));
+        back.setOnClickListener(view -> renderShell());
+        header.addView(back);
+        TextView title = text("LOJA DE FRAGMENTOS", R.style.TextAppearance_Ruptura_Display,
+                R.color.text_primary, true);
+        LinearLayout.LayoutParams titleParams = new LinearLayout.LayoutParams(0, -2, 1f);
+        titleParams.leftMargin = dimension(R.dimen.space_3);
+        header.addView(title, titleParams);
+        page.addView(text("XP libera novas cores. Créditos compram um Fragmento por vez; as fusões continuam na Forja.",
+                R.style.TextAppearance_Ruptura_Body, R.color.text_secondary, false));
+
+        LinearLayout state = new LinearLayout(this);
+        state.setOrientation(LinearLayout.VERTICAL);
+        LinearLayout.LayoutParams stateParams = new LinearLayout.LayoutParams(-1, -2);
+        stateParams.topMargin = dimension(R.dimen.space_3);
+        page.addView(state, stateParams);
+        state.addView(text("CARREGANDO SALDO E CATÁLOGO…",
+                R.style.TextAppearance_Ruptura_Caption, R.color.text_secondary, false));
+        forgeExecutor.execute(() -> {
+            PlayerResources resources = forgeRepository.loadPlayerResources();
+            ForgeInventory inventory = forgeRepository.load();
+            runOnUiThread(() -> {
+                if (state.getParent() == page) renderFragmentShopState(state, resources, inventory);
+            });
+        });
+    }
+
+    private void renderFragmentShopState(LinearLayout state, PlayerResources resources,
+                                        ForgeInventory inventory) {
+        state.removeAllViews();
+        LinearLayout balance = card();
+        state.addView(balance, new LinearLayout.LayoutParams(-1, -2));
+        balance.addView(text("SALDO DISPONÍVEL", R.style.TextAppearance_Ruptura_Label,
+                R.color.accent_gold, true));
+        balance.addView(text(formatAmount(resources.credits) + " créditos  ·  "
+                        + formatAmount(resources.xp) + " XP",
+                R.style.TextAppearance_Ruptura_Title, R.color.text_primary, true));
+
+        for (InfinityStone stone : InfinityStone.values()) {
+            FragmentShopOffer offer = FragmentShopOffer.forStone(stone);
+            LinearLayout item = card();
+            LinearLayout.LayoutParams itemParams = new LinearLayout.LayoutParams(-1, -2);
+            itemParams.topMargin = dimension(R.dimen.space_3);
+            state.addView(item, itemParams);
+            item.addView(text(getString(stone.labelRes).toUpperCase(java.util.Locale.ROOT),
+                    R.style.TextAppearance_Ruptura_Label, stoneColor(stone), true));
+            item.addView(text(inventory.count(stone, ForgeStage.FRAGMENT) + " Fragmentos · "
+                            + formatAmount(offer.priceCredits) + " créditos cada",
+                    R.style.TextAppearance_Ruptura_Body, R.color.text_primary, false));
+            boolean unlocked = offer.isUnlocked(resources.xp);
+            boolean canBuy = unlocked && resources.credits >= offer.priceCredits
+                    && inventory.count(stone, ForgeStage.FRAGMENT) < ForgePolicy.MAX_COUNT;
+            String stateText = unlocked ? "Disponível com " + offer.minimumXp + " XP"
+                    : "Bloqueado · requer " + formatAmount(offer.minimumXp) + " XP";
+            item.addView(text(stateText, R.style.TextAppearance_Ruptura_Caption,
+                    unlocked ? R.color.text_secondary : R.color.accent_gold, false));
+            String buyLabel = !unlocked ? "DESBLOQUEIA COM XP"
+                    : inventory.count(stone, ForgeStage.FRAGMENT) >= ForgePolicy.MAX_COUNT
+                    ? "INVENTÁRIO CHEIO" : "COMPRAR 1 FRAGMENTO";
+            TextView buy = action(buyLabel, () -> purchaseShopFragment(stone, state));
+            buy.setEnabled(canBuy);
+            buy.setAlpha(canBuy ? 1f : .55f);
+            LinearLayout.LayoutParams buyParams = new LinearLayout.LayoutParams(-1, -2);
+            buyParams.topMargin = dimension(R.dimen.space_2);
+            item.addView(buy, buyParams);
+            if (unlocked && resources.credits < offer.priceCredits) {
+                item.addView(text("Créditos insuficientes para esta compra.",
+                        R.style.TextAppearance_Ruptura_Caption, R.color.text_secondary, false));
+            }
+        }
+    }
+
+    private void purchaseShopFragment(InfinityStone stone, LinearLayout state) {
+        String operationId = java.util.UUID.randomUUID().toString();
+        forgeExecutor.execute(() -> {
+            try {
+                boolean purchased = forgeRepository.purchaseFragment(operationId, stone);
+                PlayerResources updatedResources = forgeRepository.loadPlayerResources();
+                ForgeInventory updatedInventory = forgeRepository.load();
+                runOnUiThread(() -> {
+                    if (state.getParent() == null) return;
+                    renderFragmentShopState(state, updatedResources, updatedInventory);
+                    android.widget.Toast.makeText(this, purchased ? "Fragmento adicionado à Forja"
+                                    : "Compra já registrada", android.widget.Toast.LENGTH_SHORT).show();
+                });
+            } catch (ForgeException error) {
+                PlayerResources updatedResources = forgeRepository.loadPlayerResources();
+                ForgeInventory updatedInventory = forgeRepository.load();
+                runOnUiThread(() -> {
+                    if (state.getParent() != null)
+                        renderFragmentShopState(state, updatedResources, updatedInventory);
+                    String message = error.reason == ForgeException.Reason.INSUFFICIENT_CREDITS
+                            ? "Créditos insuficientes" : error.reason == ForgeException.Reason.INSUFFICIENT_XP
+                            ? "Ainda falta XP para liberar esta Joia" : "Inventário cheio";
+                    android.widget.Toast.makeText(this, message, android.widget.Toast.LENGTH_LONG).show();
+                });
+            }
+        });
     }
 
     private void startBattleMusic() {
@@ -620,41 +785,13 @@ public final class MainActivity extends AppCompatActivity {
         hero.addView(title);
         View spacer = new View(this);
         hero.addView(spacer, new LinearLayout.LayoutParams(1, 0, 1f));
-        LinearLayout people = new LinearLayout(this);
-        people.setGravity(Gravity.BOTTOM);
-        addNexusCompanion(people, "senhor-fantastico", "Reed Richards",
-                R.string.nexus_reed);
-        addNexusCompanion(people, "doutor-estranho", "Doutor Estranho",
-                R.string.nexus_strange);
-        hero.addView(people);
+        TextView status = text("CÂMARA DE VARIANTES  ·  CONTENÇÃO BAXTER + SELOS MÍSTICOS",
+                R.style.TextAppearance_Ruptura_Caption, R.color.accent_cyan, true);
+        status.setGravity(Gravity.CENTER);
+        status.setPadding(dimension(R.dimen.space_2), dimension(R.dimen.space_2),
+                dimension(R.dimen.space_2), dimension(R.dimen.space_2));
+        hero.addView(status);
         page.addView(hero, new LinearLayout.LayoutParams(-1, dimension(R.dimen.nexus_hero_height)));
-    }
-
-    private void addNexusCompanion(LinearLayout people, String gameId, String name,
-                                   int labelRes) {
-        LinearLayout companion = new LinearLayout(this);
-        companion.setOrientation(LinearLayout.VERTICAL);
-        companion.setGravity(Gravity.CENTER_HORIZONTAL);
-        LinearLayout.LayoutParams companionParams = new LinearLayout.LayoutParams(0, -2, 1f);
-        companionParams.leftMargin = dimension(R.dimen.space_1);
-        companionParams.rightMargin = dimension(R.dimen.space_1);
-        people.addView(companion, companionParams);
-        ImageView portrait = new ImageView(this);
-        portrait.setScaleType(ImageView.ScaleType.FIT_CENTER);
-        portrait.setBackground(background(R.color.surface_primary, R.color.border_subtle,
-                dimension(R.dimen.radius_card)));
-        companion.addView(portrait, new LinearLayout.LayoutParams(-1,
-                dimension(R.dimen.space_8) * 3));
-        TextView label = text(labelRes, R.style.TextAppearance_Ruptura_Caption,
-                R.color.text_primary, true);
-        label.setGravity(Gravity.CENTER);
-        companion.addView(label);
-        TextView credit = text(R.string.editorial_portrait_loading,
-                R.style.TextAppearance_Ruptura_Caption, R.color.text_secondary, false);
-        credit.setGravity(Gravity.CENTER);
-        credit.setMinHeight(dimension(R.dimen.target_min));
-        companion.addView(credit);
-        portraitLoader.load(gameId, name, portrait, credit);
     }
 
     private void renderNexusResources(LinearLayout page) {
@@ -1295,6 +1432,15 @@ public final class MainActivity extends AppCompatActivity {
     private void showCharacterVariants(GameCatalogCharacter character,
                                        List<GameCatalogCharacter> roster,
                                        GameVariantTier focusTier) {
+        if (forgeRepository.isGauntletActivated()
+                && !getPreferences(MODE_PRIVATE).getBoolean("chamber_briefing_seen", false)) {
+            showStorySequence(CampaignStory.chamberOpening(), null, () -> {
+                getPreferences(MODE_PRIVATE).edit().putBoolean("chamber_briefing_seen", true).apply();
+                showCharacterVariants(character, roster, focusTier);
+            });
+            return;
+        }
+        navigationBar.setVisibility(View.VISIBLE);
         contentContainer.removeAllViews();
         ScrollView scroll = new ScrollView(this);
         scroll.setBackgroundColor(getColor(R.color.canvas));
@@ -1309,6 +1455,14 @@ public final class MainActivity extends AppCompatActivity {
         LinearLayout.LayoutParams titleParams = new LinearLayout.LayoutParams(-1, -2);
         titleParams.topMargin = dimension(R.dimen.space_4);
         page.addView(title, titleParams);
+        if (forgeRepository.isGauntletActivated()) {
+            TextView briefing = action("POR QUE EXISTE A CÂMARA?  ·  REVER EXPLICAÇÃO", () ->
+                    showStorySequence(CampaignStory.chamberOpening(), null,
+                            () -> showCharacterVariants(character, roster, focusTier)));
+            LinearLayout.LayoutParams briefingParams = new LinearLayout.LayoutParams(-1, -2);
+            briefingParams.topMargin = dimension(R.dimen.space_2);
+            page.addView(briefing, briefingParams);
+        }
         ImageView cover = editorialImage(page, dimension(R.dimen.space_8) * 6);
         TextView source = text(R.string.editorial_portrait_loading,
                 R.style.TextAppearance_Ruptura_Caption, R.color.text_secondary, false);
@@ -1770,12 +1924,16 @@ public final class MainActivity extends AppCompatActivity {
         if (!ask.isEnabled()) return;
         ask.setEnabled(false);
         answer.setText(R.string.deadpool_loading);
+        final int offlineTurn = deadpoolOfflineTurn++;
         editorialExecutor.execute(() -> {
+            String gameContext;
+            try { gameContext = deadpoolGameContext(); }
+            catch (RuntimeException ignored) { gameContext = ""; }
             try {
                 org.json.JSONObject request = new org.json.JSONObject();
                 request.put("context_id", contextId);
                 request.put("prompt", prompt);
-                request.put("game_context", deadpoolGameContext());
+                request.put("game_context", gameContext);
                 BackendClient client = backendClient();
                 org.json.JSONObject response;
                 try {
@@ -1783,15 +1941,18 @@ public final class MainActivity extends AppCompatActivity {
                 } catch (BackendClient.HttpStatusException error) {
                     if (!BackendClient.shouldRetryDeadpoolWithoutContext(error.statusCode, request))
                         throw error;
-                    request.remove("game_context");
-                    request.put("prompt", DeadpoolPrompt.legacy(prompt, deadpoolGameContext()));
-                    response = client.post("/v1/ai/deadpool-line", request);
+                    org.json.JSONObject legacy = new org.json.JSONObject();
+                    legacy.put("context_id", "nexus");
+                    legacy.put("prompt", DeadpoolPrompt.legacy(prompt, gameContext));
+                    response = client.post("/v1/ai/deadpool-line", legacy);
                 }
                 String line = response.getString("text");
                 boolean fallback = response.optBoolean("fallback", true);
+                if (fallback) line = DeadpoolOfflineReply.respond(prompt, gameContext, offlineTurn);
+                String answerText = fallback ? line + "\n\n" + getString(R.string.deadpool_offline)
+                        : line;
                 runOnUiThread(() -> {
-                    answer.setText(fallback ? line + "\n\n" + getString(R.string.deadpool_offline)
-                            : line);
+                    answer.setText(answerText);
                     deadpoolPortraitTurn++;
                     GameVariantTier[] tiers = GameVariantTier.values();
                     portraitLoader.loadVariant("deadpool", tiers[deadpoolPortraitTurn % tiers.length],
@@ -1799,8 +1960,13 @@ public final class MainActivity extends AppCompatActivity {
                     ask.setEnabled(true);
                 });
             } catch (Exception error) {
+                String localLine = DeadpoolOfflineReply.respond(prompt, gameContext, offlineTurn);
                 runOnUiThread(() -> {
-                    answer.setText(R.string.deadpool_error);
+                    answer.setText(localLine + "\n\n" + getString(R.string.deadpool_offline));
+                    deadpoolPortraitTurn++;
+                    GameVariantTier[] tiers = GameVariantTier.values();
+                    portraitLoader.loadVariant("deadpool", tiers[deadpoolPortraitTurn % tiers.length],
+                            "Deadpool", avatar, null);
                     ask.setEnabled(true);
                 });
             }

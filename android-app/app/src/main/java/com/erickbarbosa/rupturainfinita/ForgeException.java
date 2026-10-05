@@ -1,7 +1,7 @@
 package com.erickbarbosa.rupturainfinita;
 
 final class ForgeException extends RuntimeException {
-    enum Reason { INSUFFICIENT_ITEMS, INVENTORY_FULL }
+    enum Reason { INSUFFICIENT_ITEMS, INVENTORY_FULL, INSUFFICIENT_CREDITS, INSUFFICIENT_XP }
     final Reason reason;
 
     ForgeException(Reason reason) {

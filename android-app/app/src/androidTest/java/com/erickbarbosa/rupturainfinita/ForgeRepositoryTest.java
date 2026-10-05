@@ -325,6 +325,76 @@ public final class ForgeRepositoryTest {
         assertEquals(999, inventory.count(InfinityStone.TIME, ForgeStage.FRAGMENT));
     }
 
+    @Test public void shopPurchaseDebitsCreditsAndAddsOneFragmentOnlyOnce() {
+        repository.loadCampaign("xmen", java.util.Arrays.asList("wolverine", "ciclope", "jean-grey"));
+        assertTrue(repository.completeMission("xmen", 1));
+        PlayerResources before = repository.loadPlayerResources();
+        int beforeFragments = repository.load().count(InfinityStone.SPACE, ForgeStage.FRAGMENT);
+
+        assertTrue(repository.purchaseFragment("shop-space-001", InfinityStone.SPACE));
+        assertFalse(repository.purchaseFragment("shop-space-001", InfinityStone.SPACE));
+
+        PlayerResources after = repository.loadPlayerResources();
+        assertEquals(before.credits - 800, after.credits);
+        assertEquals(before.xp, after.xp);
+        assertEquals(beforeFragments + 1,
+                repository.load().count(InfinityStone.SPACE, ForgeStage.FRAGMENT));
+    }
+
+    @Test public void shopRejectsInsufficientCreditsAndXpWithoutChangingBalances() {
+        try {
+            repository.purchaseFragment("shop-no-credit", InfinityStone.SPACE);
+            fail("Expected insufficient credits");
+        } catch (ForgeException expected) {
+            assertEquals(ForgeException.Reason.INSUFFICIENT_CREDITS, expected.reason);
+        }
+        try {
+            repository.purchaseFragment("shop-no-xp", InfinityStone.SOUL);
+            fail("Expected insufficient XP");
+        } catch (ForgeException expected) {
+            assertEquals(ForgeException.Reason.INSUFFICIENT_XP, expected.reason);
+        }
+        assertEquals(0, repository.loadPlayerResources().credits);
+        assertEquals(0, repository.loadPlayerResources().xp);
+        assertEquals(3, repository.load().count(InfinityStone.SPACE, ForgeStage.FRAGMENT));
+    }
+
+    @Test public void shopInventoryCapRollsBackCredits() {
+        repository.loadCampaign("xmen", java.util.Arrays.asList("wolverine", "ciclope", "jean-grey"));
+        assertTrue(repository.completeMission("xmen", 1));
+        setCount(InfinityStone.SPACE, ForgeStage.FRAGMENT, ForgePolicy.MAX_COUNT);
+        PlayerResources before = repository.loadPlayerResources();
+        try {
+            repository.purchaseFragment("shop-full", InfinityStone.SPACE);
+            fail("Expected full inventory");
+        } catch (ForgeException expected) {
+            assertEquals(ForgeException.Reason.INVENTORY_FULL, expected.reason);
+        }
+        assertEquals(before.credits, repository.loadPlayerResources().credits);
+        assertEquals(ForgePolicy.MAX_COUNT,
+                repository.load().count(InfinityStone.SPACE, ForgeStage.FRAGMENT));
+    }
+
+    @Test public void versionSevenMigrationAddsShopLedgerWithoutChangingProgress() {
+        setCount(InfinityStone.REALITY, ForgeStage.FRAGMENT, 17);
+        ContentValues resources = new ContentValues();
+        resources.put("credits", 2_500L);
+        resources.put("xp", 1_760L);
+        repository.getWritableDatabase().update("player_resources", resources, "singleton_id=1", null);
+        SQLiteDatabase legacy = repository.getWritableDatabase();
+        legacy.execSQL("DROP TABLE shop_purchases");
+        legacy.setVersion(7);
+        repository.close();
+        repository = new ForgeRepository(context);
+
+        assertEquals(17, repository.load().count(InfinityStone.REALITY, ForgeStage.FRAGMENT));
+        assertEquals(2_500, repository.loadPlayerResources().credits);
+        assertEquals(1_760, repository.loadPlayerResources().xp);
+        assertTrue(repository.purchaseFragment("shop-after-v7", InfinityStone.REALITY));
+        assertEquals(1_500, repository.loadPlayerResources().credits);
+        assertEquals(18, repository.load().count(InfinityStone.REALITY, ForgeStage.FRAGMENT));
+    }
+
     private void setCount(InfinityStone stone, ForgeStage stage, int count) {
         ContentValues row = new ContentValues();
         row.put("count", count);

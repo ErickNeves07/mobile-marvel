@@ -18,7 +18,7 @@ import java.util.List;
 /** Local transactional inventory. Completion events are supplied only by real game flows. */
 final class ForgeRepository extends SQLiteOpenHelper {
     private static final String DB_NAME = "forge_inventory.db";
-    private static final int DB_VERSION = 7;
+    private static final int DB_VERSION = 8;
     private static final String[] STARTER_IDS = {"homem-aranha", "wolverine", "tocha-humana"};
     private static final String COUNTS = "inventory";
     private static final String REWARDS = "applied_rewards";
@@ -39,6 +39,7 @@ final class ForgeRepository extends SQLiteOpenHelper {
         createResourceTable(db);
         createCharacterOwnership(db);
         createRewardReceiptTable(db);
+        createShopPurchaseTable(db);
         db.beginTransaction();
         try {
             for (InfinityStone stone : InfinityStone.values()) {
@@ -78,6 +79,7 @@ final class ForgeRepository extends SQLiteOpenHelper {
                     + "SELECT DISTINCT character_id FROM variant_ownership");
         }
         if (oldVersion < 7 && newVersion >= 7) createRewardReceiptTable(db);
+        if (oldVersion < 8 && newVersion >= 8) createShopPurchaseTable(db);
         if (newVersion != DB_VERSION) throw new IllegalStateException("No Forge database migration is defined");
     }
 
@@ -102,6 +104,12 @@ final class ForgeRepository extends SQLiteOpenHelper {
                 + "CHECK(singleton_id=1), credits INTEGER NOT NULL CHECK(credits>=0), "
                 + "xp INTEGER NOT NULL CHECK(xp>=0))");
         db.execSQL("INSERT OR IGNORE INTO player_resources(singleton_id,credits,xp) VALUES(1,0,0)");
+    }
+
+    private void createShopPurchaseTable(SQLiteDatabase db) {
+        db.execSQL("CREATE TABLE IF NOT EXISTS shop_purchases (operation_id TEXT PRIMARY KEY NOT NULL, "
+                + "stone TEXT NOT NULL, amount INTEGER NOT NULL CHECK(amount=1), "
+                + "credits_spent INTEGER NOT NULL CHECK(credits_spent>0))");
     }
 
     private void createRewardReceiptTable(SQLiteDatabase db) {
@@ -147,6 +155,50 @@ final class ForgeRepository extends SQLiteOpenHelper {
 
     PlayerResources loadPlayerResources() {
         return readPlayerResources(getReadableDatabase());
+    }
+
+    boolean purchaseFragment(String operationId, InfinityStone stone) {
+        if (operationId == null || operationId.trim().isEmpty() || operationId.length() > 128
+                || stone == null) throw new IllegalArgumentException("Invalid shop purchase");
+        FragmentShopOffer offer = FragmentShopOffer.forStone(stone);
+        SQLiteDatabase db = getWritableDatabase();
+        db.beginTransaction();
+        try {
+            try (Cursor cursor = db.query("shop_purchases", new String[]{"operation_id"},
+                    "operation_id=?", new String[]{operationId}, null, null, null)) {
+                if (cursor.moveToFirst()) {
+                    db.setTransactionSuccessful();
+                    return false;
+                }
+            }
+            PlayerResources current = readPlayerResources(db);
+            if (!offer.isUnlocked(current.xp)) {
+                throw new ForgeException(ForgeException.Reason.INSUFFICIENT_XP);
+            }
+            if (current.credits < offer.priceCredits) {
+                throw new ForgeException(ForgeException.Reason.INSUFFICIENT_CREDITS);
+            }
+            int currentFragments = readCount(db, stone, ForgeStage.FRAGMENT);
+            if (currentFragments >= ForgePolicy.MAX_COUNT) {
+                throw new ForgeException(ForgeException.Reason.INVENTORY_FULL);
+            }
+            ContentValues purchase = new ContentValues();
+            purchase.put("operation_id", operationId);
+            purchase.put("stone", stone.name());
+            purchase.put("amount", 1);
+            purchase.put("credits_spent", offer.priceCredits);
+            db.insertOrThrow("shop_purchases", null, purchase);
+            writeCount(db, stone, ForgeStage.FRAGMENT, currentFragments + 1);
+            ContentValues balance = new ContentValues();
+            balance.put("credits", current.credits - offer.priceCredits);
+            if (db.update("player_resources", balance, "singleton_id=1", null) != 1) {
+                throw new IllegalStateException("Player resources are missing");
+            }
+            db.setTransactionSuccessful();
+            return true;
+        } finally {
+            db.endTransaction();
+        }
     }
 
     private PlayerResources readPlayerResources(SQLiteDatabase db) {

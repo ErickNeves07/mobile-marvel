@@ -2,8 +2,10 @@ package com.erickbarbosa.rupturainfinita;
 
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertEquals;
 
 import android.app.Instrumentation;
+import android.content.ContentValues;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
@@ -25,6 +27,7 @@ import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -88,6 +91,7 @@ public final class LovableScreensTest {
         View root = activity.getWindow().getDecorView();
         assertTrue(hasText(root, "MODO CLARO"));
         assertTrue(hasText(root, "ÁUDIO ON"));
+        assertTrue(hasText(root, "LOJA"));
         Method forge = MainActivity.class.getDeclaredMethod("selectDestination", AppDestination.class);
         forge.setAccessible(true);
         instrumentation.runOnMainSync(() -> invoke(forge, activity, AppDestination.FORGE));
@@ -121,8 +125,9 @@ public final class LovableScreensTest {
         Thread.sleep(700);
         instrumentation.waitForIdleSync();
         View root = activity.getWindow().getDecorView();
-        assertTrue(hasText(root, "Reed Richards"));
-        assertTrue(hasText(root, "Dr. Estranho"));
+        assertTrue(hasText(root, "CÂMARA DE VARIANTES"));
+        assertFalse(hasText(root, "Reed Richards"));
+        assertFalse(hasText(root, "Dr. Estranho"));
         assertTrue(findConstellation(root) != null);
         instrumentation.runOnMainSync(() -> capture(activity, root, "nexus-032.png"));
         Method daily = MainActivity.class.getDeclaredMethod("showDailyChallengeScreen");
@@ -391,6 +396,97 @@ public final class LovableScreensTest {
         instrumentation.waitForIdleSync();
         assertTrue(hasText(root, "INVESTIDA DIRETA"));
         assertTrue(hasText(root, "Homem-Aranha"));
+        instrumentation.runOnMainSync(activity::finish);
+    }
+
+    @Test public void fragmentShopIsReachableFromTopAndShowsLockedStoneCatalog() throws Exception {
+        Instrumentation instrumentation = InstrumentationRegistry.getInstrumentation();
+        MainActivity activity = (MainActivity) instrumentation.startActivitySync(
+                new Intent(instrumentation.getTargetContext(), MainActivity.class)
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+        Method shell = MainActivity.class.getDeclaredMethod("renderShell");
+        shell.setAccessible(true);
+        instrumentation.runOnMainSync(() -> invoke(shell, activity));
+        View root = activity.getWindow().getDecorView();
+        TextView shop = findText(root, "◈  LOJA");
+        assertTrue(shop != null);
+        instrumentation.runOnMainSync(shop::performClick);
+        for (int attempt = 0; attempt < 30 && !hasText(root, "JOIA DO ESPAÇO"); attempt++) {
+            Thread.sleep(100);
+            instrumentation.waitForIdleSync();
+        }
+        assertTrue(hasText(root, "LOJA DE FRAGMENTOS"));
+        assertTrue(hasText(root, "ESPAÇO"));
+        assertTrue(hasText(root, "4.720 XP"));
+        TextView buy = findText(root, "COMPRAR 1 FRAGMENTO");
+        assertTrue(buy != null && !buy.isEnabled());
+        instrumentation.runOnMainSync(activity::finish);
+    }
+
+    @Test public void firstChamberEntryExplainsReedAndStrangeAndBackFinishesTheScene() throws Exception {
+        Instrumentation instrumentation = InstrumentationRegistry.getInstrumentation();
+        MainActivity activity = (MainActivity) instrumentation.startActivitySync(
+                new Intent(instrumentation.getTargetContext(), MainActivity.class)
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+        View root = activity.getWindow().getDecorView();
+        java.lang.reflect.Field repositoryField = MainActivity.class.getDeclaredField("forgeRepository");
+        repositoryField.setAccessible(true);
+        ForgeRepository repository = (ForgeRepository) repositoryField.get(activity);
+        for (InfinityStone stone : InfinityStone.values()) {
+            ContentValues row = new ContentValues();
+            row.put("count", 1);
+            repository.getWritableDatabase().update("inventory", row,
+                    "stone=? AND stage=?", new String[]{stone.name(), ForgeStage.COMPLETE.name()});
+        }
+        assertTrue(repository.activateGauntlet());
+        activity.getPreferences(android.content.Context.MODE_PRIVATE).edit()
+                .remove("chamber_briefing_seen").commit();
+
+        java.lang.reflect.Method loadRoster = MainActivity.class.getDeclaredMethod("loadRoster");
+        loadRoster.setAccessible(true);
+        @SuppressWarnings("unchecked") List<GameCatalogCharacter> roster =
+                (List<GameCatalogCharacter>) loadRoster.invoke(activity);
+        GameCatalogCharacter wolverine = null;
+        for (GameCatalogCharacter character : roster) {
+            if ("wolverine".equals(character.id)) wolverine = character;
+        }
+        assertTrue(wolverine != null);
+        java.lang.reflect.Method variants = MainActivity.class.getDeclaredMethod("showCharacterVariants",
+                GameCatalogCharacter.class, List.class, GameVariantTier.class);
+        variants.setAccessible(true);
+        GameCatalogCharacter selected = wolverine;
+        instrumentation.runOnMainSync(() -> invoke(variants, activity, selected, roster,
+                GameVariantTier.ORIGIN));
+        assertTrue(hasText(root, "POR TRÁS DA CÂMARA"));
+        instrumentation.runOnMainSync(() -> findText(root, "CONTINUAR").performClick());
+        assertTrue(hasText(root, "Meus selos mantêm"));
+        instrumentation.runOnMainSync(() -> findText(root, "CONTINUAR").performClick());
+        assertTrue(hasText(root, "Reed cuida dos números"));
+        instrumentation.runOnMainSync(() -> findText(root, "ENCERRAR CENA").performClick());
+        assertTrue(hasText(root, "POR QUE EXISTE A CÂMARA?"));
+        assertEquals(View.VISIBLE, activity.findViewById(R.id.navigation_bar).getVisibility());
+
+        instrumentation.runOnMainSync(() -> findText(root, "POR QUE EXISTE A CÂMARA?").performClick());
+        assertTrue(hasText(root, "POR TRÁS DA CÂMARA"));
+        instrumentation.runOnMainSync(() -> activity.getOnBackPressedDispatcher().onBackPressed());
+        assertTrue(hasText(root, "POR QUE EXISTE A CÂMARA?"));
+        instrumentation.runOnMainSync(activity::finish);
+    }
+
+    @Test public void androidBackRunsPostBattleContinuationOnlyOnce() throws Exception {
+        Instrumentation instrumentation = InstrumentationRegistry.getInstrumentation();
+        MainActivity activity = (MainActivity) instrumentation.startActivitySync(
+                new Intent(instrumentation.getTargetContext(), MainActivity.class)
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+        Method story = MainActivity.class.getDeclaredMethod("showStorySequence",
+                CampaignStory.Scene.class, List.class, Runnable.class);
+        story.setAccessible(true);
+        AtomicInteger continuations = new AtomicInteger();
+        instrumentation.runOnMainSync(() -> invoke(story, activity,
+                CampaignStory.afterMission(1), null, (Runnable) continuations::incrementAndGet));
+        instrumentation.runOnMainSync(() -> activity.getOnBackPressedDispatcher().onBackPressed());
+        instrumentation.runOnMainSync(() -> activity.getOnBackPressedDispatcher().onBackPressed());
+        assertEquals(1, continuations.get());
         instrumentation.runOnMainSync(activity::finish);
     }
 

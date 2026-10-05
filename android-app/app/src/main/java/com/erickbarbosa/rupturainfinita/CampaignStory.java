@@ -48,6 +48,14 @@ final class CampaignStory {
                         "Então vamos salvar o multiverso sem apertar o botão vermelho. Alguém marcou qual é o botão vermelho?", false));
     }
 
+    static Scene chamberOpening() {
+        return new Scene("POR TRÁS DA CÂMARA", "CÂMARA DE VARIANTES", false,
+                reed("Construí esta Câmara para mapear a assinatura de cada variante. Ela calibra a Manopla para você acessar aquele potencial com segurança."),
+                strange("Meus selos mantêm as realidades vizinhas separadas. Sem eles, uma variante poderia trazer sua ruptura junto."),
+                new Line("deadpool", "DEADPOOL",
+                        "Reed cuida dos números, Strange dos selos, você escolhe o herói. Eu cuido da trilha sonora imaginária.", false));
+    }
+
     static Scene afterMission(int chapter) {
         switch (chapter) {
             case 1:
